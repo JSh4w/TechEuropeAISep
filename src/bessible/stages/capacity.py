@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import math
+import os
 import re
 from operator import itemgetter
 from typing import TYPE_CHECKING, Literal
@@ -17,8 +19,12 @@ from bessible.ukpn.snapshot import DATASET_ID, DATASET_URL, Snapshot, get_snapsh
 
 if TYPE_CHECKING:
     from bessible.api.ukpn import CapacityHeatmapSite
+    from bessible.location.models import Substation
 
 MODEL_USED = "ukpn-snapshot"
+LIVE_MODEL_USED = "live-dno-headroom"
+LIVE_TIMEOUT_S = 45
+log = logging.getLogger(__name__)
 CONFIDENCE = 0.9
 FLOOR_MW = 5.0
 SEARCH_RADIUS_KM = 5.0  # serving substation and alternates must be within this
@@ -241,9 +247,105 @@ def _append_check_log(inp: CapacityInput, out: CapacityOutput) -> None:
         fh.write(json.dumps(record) + "\n")
 
 
+async def propose_live(position: Position, run_id: str, *, fallback: CapacityOutput) -> CapacityOutput:
+    """Outside the snapshot: live DNO headroom (UKPN, NGED, SSEN) from `location.collate`. Any failure -> fallback."""
+    if os.environ.get("BESSIBLE_LIVE_LAND") != "1":
+        return fallback
+    try:
+        return await asyncio.wait_for(_propose_live(position, run_id), LIVE_TIMEOUT_S) or fallback
+    except Exception:
+        log.exception("live capacity lookup failed; keeping snapshot result")
+        return fallback
+
+
+async def _propose_live(position: Position, run_id: str) -> CapacityOutput | None:
+    from bessible.location import Coordinates, collate  # ruff: ignore[import-outside-top-level]
+
+    location = await collate(Coordinates(lat=position.lat, lon=position.lon))
+    with_headroom = [
+        s for s in location.deterministic.grid.substations if s.headroom and s.distance_km <= SEARCH_RADIUS_KM
+    ]
+    if not with_headroom:
+        return None
+    primaries = [s for s in with_headroom if s.kind == "primary"] or with_headroom
+
+    def firm(sub: Substation) -> float:
+        """A battery imports and exports, so the smaller headroom binds, capped by connection voltage."""
+        h = sub.headroom
+        if h is None:
+            return 0.0
+        cap = voltage_cap_mw(sub.voltage_kv) if sub.voltage_kv else HIGH_VOLTAGE_CAP_MW
+        return max(0.0, min(h.generation_mw or 0.0, h.demand or 0.0, cap))
+
+    # Best connection option in reach: headroom weighted down by distance (same weighting as the alternates).
+    primaries = sorted(primaries, key=lambda sub: -firm(sub) * distance_weight(sub.distance_km))
+    serving = primaries[0]
+    head = serving.headroom
+    assert head is not None  # ruff: ignore[assert]
+    firm_mw = round(firm(serving), 2)
+    message = (
+        None
+        if firm_mw >= FLOOR_MW
+        else f"Firm capacity at {serving.name} is {firm_mw:.1f} MW, below the {FLOOR_MW:g} MW floor."
+    )
+    urls = [
+        s.url
+        for s in location.sources
+        if s.status == "ok" and s.url.startswith("http") and s.name.startswith(("UKPN", "NGED", "SSEN"))
+    ]
+    source = HttpUrl(urls[0]) if urls else HttpUrl(DATASET_URL)
+
+    def art(suffix: str, claim: str) -> Artifact:
+        return Artifact(
+            id=f"capacity-{suffix}-{run_id[:8]}",
+            stage="capacity",
+            claim=f"{claim} [{serving.operator} live open data]",
+            source_url=source,
+            confidence=0.85,
+            model_used=LIVE_MODEL_USED,
+        )
+
+    return CapacityOutput(
+        viable=message is None,
+        message=message,
+        out_of_area=False,
+        substation=serving.name,
+        connection_voltage_kv=serving.voltage_kv,
+        firm_mw=firm_mw,
+        ceiling_mw=firm_mw,
+        recommended_mw=firm_mw,
+        binding_direction="import" if (head.demand or 0.0) <= (head.generation_mw or 0.0) else "export",
+        distance_km=round(serving.distance_km, 2),
+        alternates=[
+            AlternateOption(
+                substation=s.name,
+                distance_km=round(s.distance_km, 2),
+                size_mw=round(firm(s), 2),
+                marginal=s.distance_km > MARGINAL_KM,
+            )
+            for s in primaries[1 : MAX_ALTERNATES + 1]
+        ],
+        tia_threshold_mw=1 if serving.tia_threshold_mw == 1 else 5 if serving.tia_threshold_mw == 5 else None,
+        artifacts=[
+            art(
+                "substation",
+                f"Predicted point of connection: {serving.name} ({serving.operator}, {serving.voltages or serving.voltage_kv} kV), "
+                f"{serving.distance_km:.2f} km away",
+            ),
+            art(
+                "headroom",
+                f"Published headroom at {serving.name}: import {head.demand} {head.demand_unit}, "
+                f"export {head.generation_mw} MW ({head.basis}); firm = smaller of the two = {firm_mw:g} MW",
+            ),
+        ],
+    )
+
+
 async def propose_capacity(inp: CapacityInput) -> CapacityOutput:
     """Assess available grid headroom at the located position and propose capacity limits."""
     snapshot = await asyncio.to_thread(get_snapshot)
     out = propose(inp.location.position, snapshot, inp.run_id, flexible=inp.request.flexible_connection)
+    if out.out_of_area:
+        out = await propose_live(inp.location.position, inp.run_id, fallback=out)
     await asyncio.to_thread(_append_check_log, inp, out)
     return out

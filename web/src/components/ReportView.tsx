@@ -405,6 +405,51 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
         </CardContent>
       </Card>
 
+      {/* Deterministic hard checks from the data layer (site_land artifacts) */}
+      {artifacts.some((a) => a.stage === 'site_land' && /^(OK|Caveat|Blocker|Unknown): /.test(a.claim)) && (
+        <Card className="border-border bg-card shadow-xs">
+          <CardHeader className="pb-3 border-b border-border/60">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-bold text-foreground">Site & Land Hard Checks</CardTitle>
+              <span className="text-xs text-muted-foreground">
+                Deterministic rules on live public data, measured against the real title boundary
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
+            {artifacts
+              .filter((a) => a.stage === 'site_land' && /^(OK|Caveat|Blocker|Unknown): /.test(a.claim))
+              .map((a) => {
+                const [outcome, ...rest] = a.claim.split(': ');
+                const tone =
+                  outcome === 'OK'
+                    ? 'bg-emerald-500/15 text-emerald-700 border-emerald-500/40'
+                    : outcome === 'Caveat'
+                      ? 'bg-amber-500/15 text-amber-700 border-amber-500/40'
+                      : outcome === 'Blocker'
+                        ? 'bg-red-500/15 text-red-700 border-red-500/40'
+                        : 'bg-muted text-muted-foreground border-border';
+                const name = a.id.replace(/^site_land-/, '').replace(/-[^-]*$/, '').replace(/_/g, ' ');
+                return (
+                  <div
+                    key={a.id}
+                    onClick={() => setSelectedArtifact(a)}
+                    className="flex items-start gap-3 p-2.5 rounded-lg border border-border bg-muted/30 text-xs cursor-pointer hover:border-emerald-500/50 transition"
+                  >
+                    <span className={`shrink-0 w-16 text-center px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase ${tone}`}>
+                      {outcome}
+                    </span>
+                    <div>
+                      <div className="font-semibold capitalize text-foreground">{name}</div>
+                      <div className="text-muted-foreground mt-0.5">{rest.join(': ')}</div>
+                    </div>
+                  </div>
+                );
+              })}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Explainable AI: Artifacts & Data Provenance */}
       <Card className="border-border bg-card shadow-xs">
         <CardHeader className="pb-3 border-b border-border/60">

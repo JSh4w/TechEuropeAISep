@@ -8,7 +8,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel, model_validator
 
 from bessible.models import CapacityOutput, Position
-from bessible.stages.capacity import propose
+from bessible.stages.capacity import propose, propose_live
 from bessible.ukpn.snapshot import get_snapshot
 
 if TYPE_CHECKING:
@@ -38,4 +38,7 @@ class CapacityCheckRequest(BaseModel):
 async def check_capacity(req: CapacityCheckRequest) -> CapacityOutput:
     """Run direct grid capacity proposal for a coordinate under 1 second."""
     snapshot = get_snapshot()
-    return propose(req.position, snapshot, run_id="check", flexible=req.flexible)
+    out = propose(req.position, snapshot, run_id="check", flexible=req.flexible)
+    if out.out_of_area:
+        out = await propose_live(req.position, "check", fallback=out)
+    return out
