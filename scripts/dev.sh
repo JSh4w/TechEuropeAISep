@@ -5,8 +5,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 export PATH="$PATH:$HOME/.temporalio/bin"
 
-WEB_DIR=sandbox/map_session/web
+WEB_DIR=web
 WEB_PORT="${WEB_PORT:-3000}"
+API_PORT="${API_PORT:-8000}"
 LOGS=out/logs
 mkdir -p "$LOGS"
 
@@ -43,23 +44,30 @@ fi
 
 # 2. Worker
 echo "==> Starting worker"
-uv run python sandbox/map_session/worker.py >"$LOGS/worker.log" 2>&1 &
+uv run python -m bessible.worker >"$LOGS/worker.log" 2>&1 &
 PIDS="$PIDS $!"
 
-# 3. Web UI
-[ -d "$WEB_DIR/node_modules" ] || (cd "$WEB_DIR" && npm ci --no-audit --no-fund)
+# 3. API Server
+echo "==> Starting FastAPI backend"
+uv run uvicorn bessible.api.app:app --port "$API_PORT" >"$LOGS/api.log" 2>&1 &
+PIDS="$PIDS $!"
+wait_for "API Server" 30 curl -sf -o /dev/null "http://localhost:$API_PORT/health"
+
+# 4. Web UI
+[ -d "$WEB_DIR/node_modules" ] || (cd "$WEB_DIR" && npm install --no-audit --no-fund)
 echo "==> Starting web UI"
 (cd "$WEB_DIR" && exec npx next dev -p "$WEB_PORT") >"$LOGS/web.log" 2>&1 &
 PIDS="$PIDS $!"
 wait_for "Web UI" 90 curl -sf -o /dev/null "http://localhost:$WEB_PORT"
 
 echo
-echo "  App:          http://localhost:$WEB_PORT"
+echo "  Web UI:       http://localhost:$WEB_PORT"
+echo "  API Server:   http://localhost:$API_PORT"
 echo "  Temporal UI:  http://localhost:8233"
-echo "  Logs:         $LOGS/  (worker + web shown below; Ctrl+C stops everything)"
+echo "  Logs:         $LOGS/  (worker + api + web shown below; Ctrl+C stops everything)"
 echo
 if [ "$(uname)" = Darwin ]; then open "http://localhost:$WEB_PORT"; fi
 
-tail -n +1 -f "$LOGS/worker.log" "$LOGS/web.log" &
+tail -n +1 -f "$LOGS/worker.log" "$LOGS/api.log" "$LOGS/web.log" &
 PIDS="$PIDS $!"
 wait
