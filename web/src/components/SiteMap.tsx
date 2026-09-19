@@ -12,8 +12,8 @@ interface SiteMapProps {
   onPositionChange: (pos: [number, number]) => void;
   capacityMw: number;
   substations?: SubstationOption[];
-  areasGeoJson?: any;
-  inspireGeoJson?: any;
+  areasGeoJson?: GeoJSON.GeoJSON | null;
+  inspireGeoJson?: GeoJSON.GeoJSON | null;
   maxDistanceKm?: number;
 }
 

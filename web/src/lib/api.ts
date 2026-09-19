@@ -11,9 +11,9 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export class ApiError extends Error {
   status: number;
-  data: any;
+  data: unknown;
 
-  constructor(status: number, message: string, data?: any) {
+  constructor(status: number, message: string, data?: unknown) {
     super(message);
     this.status = status;
     this.data = data;
@@ -115,7 +115,7 @@ export async function checkCapacity(
   return res.json();
 }
 
-export async function getAreasGeoJson(): Promise<any> {
+export async function getAreasGeoJson(): Promise<GeoJSON.GeoJSON | null> {
   const res = await fetch(`${API_BASE}/data/areas.geojson`);
   if (!res.ok) {
     return null;
@@ -125,7 +125,7 @@ export async function getAreasGeoJson(): Promise<any> {
 
 export async function getInspirePolygons(
   bbox: [number, number, number, number]
-): Promise<any> {
+): Promise<GeoJSON.GeoJSON | null> {
   const [minLng, minLat, maxLng, maxLat] = bbox;
   const res = await fetch(
     `${API_BASE}/inspire?bbox=${minLng},${minLat},${maxLng},${maxLat}`
