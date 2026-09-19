@@ -53,7 +53,7 @@ def connection_voltage_kv(row: CapacityHeatmapSite) -> float | None:
 
 def voltage_cap_mw(voltage_kv: float) -> float:
     """What the connection voltage can carry, independent of headroom."""
-    return LOW_VOLTAGE_CAP_MW if voltage_kv <= 22 else HIGH_VOLTAGE_CAP_MW  # ruff: ignore[magic-value-comparison]
+    return LOW_VOLTAGE_CAP_MW if voltage_kv <= 22 else HIGH_VOLTAGE_CAP_MW
 
 
 def tia_threshold_mw(row: CapacityHeatmapSite) -> Literal[1, 5] | None:

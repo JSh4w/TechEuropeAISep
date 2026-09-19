@@ -49,6 +49,7 @@ from bessible.models import (
     NodeInput, GridOutput, SiteLandOutput, MarketOutput,
     FinancialInput, FinancialOutput,
     PlanningInput, PlanningOutput,
+    SentimentOutput,
     SynthesisInput, ReportOutput,
 )
 
@@ -70,13 +71,16 @@ async def site_land(inp: NodeInput) -> SiteLandOutput: ...
 # 6. Market Revenue Projections (src/bessible/stages/market.py)
 async def market_revenue(inp: NodeInput) -> MarketOutput: ...
 
-# 7. Financial Model (src/bessible/stages/financial.py)
+# 7. Local Community Sentiment (src/bessible/stages/sentiment.py)
+async def local_sentiment(inp: NodeInput) -> SentimentOutput: ...
+
+# 8. Financial Model (src/bessible/stages/financial.py)
 async def financial_model(inp: FinancialInput) -> FinancialOutput: ...
 
-# 8. Regulatory & Planning (src/bessible/stages/planning.py)
+# 9. Regulatory & Planning (src/bessible/stages/planning.py)
 async def regulatory_planning(inp: PlanningInput) -> PlanningOutput: ...
 
-# 9. Synthesis & Report (src/bessible/stages/synthesis.py)
+# 10. Synthesis & Report (src/bessible/stages/synthesis.py)
 async def synthesise(inp: SynthesisInput) -> ReportOutput: ...
 ```
 
@@ -103,3 +107,9 @@ async def synthesise(inp: SynthesisInput) -> ReportOutput: ...
    uv run python -m bessible.cli confirm <run-id> [--capacity-mw 12.0]
    uv run python -m bessible.cli result <run-id>
    ```
+
+### Pre-demo checklist (Suitability Engine)
+
+1. **Modal container warmup:** Ensure `min_containers=1` on `bessible-classifier` so classification latency stays < 1 second.
+2. **Fixture cache warm:** Confirm demo postcodes (`RH4 1AD`, `OX14 4TE`, `SE1 7PB`, `CB24 9ZR`) have cached news in `data/fixtures/news/` so runs complete reliably offline.
+3. **Temporal UI:** Open http://localhost:8233 to monitor activity executions in real time.

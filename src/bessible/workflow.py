@@ -29,6 +29,7 @@ with workflow.unsafe.imports_passed_through():
         PlanningOutput,
         ReportOutput,
         RunStatus,
+        SentimentOutput,
         SiteDecision,
         SiteLandOutput,
         Stage,
@@ -36,6 +37,8 @@ with workflow.unsafe.imports_passed_through():
         TitleInput,
         TitleOutput,
     )
+    from bessible.suitability.analyst import temporal_analyst_agent
+    from bessible.suitability.research import temporal_research_agent
 
 TASK_QUEUE = "bessible"
 
@@ -59,6 +62,8 @@ AGENT_OPTS = {
 class AssessmentWorkflow:
     """Orchestrates an end-to-end BESS site assessment."""
 
+    __pydantic_ai_agents__ = [temporal_research_agent, temporal_analyst_agent]
+
     def __init__(self) -> None:
         """Initialize workflow state."""
         self._status: Literal[
@@ -81,11 +86,16 @@ class AssessmentWorkflow:
     @workflow.query
     def status(self) -> RunStatus:
         """Query current status and active stages."""
+        msg = None
+        if self._capacity and not self._capacity.viable:
+            msg = self._capacity.message
         return RunStatus(
             status=self._status,
             stages=list(self._stages),
             capacity=self._capacity,
             boundary=self._boundary,
+            position=self._location.position if self._location else None,
+            message=msg,
         )
 
     @workflow.update
@@ -117,11 +127,12 @@ class AssessmentWorkflow:
                     f"{self._capacity.ceiling_mw:g} MW"
                 )
                 raise ValueError(msg)
-            if (
-                self._request is not None
-                and not self._request.flexible_connection
-                and cap_mw > self._capacity.firm_mw
-            ):
+            is_flex = (
+                decision.flexible_connection
+                if decision.flexible_connection is not None
+                else (self._request.flexible_connection if self._request else False)
+            )
+            if not is_flex and cap_mw > self._capacity.firm_mw:
                 msg = (
                     f"Capacity {cap_mw:g} MW exceeds firm headroom of "
                     f"{self._capacity.firm_mw:g} MW (flexible connection disabled)"
@@ -212,10 +223,16 @@ class AssessmentWorkflow:
             if decision.capacity_mw is not None
             else self._capacity.recommended_mw
         )
+        is_flex = (
+            decision.flexible_connection
+            if decision.flexible_connection is not None
+            else (self._request.flexible_connection if self._request else False)
+        )
         return ConfirmedSite(
             position=chosen_pos,
             capacity_mw=chosen_cap,
             boundary=title,
+            flexible_connection=is_flex,
         )
 
     async def _run_parallel_groups(
@@ -223,14 +240,14 @@ class AssessmentWorkflow:
         run_id: str,
         site: ConfirmedSite,
         all_artifacts: list[Artifact],
-    ) -> tuple[GridOutput, SiteLandOutput, MarketOutput, FinancialOutput, PlanningOutput]:
+    ) -> tuple[GridOutput, SiteLandOutput, MarketOutput, FinancialOutput, PlanningOutput, SentimentOutput]:
         """Execute parallel analysis groups and collect outputs."""
         if self._request is None or self._capacity is None:
             msg = "Workflow request or capacity missing before analysis"
             raise RuntimeError(msg)
 
         # Parallel Group 1
-        self._stages = ["grid", "site_land", "market"]
+        self._stages = ["grid", "site_land", "market", "sentiment"]
         node_in = NodeInput(
             run_id=run_id, request=self._request, site=site, capacity=self._capacity
         )
@@ -238,11 +255,15 @@ class AssessmentWorkflow:
         grid_fut = workflow.execute_activity(activities.grid_connection, node_in, **AGENT_OPTS)
         land_fut = workflow.execute_activity(activities.site_land, node_in, **AGENT_OPTS)
         market_fut = workflow.execute_activity(activities.market_revenue, node_in, **AGENT_OPTS)
+        sentiment_fut = workflow.execute_activity(activities.local_sentiment, node_in, **AGENT_OPTS)
 
-        grid, site_land, market = await asyncio.gather(grid_fut, land_fut, market_fut)
+        grid, site_land, market, sentiment = await asyncio.gather(
+            grid_fut, land_fut, market_fut, sentiment_fut
+        )
         all_artifacts.extend(grid.artifacts)
         all_artifacts.extend(site_land.artifacts)
         all_artifacts.extend(market.artifacts)
+        all_artifacts.extend(sentiment.artifacts)
 
         # Parallel Group 2
         self._stages = ["financial", "planning"]
@@ -270,14 +291,14 @@ class AssessmentWorkflow:
         all_artifacts.extend(fin.artifacts)
         all_artifacts.extend(plan.artifacts)
 
-        return grid, site_land, market, fin, plan
+        return grid, site_land, market, fin, plan, sentiment
 
     async def _run_synthesis(
         self,
         run_id: str,
         site: ConfirmedSite,
         analysis: tuple[
-            GridOutput, SiteLandOutput, MarketOutput, FinancialOutput, PlanningOutput
+            GridOutput, SiteLandOutput, MarketOutput, FinancialOutput, PlanningOutput, SentimentOutput
         ],
         all_artifacts: list[Artifact],
     ) -> ReportOutput:
@@ -285,7 +306,7 @@ class AssessmentWorkflow:
         if self._request is None or self._capacity is None:
             msg = "Workflow request or capacity missing before synthesis"
             raise RuntimeError(msg)
-        grid, site_land, market, fin, plan = analysis
+        grid, site_land, market, fin, plan, sentiment = analysis
 
         self._stages = ["synthesis"]
         synth_in = SynthesisInput(
@@ -298,6 +319,7 @@ class AssessmentWorkflow:
             market=market,
             financial=fin,
             planning=plan,
+            sentiment=sentiment,
             artifacts=all_artifacts,
         )
 

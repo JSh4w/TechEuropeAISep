@@ -32,9 +32,14 @@ def _secret(value: SecretStr | None, name: str) -> str:
 
 def setup_logfire() -> None:
     """Trace agent runs to Logfire if LOGFIRE_TOKEN is set; otherwise do nothing."""
-    token = settings.logfire_token.get_secret_value() if settings.logfire_token else None
-    logfire.configure(token=token, send_to_logfire="if-token-present", console=False)
-    logfire.instrument_pydantic_ai()
+    try:
+        token = settings.logfire_token.get_secret_value() if settings.logfire_token else None
+        logfire.configure(token=token, send_to_logfire="if-token-present", console=False)
+        logfire.instrument_pydantic_ai()
+    except Exception as exc:  # ruff: ignore[blind-except]
+        import logging
+
+        logging.getLogger(__name__).warning("Logfire setup failed; continuing without Logfire: %s", exc)
 
 
 def gemini_model() -> GoogleModel:

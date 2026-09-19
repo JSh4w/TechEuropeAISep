@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 
+from pydantic_ai.durable_exec.temporal import PydanticAIPlugin
 from temporalio.client import Client
 from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.worker import Worker
@@ -20,6 +21,7 @@ async def run_worker() -> None:
         settings.temporal_address,
         namespace=settings.temporal_namespace,
         data_converter=pydantic_data_converter,
+        plugins=[PydanticAIPlugin()],
     )
     worker = Worker(
         client,

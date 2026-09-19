@@ -17,6 +17,7 @@ Stage = Literal[
     "financial",
     "planning",
     "synthesis",
+    "sentiment",
 ]
 
 Verdict = Literal["go", "maybe", "no_go"]
@@ -30,6 +31,20 @@ class AssessmentRequest(BaseModel):
     battery_mw: float | None = None
     budget_gbp: float | None = None
     flexible_connection: bool = False
+    link: str | HttpUrl | None = None
+    target_mw: float | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def populate_aliases(cls, data: Any) -> Any:  # ruff: ignore[any-type]
+        """Map link -> property_url and target_mw -> battery_mw."""
+        if isinstance(data, dict):
+            data = dict(data)
+            if "link" in data and not data.get("property_url"):
+                data["property_url"] = data["link"]
+            if "target_mw" in data and data.get("battery_mw") is None:
+                data["battery_mw"] = data["target_mw"]
+        return data
 
     @model_validator(mode="after")
     def validate_site_provided(self) -> AssessmentRequest:
@@ -45,6 +60,17 @@ class Position(BaseModel):
 
     lat: float
     lon: float
+
+    @model_validator(mode="before")
+    @classmethod
+    def parse_coords(cls, data: Any) -> Any:  # ruff: ignore[any-type]
+        """Accept [lon, lat] pairs or dicts with lng instead of lon."""
+        coord_pair_len = 2
+        if isinstance(data, (list, tuple)) and len(data) == coord_pair_len:
+            return {"lon": float(data[0]), "lat": float(data[1])}
+        if isinstance(data, dict) and "lng" in data and "lon" not in data:
+            return {**data, "lon": data["lng"]}
+        return data
 
 
 class Artifact(BaseModel):
@@ -158,6 +184,8 @@ class SiteDecision(BaseModel):
     confirmed: bool
     position: Position | None = None
     capacity_mw: float | None = None
+    footprint_acres: float | None = None
+    flexible_connection: bool | None = None
 
 
 class ConfirmedSite(BaseModel):
@@ -252,6 +280,15 @@ class FinancialInput(NodeInput):
     market: MarketOutput
 
 
+class CaseBound(BaseModel):
+    """Lower or upper bound for financial metrics in a duration case."""
+
+    capex_gbp: float
+    npv_gbp: float
+    irr: float | None = None
+    payback_years: float | None = None
+
+
 class DurationCase(BaseModel):
     """Financial returns for a specific storage duration case."""
 
@@ -261,6 +298,9 @@ class DurationCase(BaseModel):
     irr: float | None = None
     over_budget: bool = False
     curtailment_pct: float | None = None
+    low: CaseBound | None = None
+    high: CaseBound | None = None
+    payback_years: float | None = None
 
 
 REQUIRED_DURATION_HOURS = (2, 4, 8)
@@ -270,6 +310,8 @@ class FinancialOutput(BaseModel):
     """Financial modeling outputs across storage durations."""
 
     cases: list[DurationCase]
+    recommended_h: Literal[2, 4, 8] | None = None
+    rationale: str | None = None
     artifacts: list[Artifact] = Field(default_factory=list)
 
     @model_validator(mode="after")
@@ -304,6 +346,16 @@ class Finding(BaseModel):
     artifact_ids: list[str] = Field(min_length=1)
 
 
+class SentimentOutput(BaseModel):
+    """Local community sentiment analysis output."""
+
+    opposition_index: float | None = None  # 0-1, None = unknown
+    top_concerns: list[str] = Field(default_factory=list)  # up to 3
+    sources: int = 0
+    paragraphs: int = 0
+    artifacts: list[Artifact] = Field(default_factory=list)
+
+
 class SynthesisInput(NodeInput):
     """Input for final report synthesis stage."""
 
@@ -312,6 +364,7 @@ class SynthesisInput(NodeInput):
     market: MarketOutput
     financial: FinancialOutput
     planning: PlanningOutput
+    sentiment: SentimentOutput | None = None
     artifacts: list[Artifact] = Field(default_factory=list)
 
 
@@ -327,6 +380,7 @@ class ReportOutput(BaseModel):
 class RunStatus(BaseModel):
     """Current state of a workflow run queried by clients."""
 
+    run_id: str | None = None
     status: Literal[
         "running",
         "awaiting_confirmation",
@@ -339,6 +393,8 @@ class RunStatus(BaseModel):
     stages: list[Stage] = Field(default_factory=list)
     capacity: CapacityOutput | None = None
     boundary: TitleOutput | None = None
+    position: Position | None = None
+    message: str | None = None
 
 
 class AssessmentResult(BaseModel):

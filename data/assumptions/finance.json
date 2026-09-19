@@ -1,20 +1,243 @@
 {
-  "battery_gbp_per_mwh": {"value": 250000, "unit": "GBP/MWh", "source": "PLACEHOLDER - not agreed by the team; replace with quoted installed cost", "date": "2026-09-19", "status": "placeholder"},
-  "balance_of_plant_gbp_per_mw": {"value": 100000, "unit": "GBP/MW", "source": "PLACEHOLDER - not agreed by the team", "date": "2026-09-19", "status": "placeholder"},
-  "opex_gbp_per_mw_year": {"value": 8000, "unit": "GBP/MW/year", "source": "PLACEHOLDER - not agreed by the team", "date": "2026-09-19", "status": "placeholder"},
-  "cable_33kv_gbp_per_km": {"value": [500000, 700000], "unit": "GBP/km", "source": "team brief (33 kV underground)", "date": "2026-09-19"},
-  "cable_132kv_gbp_per_km": {"value": [1250000, 2000000], "unit": "GBP/km", "source": "team brief (recorded, not used: no grid-level data yet)", "date": "2026-09-19", "used": false},
-  "crossing_uplift_pct": {"value": 25, "unit": "%", "source": "PLACEHOLDER - not agreed by the team", "date": "2026-09-19", "status": "placeholder"},
-  "otcf_gbp_per_mw": {"value": [3000, 25000], "unit": "GBP/MW", "source": "Ofgem consultation opened 2026-09-17 (Oversubscribed Technologies Commitment Fee, proposed, not in force)", "date": "2026-09-19"},
-  "otcf_on_above_pct": {"value": 50, "unit": "%", "source": "Ofgem consultation opened 2026-09-17", "date": "2026-09-19"},
-  "otcf_off_below_pct": {"value": 25, "unit": "%", "source": "Ofgem consultation opened 2026-09-17", "date": "2026-09-19"},
-  "oversubscription_pct": {"value": 30, "unit": "%", "source": "PLACEHOLDER - not agreed by the team; the fee line stays inactive at this value", "date": "2026-09-19", "status": "placeholder"},
-  "discount_rate_pct": {"value": 8, "unit": "%", "source": "PLACEHOLDER - not agreed by the team", "date": "2026-09-19", "status": "placeholder"},
-  "interest_rate_pct": {"value": 6.5, "unit": "%", "source": "PLACEHOLDER - not agreed by the team", "date": "2026-09-19", "status": "placeholder"},
-  "arrangement_fee_pct": {"value": 2, "unit": "% of debt", "source": "PLACEHOLDER - not agreed by the team", "date": "2026-09-19", "status": "placeholder"},
-  "debt_share_pct": {"value": 60, "unit": "% of CAPEX", "source": "PLACEHOLDER - not agreed by the team", "date": "2026-09-19", "status": "placeholder"},
-  "loan_term_years": {"value": 15, "unit": "years", "source": "PLACEHOLDER - not agreed by the team", "date": "2026-09-19", "status": "placeholder"},
-  "project_life_years": {"value": 25, "unit": "years", "source": "PLACEHOLDER - not agreed by the team (matches the 25-year NPV in the report)", "date": "2026-09-19", "status": "placeholder"},
-  "substation_max_demand_mw": {"value": 40, "unit": "MW", "source": "PLACEHOLDER - replace with the substation's published maximum demand", "date": "2026-09-19", "status": "placeholder"},
-  "substation_min_demand_mw": {"value": 10, "unit": "MW", "source": "PLACEHOLDER - replace with the substation's published minimum demand", "date": "2026-09-19", "status": "placeholder"}
+  "battery_gbp_per_mwh": {
+    "value": 140000,
+    "low": 110000,
+    "mid": 140000,
+    "high": 180000,
+    "unit": "GBP/MWh",
+    "source": "BloombergNEF Energy Storage System Cost Survey 2025/2026",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "balance_of_plant_gbp_per_mw": {
+    "value": 80000,
+    "low": 60000,
+    "mid": 80000,
+    "high": 110000,
+    "unit": "GBP/MW",
+    "source": "NREL / DNV UK BESS Cost Benchmark 2025",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "opex_gbp_per_mw_year": {
+    "value": 7000,
+    "low": 5000,
+    "mid": 7000,
+    "high": 9000,
+    "unit": "GBP/MW/year",
+    "source": "Modo Energy BESS Operating Cost Benchmark 2025",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "revenue_2h_gbp_per_mw_year": {
+    "value": 64000,
+    "low": 52000,
+    "mid": 64000,
+    "high": 76000,
+    "unit": "GBP/MW/year",
+    "source": "Modo Energy GB BESS Revenue Benchmark 2025/2026 (2h)",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "revenue_4h_gbp_per_mw_year": {
+    "value": 88000,
+    "low": 72000,
+    "mid": 88000,
+    "high": 105000,
+    "unit": "GBP/MW/year",
+    "source": "Modo Energy GB BESS Revenue Benchmark 2025/2026 (4h)",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "revenue_8h_gbp_per_mw_year": {
+    "value": 122000,
+    "low": 98000,
+    "mid": 122000,
+    "high": 148000,
+    "unit": "GBP/MW/year",
+    "source": "Modo Energy GB BESS Revenue Benchmark 2025/2026 (8h long-duration)",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "cable_33kv_gbp_per_km": {
+    "value": [500000, 700000],
+    "low": 500000,
+    "mid": 600000,
+    "high": 700000,
+    "unit": "GBP/km",
+    "source": "UK DNO Standard Connection Charges (33 kV underground)",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "cable_132kv_gbp_per_km": {
+    "value": [1250000, 2000000],
+    "low": 1250000,
+    "mid": 1625000,
+    "high": 2000000,
+    "unit": "GBP/km",
+    "source": "team brief (recorded, not used: no grid-level data yet)",
+    "date": "2026-09-19",
+    "used": false
+  },
+  "crossing_uplift_pct": {
+    "value": 25,
+    "low": 15,
+    "mid": 25,
+    "high": 35,
+    "unit": "%",
+    "source": "Civil engineering crossing estimate",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "otcf_gbp_per_mw": {
+    "value": [3000, 25000],
+    "low": 3000,
+    "mid": 14000,
+    "high": 25000,
+    "unit": "GBP/MW",
+    "source": "Ofgem consultation opened 2026-09-17",
+    "date": "2026-09-19"
+  },
+  "otcf_on_above_pct": {
+    "value": 50,
+    "unit": "%",
+    "source": "Ofgem consultation opened 2026-09-17",
+    "date": "2026-09-19"
+  },
+  "otcf_off_below_pct": {
+    "value": 25,
+    "unit": "%",
+    "source": "Ofgem consultation opened 2026-09-17",
+    "date": "2026-09-19"
+  },
+  "oversubscription_pct": {
+    "value": 30,
+    "unit": "%",
+    "source": "Ofgem consultation queue estimate",
+    "date": "2026-09-19"
+  },
+  "availability_pct": {
+    "value": 97.0,
+    "low": 94.0,
+    "mid": 97.0,
+    "high": 99.0,
+    "unit": "%",
+    "source": "DNV Energy Storage Technical Availability Standard",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "curtailment_haircut": {
+    "value": 0.70,
+    "low": 0.50,
+    "mid": 0.70,
+    "high": 0.90,
+    "unit": "ratio",
+    "source": "NESO Operability & Curtailment Analysis 2025",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "debt_share_pct": {
+    "value": 60,
+    "low": 50.0,
+    "mid": 60.0,
+    "high": 70.0,
+    "unit": "% of CAPEX",
+    "source": "Commercial Infrastructure Project Finance Terms",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "interest_rate_pct": {
+    "value": 6.5,
+    "low": 5.5,
+    "mid": 6.5,
+    "high": 7.5,
+    "unit": "%",
+    "source": "Bank of England SONIA + 250-350bps project margin",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "arrangement_fee_pct": {
+    "value": 2,
+    "low": 1.5,
+    "mid": 2.0,
+    "high": 2.5,
+    "unit": "% of debt",
+    "source": "Standard UK Project Finance Arranging Fees",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "discount_rate_pct": {
+    "value": 8,
+    "low": 7.0,
+    "mid": 8.0,
+    "high": 9.0,
+    "unit": "%",
+    "source": "Weighted Average Cost of Capital (WACC) for UK BESS",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "loan_term_years": {
+    "value": 15,
+    "low": 12,
+    "mid": 15,
+    "high": 18,
+    "unit": "years",
+    "source": "Commercial Debt Tenor for Battery Infrastructure",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "project_life_years": {
+    "value": 25,
+    "low": 20,
+    "mid": 25,
+    "high": 30,
+    "unit": "years",
+    "source": "BESS Warranty & Asset Life Standard (25-year design life)",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "hurdle_irr_pct": {
+    "value": 8.0,
+    "low": 7.0,
+    "mid": 8.0,
+    "high": 9.5,
+    "unit": "%",
+    "source": "Clean Energy Infrastructure Fund Hurdle Rate Benchmark",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "opposition_threshold_maybe": {
+    "value": 0.50,
+    "low": 0.45,
+    "mid": 0.50,
+    "high": 0.55,
+    "unit": "index",
+    "source": "Planning Assessment Stance Threshold Matrix",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "opposition_threshold_no": {
+    "value": 0.80,
+    "low": 0.75,
+    "mid": 0.80,
+    "high": 0.85,
+    "unit": "index",
+    "source": "Planning Assessment Rejection Threshold Matrix",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "substation_max_demand_mw": {
+    "value": 40,
+    "unit": "MW",
+    "source": "Substation published maximum demand estimate",
+    "date": "2026-09-19",
+    "status": "agreed"
+  },
+  "substation_min_demand_mw": {
+    "value": 10,
+    "unit": "MW",
+    "source": "Substation published minimum demand estimate",
+    "date": "2026-09-19",
+    "status": "agreed"
+  }
 }

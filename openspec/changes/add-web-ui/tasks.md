@@ -1,15 +1,15 @@
 ## 1. F1 web-api (start here)
 
-- [ ] 1.1 Add `fastapi` and `uvicorn` with `uv add`; write `api/app.py` and `api/runs.py` with `POST /runs`, `GET /runs/{id}/status`, `GET /runs/{id}/result`; verify with `curl` that a start returns a run id and status shows `awaiting_confirmation` for a demo postcode
-- [ ] 1.2 Add `POST /runs/{id}/decision` with the 422 range error and 404; verify with `curl` that an out-of-range capacity returns the allowed range and a valid one continues the run
-- [ ] 1.3 Add `POST /capacity/check`, `/data/areas.geojson` and the Temporal-down 503; verify with `curl` that the check returns in under 1 s and that stopping Temporal gives the `temporal server start-dev` message
+- [x] 1.1 Add `fastapi` and `uvicorn` with `uv add`; write `api/app.py` and `api/runs.py` with `POST /runs`, `GET /runs/{id}/status`, `GET /runs/{id}/result`; verify with `curl` that a start returns a run id and status shows `awaiting_confirmation` for a demo postcode
+- [x] 1.2 Add `POST /runs/{id}/decision` with the 422 range error and 404; verify with `curl` that an out-of-range capacity returns the allowed range and a valid one continues the run
+- [x] 1.3 Add `POST /capacity/check`, `/data/areas.geojson` and the Temporal-down 503; verify with `curl` that the check returns in under 1 s and that stopping Temporal gives the `temporal server start-dev` message
 
 ## 2. F2 live-trace
 
-- [ ] 2.1 Write `events.py` `emit` (append-only JSONL, never raises) and call it from the activity wrappers on stage start and end; verify a demo run creates `out/<run_id>/events.jsonl` with increasing ids
-- [ ] 2.2 Add `GET /runs/{id}/events` (SSE, tails the file, closes after the final event); verify with `curl -N` that events appear live during a run
-- [ ] 2.3 Support `Last-Event-ID`; verify with `curl -N -H "Last-Event-ID: 3"` that the first event has id 4
-- [ ] 2.4 Wrap Logfire setup so errors are swallowed and add an `emit` call for agent progress in one agent stage; verify a run completes with a bad `LOGFIRE_TOKEN` and the trace still streams
+- [x] 2.1 Write `events.py` `emit` (append-only JSONL, never raises) and call it from the activity wrappers on stage start and end; verify a demo run creates `out/<run_id>/events.jsonl` with increasing ids
+- [x] 2.2 Add `GET /runs/{id}/events` (SSE, tails the file, closes after the final event); verify with `curl -N` that events appear live during a run
+- [x] 2.3 Support `Last-Event-ID`; verify with `curl -N -H "Last-Event-ID: 3"` that the first event has id 4
+- [x] 2.4 Wrap Logfire setup so errors are swallowed and add an `emit` call for agent progress in one agent stage; verify a run completes with a bad `LOGFIRE_TOKEN` and the trace still streams
 
 ## 3. F3 site-map (needs F1; also uses `add-footprint-sizing`)
 

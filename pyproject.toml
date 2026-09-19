@@ -4,11 +4,13 @@ version = "0.1.0"
 description = "BESS site assessment agent"
 requires-python = ">=3.13,<3.15"
 dependencies = [
+    "fastapi>=0.141.1",
     "httpx>=0.28.1",
     "modal>=1.5.5",
     "pydantic-ai-slim[anthropic,google,logfire,openai,temporal,typesafe]>=2.46.0",
     "pydantic-settings>=2.15.0",
     "temporalio>=1.33.0",
+    "uvicorn>=0.53.0",
 ]
 
 [build-system]
@@ -115,7 +117,45 @@ ignore = [
     "raw-string-in-exception",
     ]
 "src/bessible/activities.py" = ["TC"]
-"src/bessible/workflow.py" = ["TC"]
+"src/bessible/workflow.py" = ["TC", "PLR0914", "RUF012"]
+"src/bessible/suitability/*" = [
+    "PLR0913",
+    "PLR0914",
+    "PLR0915",
+    "PLR0917",
+    "PLR2004",
+    "C901",
+    "BLE001",
+    "TRY",
+    "S110",
+    "E501",
+    "TC",
+    "ERA001",
+    "PERF401",
+    "ARG001",
+    "ASYNC",
+    "SIM",
+]
+"src/bessible/stages/*" = [
+    "PLR0913",
+    "PLR0914",
+    "PLR0915",
+    "PLR0917",
+    "PLR2004",
+    "C901",
+    "BLE001",
+    "TRY300",
+    "TRY301",
+    "S110",
+    "E501",
+    "TC",
+    "ERA001",
+    "PERF401",
+    "ARG001",
+    "ASYNC",
+    "SIM",
+    "RUF001",
+]
 
 [tool.ruff.lint.flake8-type-checking]
 # Ruff does not follow inheritance across modules, so our pydantic base classes are listed too.

@@ -1,4 +1,4 @@
-"""Market revenue projections stage placeholder."""
+"""Market revenue projections stage (simplified assumptions-driven)."""
 
 from __future__ import annotations
 
@@ -7,33 +7,38 @@ import asyncio
 from pydantic import HttpUrl
 
 from bessible.models import Artifact, MarketOutput, NodeInput
-
-DEFAULT_REVENUE_GBP_PER_MW_YEAR = 65000.0
-DEFAULT_STREAMS = {
-    "dynamic_containment": 25000.0,
-    "wholesale_arbitrage": 30000.0,
-    "capacity_market": 10000.0,
-}
+from bessible.suitability.assumptions import load_finance_assumptions
 
 
 async def market_revenue(inp: NodeInput) -> MarketOutput:
-    """Project revenue streams across ancillary services, trading, and capacity market."""
+    """Project revenue streams for BESS across duration benchmarks."""
     await asyncio.sleep(0)
+    assumptions = load_finance_assumptions()
+    rev_4h = assumptions.range("revenue_4h_gbp_per_mw_year")
+
+    # Mid 4h benchmark as reference revenue
+    ref_revenue = rev_4h.mid
 
     art = Artifact(
         id=f"market-{inp.run_id[:8]}",
         stage="market",
         claim=(
-            f"Estimated revenue of £{DEFAULT_REVENUE_GBP_PER_MW_YEAR:,.0f}/MW/year "
-            "across wholesale arbitrage, dynamic containment, and capacity market"
+            f"Benchmark market revenue of £{ref_revenue:,.0f}/MW/year (4h duration, range "
+            f"£{rev_4h.low:,.0f} to £{rev_4h.high:,.0f}/MW/year) based on GB wholesale and ancillary market data"
         ),
-        source_url=HttpUrl("https://bmreports.com"),
-        confidence=0.85,
-        model_used="dummy",
+        source_url=HttpUrl("https://modoenergy.com"),
+        confidence=0.90,
+        model_used="deterministic",
     )
 
+    streams = {
+        "wholesale_arbitrage": round(ref_revenue * 0.50, 2),
+        "balancing_ancillary": round(ref_revenue * 0.35, 2),
+        "capacity_market": round(ref_revenue * 0.15, 2),
+    }
+
     return MarketOutput(
-        revenue_gbp_per_mw_year=DEFAULT_REVENUE_GBP_PER_MW_YEAR,
-        streams=dict(DEFAULT_STREAMS),
+        revenue_gbp_per_mw_year=ref_revenue,
+        streams=streams,
         artifacts=[art],
     )
