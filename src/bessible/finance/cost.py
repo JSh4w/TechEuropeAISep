@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel
 
-from bessible.assumptions import AssumptionSet
+if TYPE_CHECKING:
+    from bessible.assumptions import AssumptionSet
 
 Duration = Literal[2, 4, 8]
 
@@ -28,7 +29,10 @@ class CostBreakdown(BaseModel):
 
 def _otcf_state(oversubscription_pct: float, on_above: float, off_below: float) -> tuple[bool, str]:
     if oversubscription_pct > on_above:
-        return True, f"active (oversubscription {oversubscription_pct:g}% is above {on_above:g}%), proposed, not in force"
+        return (
+            True,
+            f"active (oversubscription {oversubscription_pct:g}% is above {on_above:g}%), proposed, not in force",
+        )
     if oversubscription_pct < off_below:
         return False, f"inactive (oversubscription {oversubscription_pct:g}% is below {off_below:g}%)"
     return False, f"inactive (oversubscription {oversubscription_pct:g}% is between {off_below:g}% and {on_above:g}%)"

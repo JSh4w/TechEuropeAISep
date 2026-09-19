@@ -1,123 +1,137 @@
-"""Financial modeling assessment stage."""
+"""Financial model assessment stage: CAPEX, OPEX, curtailment, and returns across durations."""
 
 from __future__ import annotations
 
+import asyncio
+
 from pydantic import HttpUrl
 
-from bessible.models import Artifact, CaseBound, DurationCase, FinancialInput, FinancialOutput
-from bessible.suitability.analyst import run_analyst
-from bessible.suitability.assumptions import load_finance_assumptions
-from bessible.suitability.finance import CaseResult, Duration, evaluate
+from bessible.finance import load_finance_assumptions
+from bessible.finance.cost import CostBreakdown, cost
+from bessible.finance.curtailment import curtailment_pct, load_demand_profile, load_duration_curve
+from bessible.finance.returns import returns
+from bessible.market.stack import total
+from bessible.models import Artifact, DurationCase, FinancialInput, FinancialOutput
+
+CROSSING_KEYWORDS = ("crossing", "railway", "rail", "river", "road", "canal", "hard surface")
+
+
+def _detect_crossings(inp: FinancialInput) -> bool:
+    """Check if site land constraints indicate route crossings or hard surfaces."""
+    if inp.site_land and inp.site_land.constraints:
+        return any(any(k in c.lower() for k in CROSSING_KEYWORDS) for c in inp.site_land.constraints)
+    return False
 
 
 async def financial_model(inp: FinancialInput) -> FinancialOutput:
-    """Evaluate 2h, 4h, and 8h BESS storage durations using deterministic modeling and LLM analyst."""
-    assumptions = load_finance_assumptions()
+    """Evaluate financial returns across 2-hour, 4-hour, and 8-hour duration cases in plain code."""
+    await asyncio.sleep(0)
     mw = inp.site.capacity_mw
-    firm_mw = inp.capacity.firm_mw
-    distance_km = inp.capacity.distance_km
-    budget_gbp = inp.request.budget_gbp
-
-    durations: list[Duration] = [2, 4, 8]
-    evaluated_cases: dict[Duration, CaseResult] = {
-        d: evaluate(
-            mw=mw,
-            duration_h=d,
-            distance_km=distance_km,
-            firm_mw=firm_mw,
-            budget_gbp=budget_gbp,
-            a=assumptions,
-        )
-        for d in durations
-    }
-
-    # Run the analyst agent to recommend optimal duration
-    recommendation = await run_analyst(
-        mw=mw,
-        distance_km=distance_km,
-        firm_mw=firm_mw,
-        budget_gbp=budget_gbp,
-        assumptions=assumptions,
-        cases=evaluated_cases,
+    distance_km = (
+        inp.capacity.distance_km if (inp.capacity.distance_km is not None and inp.capacity.distance_km > 0) else 1.0
     )
+    firm_mw = inp.capacity.firm_mw
+    ceiling_mw = inp.capacity.ceiling_mw
+    budget_gbp = inp.request.budget_gbp
+    crossings = _detect_crossings(inp)
+
+    a = load_finance_assumptions()
+    profile = load_demand_profile()
+    max_mw = a.number("substation_max_demand_mw")
+    min_mw = a.number("substation_min_demand_mw")
+    curve = load_duration_curve(max_mw, min_mw, profile.values)
 
     cases: list[DurationCase] = []
-    artifacts: list[Artifact] = []
+    cost_by_duration: dict[int, CostBreakdown] = {}
+    curt_by_duration: dict[int, float] = {}
 
-    for d in durations:
-        cr = evaluated_cases[d]
-        irr_mid = cr.irr.mid if cr.irr else None
-        pb_mid = cr.payback_years.mid if cr.payback_years else None
+    for d in (2, 4, 8):
+        c = cost(d, mw, distance_km, crossings=crossings, a=a)
+        cost_by_duration[d] = c
+        curt = curtailment_pct(mw, firm_mw, ceiling_mw, curve, d, max_mw=max_mw, min_mw=min_mw)
+        curt_by_duration[d] = curt
 
-        low_bound = CaseBound(
-            capex_gbp=cr.capex_gbp.low,
-            npv_gbp=cr.npv_gbp.low,
-            irr=cr.irr.low if cr.irr else None,
-            payback_years=cr.payback_years.low if cr.payback_years else None,
-        )
-        high_bound = CaseBound(
-            capex_gbp=cr.capex_gbp.high,
-            npv_gbp=cr.npv_gbp.high,
-            irr=cr.irr.high if cr.irr else None,
-            payback_years=cr.payback_years.high if cr.payback_years else None,
-        )
+        if inp.market.by_duration and d in inp.market.by_duration:
+            rev = total(inp.market.by_duration[d])
+        else:
+            rev = inp.market.revenue_gbp_per_mw_year
 
-        case = DurationCase(
-            duration_h=d,
-            capex_gbp=cr.capex_gbp.mid,
-            npv_gbp=cr.npv_gbp.mid,
-            irr=irr_mid,
-            over_budget=cr.over_budget,
-            curtailment_pct=cr.curtailment_pct,
-            payback_years=pb_mid,
-            low=low_bound,
-            high=high_bound,
-        )
+        case = returns(c, rev, curt, mw, a, budget_gbp=budget_gbp)
         cases.append(case)
 
-        irr_str = f"{irr_mid * 100:.1f}%" if irr_mid is not None else "N/A"
-        pb_str = f"{pb_mid:.1f} years" if pb_mid is not None else "Beyond 25 years"
-        budget_note = " [OVER BUDGET]" if cr.over_budget else ""
-        artifacts.append(
-            Artifact(
-                id=f"financial-case-{d}h-{inp.run_id[:8]}",
-                stage="financial",
-                claim=(
-                    f"{d}-hour duration: mid CAPEX £{cr.capex_gbp.mid:,.0f}, 25-yr NPV £{cr.npv_gbp.mid:,.0f}, "
-                    f"IRR {irr_str}, simple payback {pb_str}, curtailment {cr.curtailment_pct:.1f}%{budget_note}."
-                ),
-                source_url=HttpUrl("https://www.gov.uk/government/publications/energy-and-emissions-projections"),
-                confidence=0.92,
-                model_used="deterministic",
-            )
+    # Reference case (4h) for summary artifacts
+    c_4h = cost_by_duration[4]
+    int_rate = a.number("interest_rate_pct")
+    arr_fee = a.number("arrangement_fee_pct")
+    disc_rate = a.number("discount_rate_pct")
+    debt_share = a.number("debt_share_pct")
+    loan_term = int(a.number("loan_term_years"))
+
+    crossing_str = (
+        f"crossing uplift of {a.number('crossing_uplift_pct'):g}% applied"
+        if crossings
+        else "no crossing uplift applied"
+    )
+
+    art_cost = Artifact(
+        id=f"financial-cost-{inp.run_id[:8]}",
+        stage="financial",
+        claim=(
+            f"Financing terms: interest rate {int_rate:g}%, arrangement fee {arr_fee:g}%, "
+            f"discount rate {disc_rate:g}%, debt share {debt_share:g}%, loan term {loan_term} years. "
+            f"33 kV connection (£500k-£700k/km over {distance_km:.2f} km): "
+            f"£{c_4h.connection_gbp[0]:,.0f} - £{c_4h.connection_gbp[1]:,.0f} ({crossing_str}). "
+            f"OTCF fee: {c_4h.otcf_state}."
+        ),
+        source_url=HttpUrl("https://www.ofgem.gov.uk/"),
+        confidence=0.9,
+        model_used="financial-model",
+    )
+
+    art_curtailment = Artifact(
+        id=f"financial-curtailment-{inp.run_id[:8]}",
+        stage="financial",
+        claim=(
+            "Curtailment estimate (documented assumption, not measured data): "
+            f"2h: {curt_by_duration[2]:.1f}%, 4h: {curt_by_duration[4]:.1f}%, 8h: {curt_by_duration[8]:.1f}%. "
+            f"Demand profile: {profile.source} ({profile.date}), scaled between {min_mw:g} MW and {max_mw:g} MW. "
+            f"Applied to overlap between dispatch hours and grid constraints above firm capacity ({firm_mw:g} MW)."
+        ),
+        source_url=HttpUrl("https://www.elexon.co.uk/"),
+        confidence=0.85,
+        model_used="financial-model",
+    )
+
+    case_summaries = []
+    for case in cases:
+        irr_str = f"{case.irr * 100:.1f}%" if case.irr is not None else "N/A"
+        case_summaries.append(
+            f"{case.duration_h}h (CAPEX £{case.capex_gbp:,.0f}, NPV £{case.npv_gbp:,.0f}, IRR {irr_str})"
         )
 
-    # Assumptions & recommendation artifacts
-    artifacts.extend([
-        Artifact(
-            id=f"financial-assumptions-{inp.run_id[:8]}",
-            stage="financial",
-            claim=(
-                "Financial assessment based on documented assumptions in finance.json "
-                "(screening estimate; not investment advice)."
-            ),
-            file_path="data/assumptions/finance.json",
-            confidence=0.95,
-            model_used="finance.json",
-        ),
-        Artifact(
-            id=f"financial-rec-{inp.run_id[:8]}",
-            stage="financial",
-            claim=f"Recommended duration: {recommendation.duration_h}h. Rationale: {recommendation.rationale}",
-            source_url=HttpUrl("https://deepmind.google/technologies/gemini/"),
-            confidence=0.90,
-            model_used="gemini-3.8-flash",
-        ),
-    ])
+    returns_claim = f"25-year returns: {'; '.join(case_summaries)}."
+    over_budget_cases = [f"{c.duration_h}h" for c in cases if c.over_budget]
+    if over_budget_cases:
+        returns_claim += f" Flagged over budget: {', '.join(over_budget_cases)}."
+    if any(c.irr is None for c in cases):
+        returns_claim += " Cases with N/A IRR do not pay back equity over project life."
+
+    art_returns = Artifact(
+        id=f"financial-returns-{inp.run_id[:8]}",
+        stage="financial",
+        claim=returns_claim,
+        source_url=HttpUrl("https://www.ofgem.gov.uk/"),
+        confidence=0.9,
+        model_used="financial-model",
+    )
+
+    best_case = max((c for c in cases if c.irr is not None), key=lambda c: c.irr, default=None)
+    rec_h = best_case.duration_h if best_case else 4
+    rationale = f"Optimal returns at {rec_h}-hour duration based on financial model projections."
 
     return FinancialOutput(
         cases=cases,
-        recommended_h=recommendation.duration_h,
-        rationale=recommendation.rationale,
-        artifacts=artifacts,
+        recommended_h=rec_h,
+        rationale=rationale,
+        artifacts=[art_cost, art_curtailment, art_returns],
     )

@@ -734,7 +734,7 @@ def main() -> None:
         "elev": elev,
         "ne": ne,
         "ukpn": grid,
-        "osKey": os.environ.get("OS_API_KEY"),
+        "osKey": env("OS_API_KEY"),
     }
     facts = f"Title: {title_popup.replace('<br>', ' · ')}" if title_geom else "No title boundary found at this point."
     if elev:

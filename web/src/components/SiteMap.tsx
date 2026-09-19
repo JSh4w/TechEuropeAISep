@@ -289,6 +289,45 @@ export default function SiteMap({
     });
   }, [mapLoaded, substations, initialCenter]);
 
+  // Render Distribution Areas GeoJSON outline if provided
+  useEffect(() => {
+    if (!mapRef.current || !mapLoaded || !areasGeoJson) return;
+    const map = mapRef.current;
+    const sourceId = 'distribution-areas-source';
+
+    const source = map.getSource(sourceId) as GeoJSONSource;
+    if (source) {
+      source.setData(areasGeoJson);
+    } else {
+      map.addSource(sourceId, {
+        type: 'geojson',
+        data: areasGeoJson,
+      });
+
+      map.addLayer({
+        id: 'distribution-areas-fill',
+        type: 'fill',
+        source: sourceId,
+        paint: {
+          'fill-color': '#6366f1',
+          'fill-opacity': 0.05,
+        },
+      });
+
+      map.addLayer({
+        id: 'distribution-areas-line',
+        type: 'line',
+        source: sourceId,
+        paint: {
+          'line-color': '#4f46e5',
+          'line-width': 2,
+          'line-dasharray': [3, 2],
+          'line-opacity': 0.7,
+        },
+      });
+    }
+  }, [mapLoaded, areasGeoJson]);
+
   // Render INSPIRE polygons overlay if provided
   useEffect(() => {
     if (!mapRef.current || !mapLoaded || !inspireGeoJson) return;

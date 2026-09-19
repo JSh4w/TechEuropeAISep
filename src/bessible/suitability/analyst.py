@@ -118,10 +118,7 @@ async def run_analyst(
     """Run the analyst agent with fallback on error."""
     assump = assumptions or load_finance_assumptions()
     if cases is None:
-        cases = {
-            d: evaluate(mw, d, distance_km, firm_mw, budget_gbp, assump)
-            for d in (2, 4, 8)
-        }
+        cases = {d: evaluate(mw, d, distance_km, firm_mw, budget_gbp, assump) for d in (2, 4, 8)}
 
     deps = AnalystDeps(
         mw=mw,

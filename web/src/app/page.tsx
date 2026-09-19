@@ -18,6 +18,7 @@ import {
   SubstationOption,
   TraceEvent,
 } from '../lib/types';
+import { distanceKm, generateMockInspireParcels } from '../lib/footprint';
 import {
   startRun,
   getRunStatus,
@@ -25,6 +26,7 @@ import {
   getRunResult,
   checkCapacity,
   subscribeEvents,
+  getInspirePolygons,
 } from '../lib/api';
 import {
   BatteryCharging,
@@ -74,6 +76,8 @@ export default function Home() {
   const [selectedCapacityMw, setSelectedCapacityMw] = useState<number>(10);
   const [flexibleConnection, setFlexibleConnection] = useState<boolean>(false);
   const [submittingDecision, setSubmittingDecision] = useState<boolean>(false);
+  const [substationChangeNotice, setSubstationChangeNotice] = useState<string | null>(null);
+  const [inspireGeoJson, setInspireGeoJson] = useState<any>(null);
 
   // Assessment Final Result
   const [result, setResult] = useState<AssessmentResult | null>(null);

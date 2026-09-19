@@ -9,6 +9,7 @@ dependencies = [
     "modal>=1.5.5",
     "pydantic-ai-slim[anthropic,google,logfire,openai,temporal,typesafe]>=2.46.0",
     "pydantic-settings>=2.15.0",
+    "shapely>=2.1.2",
     "temporalio>=1.33.0",
     "uvicorn>=0.53.0",
 ]
@@ -69,10 +70,13 @@ ignore = [
     "docstring-missing-returns",
     "docstring-missing-exception",
     "no-self-use",
-    "non-empty-init-module"
-    ]
+    "non-empty-init-module",
+    "non-imperative-mood",
+]
 
 [tool.ruff.lint.per-file-ignores]
+# The hard checks are small `Proposal -> Check` functions whose names say what they check.
+"src/bessible/possibility/hard.py" = ["undocumented-public-function"]
 # A command-line script: prints, runs top to bottom, holds the map's JavaScript and UI text (en dashes intended).
 "scripts/site_report.py" = [
     "print",
@@ -87,7 +91,7 @@ ignore = [
     "too-many-statements-in-try-clause",
     "line-too-long",
     "ambiguous-unicode-character-string",
-    ]
+]
 "test_*" = [
     "ANN",
     "D",
@@ -101,7 +105,10 @@ ignore = [
     "implicit-namespace-package",
     "raise-vanilla-args",
     "raw-string-in-exception",
-    ]
+    "magic-value-comparison",
+    "unused-async",
+    "boolean-positional-value-in-call",
+]
 "tests/*" = [
     "ANN",
     "D",
@@ -115,7 +122,10 @@ ignore = [
     "implicit-namespace-package",
     "raise-vanilla-args",
     "raw-string-in-exception",
-    ]
+    "magic-value-comparison",
+    "unused-async",
+    "boolean-positional-value-in-call",
+]
 "src/bessible/activities.py" = ["TC"]
 "src/bessible/workflow.py" = ["TC", "PLR0914", "RUF012"]
 "src/bessible/suitability/*" = [
@@ -137,6 +147,7 @@ ignore = [
     "SIM",
 ]
 "src/bessible/stages/*" = [
+    "PLR0912",
     "PLR0913",
     "PLR0914",
     "PLR0915",
@@ -159,12 +170,23 @@ ignore = [
 
 [tool.ruff.lint.flake8-type-checking]
 # Ruff does not follow inheritance across modules, so our pydantic base classes are listed too.
+exempt-modules = [
+    "bessible.api.base",
+    "bessible.api.opendatasoft",
+    "bessible.api.ckan",
+    "bessible.api.ssen",
+    "bessible.api.ukpn",
+    "bessible.models",
+    "bessible.suitability.assumptions",
+]
 runtime-evaluated-base-classes = [
     "pydantic.BaseModel",
     "pydantic_settings.BaseSettings",
     "bessible.api.base.ApiRequest",
     "bessible.api.base.ApiResponse",
     "bessible.api.base.NullMarkerResponse",
+    "bessible.api.opendatasoft.RecordsRequest",
+    "bessible.api.opendatasoft.RecordsResponse",
     "bessible.api.ckan.CkanResponse",
     "bessible.api.ckan.DatastoreSearchRequest",
     "bessible.api.ckan.DatastoreSearchSqlRequest",
@@ -173,6 +195,7 @@ runtime-evaluated-base-classes = [
     "bessible.api.nged._Record",
     "bessible.api.ssen_distribution._Record",
     "bessible.api.planning_data.EntityBase",
+    "bessible.models.StageInput",
 ]
 
 [tool.ruff.lint.isort]

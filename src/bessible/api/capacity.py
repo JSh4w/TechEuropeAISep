@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING
 
 from fastapi import APIRouter
 from pydantic import BaseModel, model_validator
@@ -10,6 +10,9 @@ from pydantic import BaseModel, model_validator
 from bessible.models import CapacityOutput, Position
 from bessible.stages.capacity import propose
 from bessible.ukpn.snapshot import get_snapshot
+
+if TYPE_CHECKING:
+    from typing import Any
 
 router = APIRouter(tags=["capacity"])
 

@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import TYPE_CHECKING
 
 from pydantic import HttpUrl
 
-from bessible.assumptions import AssumptionSet
 from bessible.models import StreamValue
+
+if TYPE_CHECKING:
+    from bessible.assumptions import AssumptionSet
 
 SUPPORT_SCHEMES = {
     "cap_and_floor": ("Ofgem LDES cap and floor", "https://www.ofgem.gov.uk/"),
@@ -20,9 +23,10 @@ def _rules(name: str, a: AssumptionSet) -> dict[str, float]:
     rules = a.mapping(name)
     for key in RULE_KEYS:
         if key not in rules:
-            from bessible.assumptions import MissingAssumption  # noqa: PLC0415
+            from bessible.assumptions import MissingAssumption  # ruff: ignore[import-outside-top-level]
 
-            raise MissingAssumption(f"{name}.{key}")
+            msg = f"{name}.{key}"
+            raise MissingAssumption(msg)
     return rules
 
 

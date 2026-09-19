@@ -22,9 +22,7 @@ OPPOSITION_MAYBE = 0.50
 OPPOSITION_NO = 0.80
 
 
-def decide(
-    fin: FinancialOutput, sent: SentimentOutput | None = None
-) -> tuple[Verdict, list[str]]:
+def decide(fin: FinancialOutput, sent: SentimentOutput | None = None) -> tuple[Verdict, list[str]]:
     """Determine suitability verdict (go / maybe / no_go) using deterministic rules."""
     try:
         assumptions = load_finance_assumptions()
@@ -61,15 +59,11 @@ def decide(
     # Check for MAYBE conditions
     is_maybe = False
     if irr < hurdle:
-        rule_lines.append(
-            f"CAUTION: Commercial IRR ({irr * 100:.1f}%) is below the hurdle rate ({hurdle * 100:.1f}%)."
-        )
+        rule_lines.append(f"CAUTION: Commercial IRR ({irr * 100:.1f}%) is below the hurdle rate ({hurdle * 100:.1f}%).")
         is_maybe = True
 
     if case.over_budget:
-        rule_lines.append(
-            f"CAUTION: CAPEX for {case.duration_h}h (£{case.capex_gbp:,.0f}) exceeds declared budget."
-        )
+        rule_lines.append(f"CAUTION: CAPEX for {case.duration_h}h (£{case.capex_gbp:,.0f}) exceeds declared budget.")
         is_maybe = True
 
     if opp_index is not None and opp_index >= opp_maybe:
@@ -253,7 +247,9 @@ def build_template_findings(
     # 3. Community Sentiment
     sent_ids = art_ids_by_stage.get("sentiment", [])
     if inp.sentiment and inp.sentiment.opposition_index is not None:
-        concerns_text = f"Top concerns identified: {', '.join(inp.sentiment.top_concerns)}." if inp.sentiment.top_concerns else ""
+        concerns_text = (
+            f"Top concerns identified: {', '.join(inp.sentiment.top_concerns)}." if inp.sentiment.top_concerns else ""
+        )
         findings.append(
             Finding(
                 text=(
@@ -287,9 +283,7 @@ def build_template_findings(
 class FindingsList(BaseModel):
     """Schema for Gemini generated findings."""
 
-    findings: list[Finding] = Field(
-        description="Key synthesised findings, each citing at least one valid artifact ID"
-    )
+    findings: list[Finding] = Field(description="Key synthesised findings, each citing at least one valid artifact ID")
 
 
 async def generate_findings(inp: SynthesisInput) -> list[Finding]:
@@ -303,9 +297,7 @@ async def generate_findings(inp: SynthesisInput) -> list[Finding]:
     computed_numbers = collect_computed_numbers(inp)
 
     # Prepare available artifacts context
-    art_summary = "\n".join(
-        f"- [{art.id}] ({art.stage}): {art.claim}" for art in inp.artifacts[:25]
-    )
+    art_summary = "\n".join(f"- [{art.id}] ({art.stage}): {art.claim}" for art in inp.artifacts[:25])
 
     agent: Agent[None, FindingsList] = Agent(
         gemini_model(),

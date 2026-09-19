@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
 
 import logfire
@@ -37,8 +38,6 @@ def setup_logfire() -> None:
         logfire.configure(token=token, send_to_logfire="if-token-present", console=False)
         logfire.instrument_pydantic_ai()
     except Exception as exc:  # ruff: ignore[blind-except]
-        import logging
-
         logging.getLogger(__name__).warning("Logfire setup failed; continuing without Logfire: %s", exc)
 
 

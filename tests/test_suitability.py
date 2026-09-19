@@ -53,23 +53,17 @@ def test_opposition_index_mixed_coverage():
     items = [
         Classified(
             text="Residents object over fire hazard",
-            labels=ParagraphLabels(
-                relevant=True, stance="against", concern="fire safety", mentions_risk=True
-            ),
+            labels=ParagraphLabels(relevant=True, stance="against", concern="fire safety", mentions_risk=True),
             confidence={"relevant": 1.0, "stance": 0.9, "concern": 0.9},
         ),
         Classified(
             text="Second objection over fire safety",
-            labels=ParagraphLabels(
-                relevant=True, stance="against", concern="fire safety", mentions_risk=True
-            ),
+            labels=ParagraphLabels(relevant=True, stance="against", concern="fire safety", mentions_risk=True),
             confidence={"relevant": 1.0, "stance": 0.9, "concern": 0.85},
         ),
         Classified(
             text="Local group supports green transition",
-            labels=ParagraphLabels(
-                relevant=True, stance="supportive", concern="ecology", mentions_risk=False
-            ),
+            labels=ParagraphLabels(relevant=True, stance="supportive", concern="ecology", mentions_risk=False),
             confidence={"relevant": 1.0, "stance": 0.6, "concern": 0.7},
         ),
     ]
@@ -86,9 +80,7 @@ def test_opposition_index_no_relevant():
     items = [
         Classified(
             text="Flower festival in town center",
-            labels=ParagraphLabels(
-                relevant=False, stance="neutral", concern="other", mentions_risk=False
-            ),
+            labels=ParagraphLabels(relevant=False, stance="neutral", concern="other", mentions_risk=False),
             confidence={"relevant": 0.95, "stance": 0.5, "concern": 0.5},
         )
     ]
@@ -99,9 +91,7 @@ def test_opposition_index_no_relevant():
 
 def test_assumptions_validation_fails_on_missing_key():
     """Verify loading fails with KeyError naming the key when a value is removed."""
-    base_assumptions = json.loads(
-        Path("data/assumptions/finance.json").read_text(encoding="utf-8")
-    )
+    base_assumptions = json.loads(Path("data/assumptions/finance.json").read_text(encoding="utf-8"))
     assert "battery_gbp_per_mwh" in base_assumptions
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as f:
@@ -256,12 +246,7 @@ async def test_end_to_end_suitability_stages():
     land = SiteLandOutput(land_use="Agricultural Grade 3")
     plan = PlanningOutput(consenting_route="LPA Planning Consent")
     all_artifacts = (
-        title.artifacts
-        + cap.artifacts
-        + grid.artifacts
-        + mkt_out.artifacts
-        + sent_out.artifacts
-        + fin_out.artifacts
+        title.artifacts + cap.artifacts + grid.artifacts + mkt_out.artifacts + sent_out.artifacts + fin_out.artifacts
     )
 
     synth_in = SynthesisInput(

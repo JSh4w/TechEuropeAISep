@@ -1,6 +1,6 @@
 {
   "battery_gbp_per_mwh": {
-    "value": 140000,
+    "value": 250000,
     "low": 110000,
     "mid": 140000,
     "high": 180000,
@@ -10,7 +10,7 @@
     "status": "agreed"
   },
   "balance_of_plant_gbp_per_mw": {
-    "value": 80000,
+    "value": 100000,
     "low": 60000,
     "mid": 80000,
     "high": 110000,

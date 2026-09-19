@@ -129,3 +129,51 @@ export function clampPositionWithinDistance(
 
   return [clampedLng, clampedLat];
 }
+
+/**
+ * Generates sample HM Land Registry INSPIRE parcel polygons around a coordinate
+ */
+export function generateMockInspireParcels(
+  center: [number, number]
+): GeoJSON.FeatureCollection<GeoJSON.Polygon> {
+  const [lng, lat] = center;
+  const offsets = [
+    [-0.002, -0.001, 0.0018, 0.0012],
+    [0.0005, -0.0015, 0.002, 0.001],
+    [-0.0015, 0.0008, 0.0015, 0.0014],
+    [0.0008, 0.0005, 0.0022, 0.0016],
+  ];
+
+  const features: GeoJSON.Feature<GeoJSON.Polygon>[] = offsets.map((off, idx) => {
+    const minLng = lng + off[0];
+    const minLat = lat + off[1];
+    const width = off[2];
+    const height = off[3];
+
+    return {
+      type: 'Feature',
+      properties: {
+        id: `INSPIRE_${1000 + idx}`,
+        national_cadastral_reference: `TGL${90000 + idx * 123}`,
+        area_acres: Number((width * height * 100000).toFixed(2)),
+      },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [minLng, minLat],
+            [minLng + width, minLat],
+            [minLng + width, minLat + height],
+            [minLng, minLat + height],
+            [minLng, minLat],
+          ],
+        ],
+      },
+    };
+  });
+
+  return {
+    type: 'FeatureCollection',
+    features,
+  };
+}

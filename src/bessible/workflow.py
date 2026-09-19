@@ -113,19 +113,12 @@ class AssessmentWorkflow:
             if self._capacity is None:
                 msg = "Cannot confirm without a capacity proposal"
                 raise ValueError(msg)
-            cap_mw = (
-                decision.capacity_mw
-                if decision.capacity_mw is not None
-                else self._capacity.recommended_mw
-            )
+            cap_mw = decision.capacity_mw if decision.capacity_mw is not None else self._capacity.recommended_mw
             if cap_mw <= 0:
                 msg = f"Capacity must be positive (got {cap_mw:g} MW)"
                 raise ValueError(msg)
             if cap_mw > self._capacity.ceiling_mw:
-                msg = (
-                    f"Capacity {cap_mw:g} MW exceeds ceiling headroom of "
-                    f"{self._capacity.ceiling_mw:g} MW"
-                )
+                msg = f"Capacity {cap_mw:g} MW exceeds ceiling headroom of {self._capacity.ceiling_mw:g} MW"
                 raise ValueError(msg)
             is_flex = (
                 decision.flexible_connection
@@ -166,22 +159,16 @@ class AssessmentWorkflow:
         if cap.out_of_area:
             self._status = "out_of_area"
             self._stages = []
-            return AssessmentResult(
-                status="out_of_area", message=cap.message, artifacts=all_artifacts, run_dir=run_dir
-            )
+            return AssessmentResult(status="out_of_area", message=cap.message, artifacts=all_artifacts, run_dir=run_dir)
 
         if not cap.viable:
             self._status = "not_viable"
             self._stages = []
-            return AssessmentResult(
-                status="not_viable", message=cap.message, artifacts=all_artifacts, run_dir=run_dir
-            )
+            return AssessmentResult(status="not_viable", message=cap.message, artifacts=all_artifacts, run_dir=run_dir)
 
         return None
 
-    async def _await_confirmation(
-        self, run_id: str, all_artifacts: list[Artifact]
-    ) -> ConfirmedSite | AssessmentResult:
+    async def _await_confirmation(self, run_id: str, all_artifacts: list[Artifact]) -> ConfirmedSite | AssessmentResult:
         """Find title boundaries and await human confirmation."""
         if self._request is None or self._location is None or self._capacity is None:
             msg = "Workflow state incomplete before title stage"
@@ -218,11 +205,7 @@ class AssessmentWorkflow:
 
         self._status = "running"
         chosen_pos = decision.position or self._location.position
-        chosen_cap = (
-            decision.capacity_mw
-            if decision.capacity_mw is not None
-            else self._capacity.recommended_mw
-        )
+        chosen_cap = decision.capacity_mw if decision.capacity_mw is not None else self._capacity.recommended_mw
         is_flex = (
             decision.flexible_connection
             if decision.flexible_connection is not None
@@ -248,18 +231,14 @@ class AssessmentWorkflow:
 
         # Parallel Group 1
         self._stages = ["grid", "site_land", "market", "sentiment"]
-        node_in = NodeInput(
-            run_id=run_id, request=self._request, site=site, capacity=self._capacity
-        )
+        node_in = NodeInput(run_id=run_id, request=self._request, site=site, capacity=self._capacity)
 
         grid_fut = workflow.execute_activity(activities.grid_connection, node_in, **AGENT_OPTS)
         land_fut = workflow.execute_activity(activities.site_land, node_in, **AGENT_OPTS)
         market_fut = workflow.execute_activity(activities.market_revenue, node_in, **AGENT_OPTS)
         sentiment_fut = workflow.execute_activity(activities.local_sentiment, node_in, **AGENT_OPTS)
 
-        grid, site_land, market, sentiment = await asyncio.gather(
-            grid_fut, land_fut, market_fut, sentiment_fut
-        )
+        grid, site_land, market, sentiment = await asyncio.gather(grid_fut, land_fut, market_fut, sentiment_fut)
         all_artifacts.extend(grid.artifacts)
         all_artifacts.extend(site_land.artifacts)
         all_artifacts.extend(market.artifacts)
@@ -274,6 +253,7 @@ class AssessmentWorkflow:
             capacity=self._capacity,
             grid=grid,
             market=market,
+            site_land=site_land,
         )
         plan_in = PlanningInput(
             run_id=run_id,
@@ -284,8 +264,8 @@ class AssessmentWorkflow:
             site_land=site_land,
         )
 
-        fin_fut = workflow.execute_activity(activities.financial_model, fin_in, **AGENT_OPTS)
-        plan_fut = workflow.execute_activity(activities.regulatory_planning, plan_in, **AGENT_OPTS)
+        fin_fut = workflow.execute_activity(activities.financial_model, fin_in, **DEFAULT_OPTS)
+        plan_fut = workflow.execute_activity(activities.regulatory_planning, plan_in, **DEFAULT_OPTS)
 
         fin, plan = await asyncio.gather(fin_fut, plan_fut)
         all_artifacts.extend(fin.artifacts)
@@ -297,9 +277,7 @@ class AssessmentWorkflow:
         self,
         run_id: str,
         site: ConfirmedSite,
-        analysis: tuple[
-            GridOutput, SiteLandOutput, MarketOutput, FinancialOutput, PlanningOutput, SentimentOutput
-        ],
+        analysis: tuple[GridOutput, SiteLandOutput, MarketOutput, FinancialOutput, PlanningOutput, SentimentOutput],
         all_artifacts: list[Artifact],
     ) -> ReportOutput:
         """Run the final synthesis stage."""
@@ -322,24 +300,26 @@ class AssessmentWorkflow:
             sentiment=sentiment,
             artifacts=all_artifacts,
         )
-
-        report = await workflow.execute_activity(activities.synthesise, synth_in, **AGENT_OPTS)
+        report = await workflow.execute_activity(activities.synthesise, synth_in, **DEFAULT_OPTS)
         all_artifacts.extend(report.artifacts)
         return report
 
-    async def _execute_pipeline(
-        self, run_id: str, request: AssessmentRequest, all_artifacts: list[Artifact]
-    ) -> AssessmentResult:
-        """Sequential execution of assessment stages."""
+    @workflow.run
+    async def run(self, request: AssessmentRequest) -> AssessmentResult:
+        """Execute end-to-end BESS site assessment workflow."""
+        run_id = workflow.info().workflow_id
+        self._request = request
+        all_artifacts: list[Artifact] = []
+
         early_result = await self._run_location_and_capacity(run_id, request, all_artifacts)
         if early_result is not None:
             return early_result
 
-        confirmation_result = await self._await_confirmation(run_id, all_artifacts)
-        if isinstance(confirmation_result, AssessmentResult):
-            return confirmation_result
+        confirm_result = await self._await_confirmation(run_id, all_artifacts)
+        if isinstance(confirm_result, AssessmentResult):
+            return confirm_result
+        site = confirm_result
 
-        site = confirmation_result
         analysis = await self._run_parallel_groups(run_id, site, all_artifacts)
         report = await self._run_synthesis(run_id, site, analysis, all_artifacts)
 
@@ -352,17 +332,3 @@ class AssessmentWorkflow:
             artifacts=all_artifacts,
             run_dir=f"out/{run_id}",
         )
-
-    @workflow.run
-    async def run(self, request: AssessmentRequest) -> AssessmentResult:
-        """Execute the full assessment pipeline."""
-        self._request = request
-        run_id = workflow.info().workflow_id
-        all_artifacts: list[Artifact] = []
-
-        try:
-            return await self._execute_pipeline(run_id, request, all_artifacts)
-        except Exception:
-            self._status = "failed"
-            self._stages = []
-            raise

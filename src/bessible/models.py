@@ -173,7 +173,7 @@ class TitleOutput(BaseModel):
     """Land registry title boundaries and area."""
 
     title_number: str
-    boundary_geojson: dict[str, Any]
+    boundary_geojson: dict[str, Any] = Field(default_factory=dict)
     area_m2: float
     artifacts: list[Artifact] = Field(default_factory=list)
 
@@ -278,6 +278,7 @@ class FinancialInput(NodeInput):
 
     grid: GridOutput
     market: MarketOutput
+    site_land: SiteLandOutput | None = None
 
 
 class CaseBound(BaseModel):
@@ -331,12 +332,23 @@ class PlanningInput(NodeInput):
     site_land: SiteLandOutput
 
 
+class TiaStatement(BaseModel):
+    """Transmission Impact Assessment requirement statement and threshold."""
+
+    threshold_mw: Literal[1, 5] | None = None
+    triggered: bool | None = None
+    statement: str
+    source_url: HttpUrl = HttpUrl("https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/")
+    snapshot_date: date | None = None
+
+
 class PlanningOutput(BaseModel):
     """Consenting pathway and regulatory risk assessment."""
 
     consenting_route: str
     risks: list[str] = Field(default_factory=list)
     artifacts: list[Artifact] = Field(default_factory=list)
+    tia: TiaStatement | None = None
 
 
 class Finding(BaseModel):

@@ -10,10 +10,12 @@ dispatch hours that are constrained, scaled by how far capacity sits between fir
 from __future__ import annotations
 
 import json
-from pathlib import Path
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 from bessible.assumptions import ASSUMPTIONS_DIR
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 HOURS_PER_YEAR = 8760
 DAYS_PER_YEAR = 365
@@ -29,9 +31,10 @@ class DemandProfile(NamedTuple):
     date: str
 
 
-def load_demand_profile(path: Path = ASSUMPTIONS_DIR / "demand_profile.json") -> DemandProfile:
+def load_demand_profile(path: Path | None = None) -> DemandProfile:
     """Expand the hourly and monthly shape in `demand_profile.json` to 8760 values."""
-    raw = json.loads(path.read_text(encoding="utf-8"))
+    resolved_path = path or (ASSUMPTIONS_DIR / "demand_profile.json")
+    raw = json.loads(resolved_path.read_text(encoding="utf-8"))
     hourly: list[float] = raw["hourly"]
     monthly: list[float] = raw["monthly"]
     values = [
@@ -49,7 +52,7 @@ def load_duration_curve(max_mw: float, min_mw: float, profile: list[float]) -> l
     return [min_mw + (v - low) / (high - low) * (max_mw - min_mw) for v in profile]
 
 
-def curtailment_pct(  # noqa: PLR0913, PLR0917
+def curtailment_pct(  # ruff: ignore[too-many-arguments]
     capacity_mw: float,
     firm_mw: float,
     ceiling_mw: float,
