@@ -44,7 +44,7 @@ TASK_QUEUE = "bessible"
 
 RETRY_POLICY = RetryPolicy(
     maximum_attempts=3,
-    non_retryable_error_types=["ValidationError"],
+    non_retryable_error_types=["ValidationError", "LocationNotFound", "PageUnavailable", "PostcodeNotFound"],
 )
 
 DEFAULT_OPTS = {

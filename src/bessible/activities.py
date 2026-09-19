@@ -8,6 +8,8 @@ from temporalio.exceptions import ApplicationError
 
 from bessible import events, stages
 from bessible.geocode import PostcodeNotFoundError
+from bessible.location.extract import LocationNotFound
+from bessible.location.fetch import PageUnavailable
 from bessible.models import (
     CapacityInput,
     CapacityOutput,
@@ -40,6 +42,10 @@ async def resolve_location(inp: LocationInput) -> LocationOutput:
         raise ApplicationError(str(exc), type="ValidationError", non_retryable=True) from exc
     except PostcodeNotFoundError as exc:
         raise ApplicationError(str(exc), type="PostcodeNotFound", non_retryable=True) from exc
+    except LocationNotFound as exc:
+        raise ApplicationError(str(exc), type="LocationNotFound", non_retryable=True) from exc
+    except PageUnavailable as exc:
+        raise ApplicationError(str(exc), type="PageUnavailable", non_retryable=True) from exc
     else:
         events.emit(
             inp.run_id,

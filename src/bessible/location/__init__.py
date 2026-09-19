@@ -19,6 +19,18 @@
 from __future__ import annotations
 
 from .collate import collate
+from .extract import ExtractedLocation, LocationNotFound, extract_location, resolve_from_link
+from .fetch import PageUnavailable, fetch_page_text
 from .models import Coordinates, LocationData
 
-__all__ = ["Coordinates", "LocationData", "collate"]
+__all__ = [
+    "Coordinates",
+    "ExtractedLocation",
+    "LocationData",
+    "LocationNotFound",
+    "PageUnavailable",
+    "collate",
+    "extract_location",
+    "fetch_page_text",
+    "resolve_from_link",
+]
