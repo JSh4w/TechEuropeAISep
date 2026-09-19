@@ -12,6 +12,7 @@ from bessible.models import (
     FinancialOutput,
     Finding,
     SentimentOutput,
+    SiteLandOutput,
     SynthesisInput,
     Verdict,
 )
@@ -22,7 +23,11 @@ OPPOSITION_MAYBE = 0.50
 OPPOSITION_NO = 0.80
 
 
-def decide(fin: FinancialOutput, sent: SentimentOutput | None = None) -> tuple[Verdict, list[str]]:
+def decide(
+    fin: FinancialOutput,
+    sent: SentimentOutput | None = None,
+    land: SiteLandOutput | None = None,
+) -> tuple[Verdict, list[str]]:
     """Determine suitability verdict (go / maybe / no_go) using deterministic rules."""
     try:
         assumptions = load_finance_assumptions()
@@ -42,6 +47,13 @@ def decide(fin: FinancialOutput, sent: SentimentOutput | None = None) -> tuple[V
     irr = case.irr
     opp_index = sent.opposition_index if sent is not None else None
 
+    # Check for land constraint blockers
+    if land and land.constraints:
+        blockers = [c for c in land.constraints if "blocker" in c.lower()]
+        if blockers:
+            rule_lines.append(f"REJECT: Site land constraint: {blockers[0]}.")
+            return "no_go", rule_lines
+
     # Check for NO_GO conditions
     if irr is None or irr < (hurdle / 2.0):
         irr_display = f"{irr * 100:.1f}%" if irr is not None else "negative / None"
@@ -58,6 +70,12 @@ def decide(fin: FinancialOutput, sent: SentimentOutput | None = None) -> tuple[V
 
     # Check for MAYBE conditions
     is_maybe = False
+    if land and land.constraints:
+        caveats = [c for c in land.constraints if "caveat" in c.lower()]
+        if caveats:
+            rule_lines.append(f"CAUTION: Site land caveat: {caveats[0]}.")
+            is_maybe = True
+
     if irr < hurdle:
         rule_lines.append(f"CAUTION: Commercial IRR ({irr * 100:.1f}%) is below the hurdle rate ({hurdle * 100:.1f}%).")
         is_maybe = True

@@ -205,11 +205,10 @@ def _render_markdown(inp: SynthesisInput, verdict: Verdict, findings: list[Findi
 async def synthesise(inp: SynthesisInput) -> ReportOutput:
     """Synthesise findings and duration returns into an explainable Markdown report."""
     verdict: Verdict = "go"
-    if inp.sentiment is not None:
-        try:
-            verdict, _rules = decide(inp.financial, inp.sentiment)
-        except Exception:
-            verdict = "go"
+    try:
+        verdict, _rules = decide(inp.financial, inp.sentiment, inp.site_land)
+    except Exception:
+        verdict = "go"
 
     art_ids_by_stage: dict[str, list[str]] = {}
     for art in inp.artifacts:
