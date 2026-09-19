@@ -14,8 +14,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -223,3 +223,12 @@ __marimo__/
 # local experiments and run output
 sandbox/
 out/
+
+# Node / Next.js
+node_modules/
+.next/
+web/node_modules/
+web/.next/
+web/out/
+.context/
+
