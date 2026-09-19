@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bessible: how it fits together</title>
+<style>
+:root{
+  --bg:#fafaf8; --card:#fff; --ink:#1d1f23; --muted:#646a73; --line:#dfe1e5;
+  --real:#1f7a4d; --real-bg:#e4f4ea; --dummy:#a15c00; --dummy-bg:#fdf0d9; --missing:#b3261e; --missing-bg:#fbe6e4;
+  --ours:#1d4ed8; --ours-bg:#e3ebfd; --ext:#4b5563; --ext-bg:#eceef1;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#14161a; --card:#1c1f25; --ink:#e8eaed; --muted:#9aa1ac; --line:#30343c;
+  --real:#6fd39b; --real-bg:#16301f; --dummy:#f2b55a; --dummy-bg:#33260f; --missing:#ff8a80; --missing-bg:#3a1917;
+  --ours:#8ab0ff; --ours-bg:#182646; --ext:#aab1bc; --ext-bg:#252a32;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1240px;margin:0 auto;padding:2rem 1.25rem 4rem}
+h1{font-size:1.7rem;margin:0 0 .2rem} h2{font-size:1.2rem;margin:2.6rem 0 .3rem} h3{font-size:1rem;margin:0 0 .3rem}
+p{margin:.4rem 0} .lede{color:var(--muted);max-width:70ch}
+code{font:13px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--ext-bg);padding:1px 5px;border-radius:4px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.8rem;margin:1.2rem 0}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:.8rem 1rem}
+.stat b{display:block;font-size:1.5rem;line-height:1.2} .stat span{color:var(--muted);font-size:.85rem}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:1rem;overflow-x:auto}
+.legend{display:flex;flex-wrap:wrap;gap:.5rem 1.1rem;margin:.6rem 0 0;font-size:.85rem;color:var(--muted)}
+.chip{display:inline-block;border-radius:999px;padding:1px 9px;font-size:.78rem;font-weight:600;white-space:nowrap}
+.real{color:var(--real);background:var(--real-bg)} .dummy{color:var(--dummy);background:var(--dummy-bg)}
+.missing{color:var(--missing);background:var(--missing-bg)} .ours{color:var(--ours);background:var(--ours-bg)}
+.ext{color:var(--ext);background:var(--ext-bg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:.8rem;margin-top:.8rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:.85rem 1rem}
+.card .meta{color:var(--muted);font-size:.82rem;margin:.1rem 0 .4rem} .card p{font-size:.9rem}
+.card .links{font-size:.84rem;color:var(--muted);border-top:1px dashed var(--line);margin-top:.5rem;padding-top:.4rem}
+table{border-collapse:collapse;width:100%;font-size:.9rem;margin-top:.6rem}
+th,td{border-bottom:1px solid var(--line);padding:.5rem .6rem;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.03em}
+td.n{font-weight:700;color:var(--missing);white-space:nowrap} .bar{height:8px;border-radius:4px;background:var(--ext-bg);min-width:90px}
+.bar i{display:block;height:100%;border-radius:4px;background:var(--real)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:.8rem}
+ol.flow{margin:.4rem 0 0;padding-left:1.2rem} ol.flow li{margin:.35rem 0}
+/* diagram */
+svg{display:block;min-width:1180px;width:100%;height:auto;font:12px system-ui,sans-serif}
+.b{stroke-width:1.5;rx:8} .b.real{fill:var(--real-bg);stroke:var(--real)} .b.dummy{fill:var(--dummy-bg);stroke:var(--dummy)}
+.b.missing{fill:var(--missing-bg);stroke:var(--missing);stroke-dasharray:5 4} .b.ours{fill:var(--ours-bg);stroke:var(--ours)}
+.b.ext{fill:var(--ext-bg);stroke:var(--ext)}
+.t{fill:var(--ink);text-anchor:middle;font-weight:600} .s{fill:var(--muted);text-anchor:middle;font-size:10.5px}
+.flowline{stroke:var(--muted);stroke-width:1.5;fill:none;marker-end:url(#arr)}
+.gap{stroke:var(--missing);stroke-width:1.6;stroke-dasharray:6 5;fill:none;marker-end:url(#arrm)}
+.num circle{fill:var(--missing)} .num text{fill:#fff;font-weight:700;text-anchor:middle;font-size:11px}
+.band{fill:none;stroke:var(--line);stroke-dasharray:3 4;rx:12} .bandt{fill:var(--muted);font-size:11px;font-weight:700;letter-spacing:.06em}
+</style>
+<main>
+<h1>Bessible: how it fits together</h1>
+<p class="lede">Review of <code>main</code> after merging <code>c699a0f</code> (web UI, HTTP bridge, suitability engine), 19 Sep 2026.
+Three pieces now exist: Josh's <b>Temporal pipeline</b> (runs end to end, three stages still on placeholder data), a
+<b>web UI</b> that drives it over HTTP, and our <b>data layer</b> (real data for any coordinate, hard checks, a policy agent).
+The data layer is still connected to neither of the other two.</p>
+
+<div class="stats">
+  <div class="stat"><b>249</b><span>tests passing, all offline</span></div>
+  <div class="stat"><b>7 / 10</b><span>pipeline stages on real logic (title, site_land, grid are placeholders)</span></div>
+  <div class="stat"><b>1</b><span>stage that calls models in a run: sentiment (Gemini search + Modal classifier)</span></div>
+  <div class="stat"><b>3</b><span>Pydantic AI agents in the repo; 1 is called by a stage</span></div>
+  <div class="stat"><b>5 / 11</b><span>OpenSpec changes complete; web UI 7 / 19</span></div>
+  <div class="stat"><b>9</b><span>missing connectors (numbered below)</span></div>
+</div>
+
+<h2>1. The picture</h2>
+<p class="lede">Top row: the Temporal workflow as it runs today. Below: what we built. Red dashed arrows are connectors that do not
+exist yet (each points at the stage that should receive our data); numbers match the table in section 3.</p>
+<div class="panel">
+<svg viewBox="0 0 1200 545" role="img" aria-label="Pipeline stages, data layer and missing connectors">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker>
+<marker id="arrm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--missing)"/></marker>
+<marker id="arro" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--ours)"/></marker></defs>
+<text class="bandt" x="8" y="18">TEMPORAL PIPELINE · workflow.py → activities.py → stages/</text>
+<rect class="band" x="462" y="48" width="368" height="82"/><text class="s" x="646" y="62">group 1, in parallel</text>
+<rect class="band" x="832" y="48" width="180" height="82"/><text class="s" x="922" y="62">group 2, in parallel</text>
+<path class="gap" d="M232,350 V125"/>
+<path class="gap" d="M324,350 V125"/>
+<path class="gap" d="M508,350 V125"/>
+<path class="gap" d="M600,350 V125"/>
+<path class="gap" d="M876,350 V125"/>
+<path class="gap" d="M784,230 V125"/>
+<path class="gap" d="M968,230 V125"/>
+<path class="gap" d="M1060,230 V125"/>
+<path class="gap" d="M1026,410 V467"/>
+<rect class="b ext" x="8" y="70" width="80" height="52"/><text class="t" x="48" y="92">CLI / web</text><text class="s" x="48" y="108">postcode</text>
+<rect class="b real" x="100" y="70" width="80" height="52"/><text class="t" x="140" y="92">location</text><text class="s" x="140" y="108">postcodes.io</text>
+<path class="flowline" d="M88,96 H99"/>
+<rect class="b real" x="192" y="70" width="80" height="52"/><text class="t" x="232" y="92">capacity</text><text class="s" x="232" y="108">UKPN only</text>
+<path class="flowline" d="M180,96 H191"/>
+<rect class="b dummy" x="284" y="70" width="80" height="52"/><text class="t" x="324" y="92">title</text><text class="s" x="324" y="108">fake square</text>
+<path class="flowline" d="M272,96 H283"/>
+<rect class="b real" x="376" y="70" width="80" height="52"/><text class="t" x="416" y="92">confirm</text><text class="s" x="416" y="108">human in loop</text>
+<path class="flowline" d="M364,96 H375"/>
+<rect class="b dummy" x="468" y="70" width="80" height="52"/><text class="t" x="508" y="92">grid</text><text class="s" x="508" y="108">fixed figures</text>
+<path class="flowline" d="M456,96 H467"/>
+<rect class="b real" x="560" y="70" width="80" height="52"/><text class="t" x="600" y="92">sentiment</text><text class="s" x="600" y="108">Gemini + Modal</text>
+<rect class="b real" x="652" y="70" width="80" height="52"/><text class="t" x="692" y="92">market</text><text class="s" x="692" y="108">assumptions</text>
+<rect class="b dummy" x="744" y="70" width="80" height="52"/><text class="t" x="784" y="92">site_land</text><text class="s" x="784" y="108">fixed text</text>
+<rect class="b real" x="836" y="70" width="80" height="52"/><text class="t" x="876" y="92">financial</text><text class="s" x="876" y="108">NPV / IRR</text>
+<path class="flowline" d="M824,96 H835"/>
+<rect class="b real" x="928" y="70" width="80" height="52"/><text class="t" x="968" y="92">planning</text><text class="s" x="968" y="108">route + TIA</text>
+<rect class="b real" x="1020" y="70" width="80" height="52"/><text class="t" x="1060" y="92">synthesis</text><text class="s" x="1060" y="108">ignores land</text>
+<path class="flowline" d="M1008,96 H1019"/>
+<rect class="b ext" x="1112" y="70" width="80" height="52"/><text class="t" x="1152" y="92">report.md</text><text class="s" x="1152" y="108">from artifacts</text>
+<path class="flowline" d="M1100,96 H1111"/>
+<text class="bandt" x="8" y="376">OUR DATA LAYER</text><text class="s" x="8" y="392" style="text-anchor:start">api/ → location/ →</text><text class="s" x="8" y="405" style="text-anchor:start">possibility/</text>
+<rect class="b ours" x="744" y="230" width="396" height="52" style="fill:var(--card)"/><rect class="b ours" x="744" y="230" width="396" height="52"/>
+<text class="t" x="942" y="252">possibility/</text><text class="s" x="942" y="268">12 hard checks → policy agent (Gemini) → PossibilityReport → adapters</text>
+<rect class="b ours" x="192" y="350" width="948" height="60"/>
+<text class="t" x="666" y="374">LocationData</text><text class="s" x="666" y="392">title boundary · deterministic: locality, terrain, flood, land, designations, grid · agentic: documents, notes, search terms · sources: evidence URLs</text>
+<path d="M1120,350 V285" stroke="var(--ours)" stroke-width="1.8" fill="none" marker-end="url(#arro)"/>
+<rect class="b ext" x="192" y="470" width="170" height="52"/><text class="t" x="277" y="492">14 public APIs</text><text class="s" x="277" y="508">planning · EA · NE · DNOs · NESO</text>
+<rect class="b ours" x="402" y="470" width="170" height="52"/><text class="t" x="487" y="492">api/ wire models</text><text class="s" x="487" y="508">exactly as served</text>
+<rect class="b ours" x="612" y="470" width="170" height="52"/><text class="t" x="697" y="492">location.collate</text><text class="s" x="697" y="508">Coordinates in · about 5 s</text>
+<path class="flowline" d="M362,496 H400"/><path class="flowline" d="M572,496 H610"/>
+<path d="M697,470 V413" stroke="var(--ours)" stroke-width="1.8" fill="none" marker-end="url(#arro)"/>
+<rect class="b real" x="872" y="470" width="308" height="52"/><text class="t" x="1026" y="492">web/ map UI ⇄ FastAPI bridge ⇄ pipeline</text><text class="s" x="1026" y="508">parcel layer waits on /inspire, which returns nothing</text>
+<g class="num"><circle cx="232" cy="318" r="10"/><text x="232" y="322">2</text></g>
+<g class="num"><circle cx="324" cy="318" r="10"/><text x="324" y="322">1</text></g>
+<g class="num"><circle cx="508" cy="318" r="10"/><text x="508" y="322">4</text></g>
+<g class="num"><circle cx="600" cy="318" r="10"/><text x="600" y="322">8</text></g>
+<g class="num"><circle cx="876" cy="318" r="10"/><text x="876" y="322">5</text></g>
+<g class="num"><circle cx="784" cy="176" r="10"/><text x="784" y="180">3</text></g>
+<g class="num"><circle cx="968" cy="176" r="10"/><text x="968" y="180">6</text></g>
+<g class="num"><circle cx="1060" cy="176" r="10"/><text x="1060" y="180">7</text></g>
+<g class="num"><circle cx="1026" cy="440" r="10"/><text x="1026" y="444">9</text></g>
+</svg>
+<div class="legend">
+  <span><span class="chip real">real</span> works on real data or sourced assumptions</span>
+  <span><span class="chip dummy">placeholder</span> returns fixed values, <code>model_used="dummy"</code></span>
+  <span><span class="chip missing">missing</span> in the spec, not built</span>
+  <span><span class="chip ours">ours</span> the data layer (Jack)</span>
+  <span><span class="chip ext">outside</span> inputs and outputs</span>
+</div>
+</div>
+
+<h2>2. The parts</h2>
+<div class="grid">
+  <div class="card"><h3><code>api/</code> <span class="chip ours">ours</span> <span class="chip real">real</span></h3>
+    <div class="meta">4,056 lines · 14 modules · 82 tests against saved live responses</div>
+    <p>Pydantic models of every external API exactly as it speaks. Unknown fields fail loudly. No HTTP client inside: request models build the URL and params.</p>
+    <div class="links">Used by: <code>location/</code>, <code>scripts/site_report.py</code>. Not used by the pipeline.</div></div>
+  <div class="card"><h3><code>location/</code> <span class="chip ours">ours</span> <span class="chip real">real</span></h3>
+    <div class="meta">1,929 lines · 21 tests · live-checked in all three DNO areas and Scotland</div>
+    <p><code>await collate(Coordinates) → LocationData</code>. Everything is measured against the title polygon. Split into <code>deterministic</code> (compute on it) and <code>agentic</code> (agents read it). A failed source empties one section, never the whole call.</p>
+    <div class="links">Feeds: <code>possibility/</code>. Should feed: title, site_land, capacity, planning, financial stages.</div></div>
+  <div class="card"><h3><code>possibility/</code> <span class="chip ours">ours</span> <span class="chip real">real</span></h3>
+    <div class="meta">~830 lines · 24 tests · policy agent run live on Gemini</div>
+    <p><code>hard.py</code>: 12 <code>Proposal → Check</code> functions. <code>policy.py</code>: the repo's only Pydantic AI agent, reads the council's local plan with Gemini's web search and fetch. <code>pipeline.py</code>: turns checks into the pipeline's <code>Artifact</code> / <code>SiteLandOutput</code>.</p>
+    <div class="links">Adapter exists; nobody calls it yet.</div></div>
+  <div class="card"><h3><code>models.py</code> · <code>workflow.py</code> · <code>activities.py</code> · <code>worker.py</code> · <code>cli.py</code> <span class="chip real">real</span></h3>
+    <div class="meta">Josh · ~1,150 lines · skeleton change 15/15</div>
+    <p>The Temporal workflow: typed stage inputs and outputs, human confirmation as an update with validation, retries, status query, CLI with <code>start / confirm / result</code>. <code>SynthesisInput</code> is the one place every stage output and artifact is collected.</p>
+    <div class="links">Owns the shapes everything must convert into. Changes are additive, optional fields only.</div></div>
+  <div class="card"><h3><code>stages/</code> <span class="chip real">7 real</span> <span class="chip dummy">3 placeholder</span></h3>
+    <div class="meta">~1,050 lines · one plain async function per stage</div>
+    <p>Real: location, capacity, market, sentiment, financial, planning, synthesis. Placeholder: <b>title, site_land, grid</b>, which is exactly what <code>location/</code> already produces. Synthesis now decides the verdict from financial returns and sentiment, but never looks at the land.</p>
+    <div class="links">Depends on: <code>ukpn/</code>, <code>geocode</code>, <code>planning/</code>, <code>market/</code>, <code>finance/</code>, <code>suitability/</code>, <code>guard</code>.</div></div>
+  <div class="card"><h3><code>ukpn/</code> + <code>data/ukpn</code> <span class="chip real">real</span></h3>
+    <div class="meta">109 lines + committed snapshot · capacity change 16/16</div>
+    <p>Offline UKPN heatmap snapshot behind the capacity stage: firm and ceiling MW, binding direction, alternates. Fast and key-free, but UKPN only and the committed snapshot is a partial demo one: I ran the stage on Westbury and Bridgwater and both stop the run as <code>out_of_area</code>; Dorking is viable.</p>
+    <div class="links">Overlaps with <code>LocationData.grid</code>, which covers UKPN, NGED and SSEN live.</div></div>
+  <div class="card"><h3><code>planning/</code> <span class="chip real">2 of 3 features</span></h3>
+    <div class="meta">197 lines · change 5/9</div>
+    <p>Consenting route by nation and MW; transmission impact (TIA) statement. Not built: nearby-project evidence and the Gemini policy summary (tasks 3.1 to 3.4). <code>lookup_lpa</code> repeats a lookup <code>Locality</code> already holds.</p>
+    <div class="links">Our policy agent covers the unbuilt policy-reading part from a different angle.</div></div>
+  <div class="card"><h3><code>finance/</code> · <code>market/</code> · <code>assumptions.py</code> · <code>guard.py</code> <span class="chip real">real</span></h3>
+    <div class="meta">~630 lines · both changes complete (12/12, 8/8)</div>
+    <p>Cost, curtailment, NPV and IRR in plain code; revenue stack from sourced assumption files; a guard that rejects narration containing numbers the code did not compute. Cable cost uses <code>capacity.distance_km</code>, defaulting to 1 km when unknown.</p>
+    <div class="links">Would take connection distance from <code>LocationData.grid</code> outside UKPN.</div></div>
+  <div class="card"><h3><code>suitability/</code> <span class="chip real">real</span> <span class="chip dummy">2 of 3 agents idle</span></h3>
+    <div class="meta">Josh · ~1,280 lines · 9 tests · change 16/16</div>
+    <p>Research agent (Gemini + web search, cached per site) feeds the Modal classifier to give an opposition index: this runs in the <b>sentiment</b> stage. Verdict rules (<code>decide</code>) run in synthesis. The financial analyst agent and the Gemini findings writer with its number guard are built and registered with Temporal, but no stage calls them.</p>
+    <div class="links">Sentiment searches for "substation area X" with no planning authority: <code>Locality</code> has the real place and authority.</div></div>
+  <div class="card"><h3><code>llm.py</code> · <code>classifier.py</code> <span class="chip real">real</span></h3>
+    <div class="meta">Josh · Gemini, Modal gateway model, Modal typed classifier</div>
+    <p>Model factories and the Modal classifier wrapper. Used by <code>suitability/</code> and by <code>possibility/policy.py</code>. <code>modal_model()</code> (the open-weight model behind the gateway) still has no caller.</p>
+    <div class="links">Gemini and Modal now show up in a run, through the sentiment stage only.</div></div>
+  <div class="card"><h3><code>web/</code> + HTTP bridge <span class="chip real">real</span> <span class="chip dummy">parcels empty</span></h3>
+    <div class="meta">Josh · ~3,300 lines of TypeScript · bridge ~430 lines, 11 tests · web-ui change 7/19</div>
+    <p>Next.js + MapLibre UI: draggable site marker, footprint polygon, live trace, report view. A FastAPI app starts runs, relays the human decision, streams events. The map has a land-parcel layer fed by <code>GET /inspire</code>, which is a stub returning an empty collection.</p>
+    <div class="links"><b>Naming clash:</b> the bridge lives in <code>src/bessible/api/</code> (<code>app.py</code>, <code>runs.py</code>, <code>events.py</code>, <code>capacity.py</code>, <code>temporal.py</code>) beside our 14 wire-model modules, so <code>bessible.api</code> now means two unrelated things.</div></div>
+  <div class="card"><h3><code>sandbox/map_session/</code> <span class="chip dummy">prototype</span></h3>
+    <div class="meta">Separate Temporal workflow + Next.js map UI · web-ui change 0/19</div>
+    <p>The earlier map prototype: AI suggests a battery area, the human edits it, engines run, all on dummy activities and its own models. Superseded by <code>web/</code>, which talks to the real pipeline. CLAUDE.md still calls it the base for the final build.</p>
+    <div class="links">Its "AI suggests an area" step is the one idea <code>web/</code> did not carry over: the hook for a siting agent.</div></div>
+</div>
+
+<h2>3. Missing connectors</h2>
+<p class="lede">Roughly ordered by demo value for the effort. All of them edit files Josh wrote, so each needs his say-so.</p>
+<div class="panel"><table>
+<tr><th>#</th><th>From → to</th><th>Today</th><th>The connection</th><th>Effort</th></tr>
+<tr><td class="n">1</td><td><code>LocationData.title</code> → <b>title</b> stage</td><td>Draws a fake 0.004° square around the point and calls it title BK123456, 25,000 m².</td><td>Return the real INSPIRE polygon and area. Note the spec's <code>title_number</code> does not exist in open data; only the INSPIRE id does.</td><td>20 min</td></tr>
+<tr><td class="n">2</td><td><code>LocationData.grid</code> → <b>capacity</b> stage</td><td>UKPN snapshot only. The Westbury demo site ends the run as <code>out_of_area</code>.</td><td>Fall back to the live NGED / SSEN headroom when the snapshot has no coverage. Simplest honest version: firm = smaller of import and export headroom at the nearest substation.</td><td>45 min</td></tr>
+<tr><td class="n">3</td><td><code>pipeline.site_land_output</code> → <b>site_land</b> stage</td><td>Always "Agricultural (Grade 3b)", Zone 1, no designations.</td><td>Collate, assess, call the adapter we already wrote. Tests need collate mocked, as <code>conftest.py</code> already does for the LPA lookup.</td><td>20 min</td></tr>
+<tr><td class="n">4</td><td><code>LocationData.grid.transmission_queue</code> → <b>grid</b> stage</td><td>Fixed queue position and months. Grid-context change 0/11.</td><td>Real TEC queue at the site's grid supply point: projects, MW, storage share. No timescale data yet, so months stays an assumption.</td><td>30 min</td></tr>
+<tr><td class="n">5</td><td><code>LocationData</code> → <b>financial</b> stage</td><td>Cable length from <code>capacity.distance_km</code>, 1 km when unknown; crossings guessed from keywords in site_land text.</td><td>Substation distance from <code>grid.substations</code>; crossings from the overhead-line and designation geometry. Follows for free once 2 and 3 are in.</td><td>15 min</td></tr>
+<tr><td class="n">6</td><td><b>policy agent</b> → <b>planning</b> stage</td><td>Planning stage has no model call; policy evidence (F3) unbuilt.</td><td>Add the policy <code>Check</code> as a planning artifact and risk. This is also the quickest way to get Gemini, and optionally Modal via <code>cross_check</code>, visible in a run.</td><td>30 min</td></tr>
+<tr><td class="n">7</td><td><code>PossibilityReport.possible</code> → <b>synthesis</b> verdict</td><td><code>decide(financial, sentiment)</code>: IRR, budget and opposition only. A title that is 94% Flood Zone 3 can still come out "go".</td><td>Pass blockers and caveats into <code>decide</code>: a blocker means <code>no_go</code>, a caveat caps the verdict at <code>maybe</code>.</td><td>30 min, Josh's file</td></tr>
+<tr><td class="n">8</td><td><code>Locality</code> → <b>sentiment</b> stage</td><td>Searches news for "substation area &lt;name&gt;" and passes no planning authority, so results key off a substation label rather than the town.</td><td><code>research_local_news</code> already takes <code>place</code> and <code>lpa</code>: give it <code>Locality.place</code> and <code>planning_authority</code>.</td><td>10 min once LocationData is in the run</td></tr>
+<tr><td class="n">9</td><td><code>LocationData.title</code> → web map <code>/inspire</code></td><td>The endpoint is a stub that returns an empty FeatureCollection, so the map's parcel layer is always blank.</td><td>Serve the title polygon (and its neighbours: the same planning.data query by bounding box). The flood and designation geometry in <code>LocationData</code> could be drawn the same way.</td><td>30 min</td></tr>
+</table>
+<p style="margin-top:.8rem"><b>One structural point behind all nine:</b> <code>collate</code> takes about 5 seconds and four stages want its result. Calling it in each stage repeats the work. Better: one <code>collate</code> activity right after location, with <code>LocationData</code> carried on <code>NodeInput</code> as an optional field. That is an additive change to <code>models.py</code> and <code>workflow.py</code>, so it is Josh's call. The full payload is about 520 KB with geometry, 51 KB without.</p></div>
+
+<h2>4. Against the spec</h2>
+<div class="panel"><table>
+<tr><th>OpenSpec change</th><th>Tasks</th><th></th><th>What is actually true</th></tr>
+<tr><td>add-temporal-pipeline-skeleton</td><td>15 / 15</td><td><div class="bar"><i style="width:100%"></i></div></td><td>Done and tested. Workflow, HITL update, CLI, status query.</td></tr>
+<tr><td>add-ukpn-capacity-proposal</td><td>16 / 16</td><td><div class="bar"><i style="width:100%"></i></div></td><td>Done for UKPN. By design everything else is out of area; our data removes that limit (connector 2).</td></tr>
+<tr><td>add-financial-model</td><td>12 / 12</td><td><div class="bar"><i style="width:100%"></i></div></td><td>Done. Depends on a distance and a crossings flag that are guesses until connectors 2, 3, 5.</td></tr>
+<tr><td>add-market-revenue</td><td>8 / 8</td><td><div class="bar"><i style="width:100%"></i></div></td><td>Done, from sourced assumption files rather than live prices.</td></tr>
+<tr><td>add-regulatory-planning</td><td>5 / 9</td><td><div class="bar"><i style="width:56%"></i></div></td><td>Route and TIA done. Policy evidence (REPD + Gemini summary) not started. Our policy agent is a working alternative that reads the council's real plan rather than a fixed policy file.</td></tr>
+<tr><td>add-suitability-engine</td><td>16 / 16</td><td><div class="bar"><i style="width:100%"></i></div></td><td>Built and tested. In a run: sentiment (research agent + Modal classifier) and the verdict rules. Built but not called by any stage: the analyst agent and the Gemini findings writer. The verdict does not consider land or planning.</td></tr>
+<tr><td>add-grid-connection-context</td><td>0 / 11</td><td><div class="bar"><i style="width:0"></i></div></td><td>Not started. We already hold two of its inputs: connection pipeline per substation (UKPN) and the TEC queue per grid supply point.</td></tr>
+<tr><td>add-footprint-sizing</td><td>0 / 5</td><td><div class="bar"><i style="width:0"></i></div></td><td>Python module not started, but the rule now exists twice elsewhere: <code>web/src/lib/footprint.ts</code> draws the polygon, and <code>enough_area</code> checks it against the real title area.</td></tr>
+<tr><td>add-link-location-extraction</td><td>0 / 6</td><td><div class="bar"><i style="width:0"></i></div></td><td>Not started. The product pitch is "give it a property link"; today only a postcode works.</td></tr>
+<tr><td>add-grid-level-sites</td><td>0 / 7</td><td><div class="bar"><i style="width:0"></i></div></td><td>Not started. Blocked in the spec on choosing a dataset.</td></tr>
+<tr><td>add-web-ui</td><td>7 / 19</td><td><div class="bar"><i style="width:37%"></i></div></td><td>Map, controls, live trace, report view and the HTTP bridge exist. The parcel layer has no data behind it (connector 9).</td></tr>
+<tr><td><i>no change written</i></td><td>n/a</td><td></td><td><code>api/</code>, <code>location/</code>, <code>possibility/</code> and the <b>title</b> and <b>site_land</b> stages have no spec. The spec assumed title and land data would appear; this is the work that makes them appear.</td></tr>
+</table></div>
+
+<h2>5. Your four-phase plan against what exists</h2>
+<div class="two">
+<div class="card"><h3>Your plan</h3>
+<ol class="flow">
+<li><b>Pull all data</b> for the location into classes. <span class="chip real">done</span> <code>location.collate</code></li>
+<li><b>Deterministic possibility checks.</b> <span class="chip real">done</span> <code>possibility.hard</code>, 12 checks</li>
+<li><b>Agentic possibility checks</b>: is it hard-denied by policy? <span class="chip real">done</span> <code>possibility.policy</code>, live on Gemini; quotes unverifiable because councils block downloads, confidence held at 0.6</li>
+<li><b>Suitability</b>, deterministic and agentic in parallel:
+  <br>cable cost by distance <span class="chip real">exists</span> in <code>finance/cost.py</code>
+  <br>approval likelihood <span class="chip missing">missing</span> and a stated non-goal in the planning spec
+  <br>best-spot siting agent <span class="chip missing">missing</span>, in no spec; inputs (slope grid, flood and designation polygons, lines) are all in <code>LocationData</code>; homes would be judged by an agent looking at the map
+  <br>local sentiment <span class="chip real">exists</span> in <code>suitability/</code>, wired into the run</li>
+</ol></div>
+<div class="card"><h3>How the pipeline orders things instead</h3>
+<ol class="flow">
+<li>location → <b>capacity</b> → title → human confirms size and position</li>
+<li>then grid, site_land, market, sentiment in parallel; then financial and planning; then synthesis</li>
+</ol>
+<p>The difference that matters: the pipeline decides <b>battery size from grid capacity first</b> and asks the human before any land check runs. Your plan checks the land first. Both are defensible; they need reconciling, because a site that is 94% Flood Zone 3 (Bridgwater) currently reaches the human confirmation step looking fine.</p>
+<p><b>Cheapest reconciliation:</b> run collate and the hard checks beside capacity, and show blockers and caveats in the confirmation prompt. The human then confirms with the land facts in view, and blocked sites can stop early the same way <code>out_of_area</code> does today.</p></div>
+</div>
+
+<h2>6. What I would do next</h2>
+<div class="panel"><ol class="flow">
+<li><b>Agree with Josh:</b> one <code>collate</code> activity after location, <code>LocationData</code> as an optional field on <code>NodeInput</code>. Everything else hangs off this.</li>
+<li><b>Connectors 1, 3 and 9</b> (title, site_land, map parcels): about an hour, replaces two placeholders with real data and puts the real title boundary on the map. No model needed.</li>
+<li><b>Connector 7</b> (verdict sees blockers): without it the report can say "go" on a site the hard checks rule out.</li>
+<li><b>Connectors 6 and 8</b> (policy agent into planning, real place names into sentiment): a second visible agent, and better search results from the first.</li>
+<li><b>Connector 2</b> (capacity outside UKPN): decides whether the demo can use sites outside London, the South East and East Anglia.</li>
+<li><b>Move the HTTP bridge</b> out of <code>src/bessible/api/</code> (say to <code>bessible/http/</code>) or rename ours, so <code>bessible.api</code> means one thing.</li>
+<li>Then the siting agent, now that there is a real map to show its suggestion on.</li>
+</ol></div>
+</main>
+</html>

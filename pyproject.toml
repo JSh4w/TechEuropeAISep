@@ -50,6 +50,7 @@ dev = [
     "mypy>=2.3.1",
     "pytest>=9.1.1",
     "ruff>=0.16.8",
+    "types-shapely>=2.1.0.20260728",
 ]
 
 [tool.ruff]
@@ -75,8 +76,10 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-# The hard checks are small `Proposal -> Check` functions whose names say what they check.
+# The checks are small class-in, class-out functions whose names say what they do.
 "src/bessible/possibility/hard.py" = ["undocumented-public-function"]
+"src/bessible/possibility/policy.py" = ["undocumented-public-function"]
+"src/bessible/possibility/pipeline.py" = ["undocumented-public-function"]
 # A command-line script: prints, runs top to bottom, holds the map's JavaScript and UI text (en dashes intended).
 "scripts/site_report.py" = [
     "print",

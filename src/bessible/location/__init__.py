@@ -21,14 +21,33 @@ from __future__ import annotations
 from .collate import collate
 from .extract import ExtractedLocation, LocationNotFound, extract_location, resolve_from_link
 from .fetch import PageUnavailable, fetch_page_text
-from .models import Coordinates, LocationData
+from .models import (
+    Agentic,
+    Coordinates,
+    Designation,
+    Deterministic,
+    Grid,
+    Land,
+    Locality,
+    LocationData,
+    Terrain,
+    TitleBoundary,
+)
 
 __all__ = [
+    "Agentic",
     "Coordinates",
+    "Designation",
+    "Deterministic",
     "ExtractedLocation",
+    "Grid",
+    "Land",
+    "Locality",
     "LocationData",
     "LocationNotFound",
     "PageUnavailable",
+    "Terrain",
+    "TitleBoundary",
     "collate",
     "extract_location",
     "fetch_page_text",

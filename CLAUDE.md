@@ -55,7 +55,12 @@ model used); the report is built only from artifacts. CLI first; a web UI is opt
 - `src/bessible/possibility/` — can a battery be built here at all? `assess(Proposal(location, battery_mw)) ->
   PossibilityReport`. `hard.py`: the deterministic checks, each a plain `Proposal -> Check` function (pass / warn / fail /
   unknown + reason, facts, source URLs) listed in `HARD_CHECKS`; thresholds live on `Limits`. No I/O.
-  `uv run python -m bessible.possibility <lat> <lon> [mw] [hours]` runs them on a live location.
+  `policy.py`: the first Pydantic AI agent. `brief_for(proposal) -> PolicyBrief`, `await read_policy(brief) ->
+  PolicyReview` (Gemini opens the local plan URLs from `LocationData.agentic` with native web search + fetch, because
+  councils block plain downloads), `policy_check(review) -> Check`; `cross_check` re-labels each quote with the Modal
+  classifier. `assess_with_policy` = hard checks, then the agent only if nothing blocks. `pipeline.py` turns checks into
+  `Artifact`s / `SiteLandOutput` for the existing collation (`SynthesisInput`).
+  `uv run python -m bessible.possibility <lat> <lon> [mw] [hours] [--policy] [--json]` runs it on a live location.
 
 - `sandbox/map_session/` — tracked prototype, the base for the final build (the rest of `sandbox/` is gitignored).
   `workflow.py`: `AssessWorkflow` (task queue `bessible-web`): AI suggests area → human edits on the map (`submit_area`
