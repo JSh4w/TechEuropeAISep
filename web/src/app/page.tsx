@@ -26,7 +26,6 @@ import {
   getRunResult,
   checkCapacity,
   subscribeEvents,
-  getInspirePolygons,
   getSiteData,
 } from '../lib/api';
 import {
@@ -82,7 +81,7 @@ export default function Home() {
   const [flexibleConnection, setFlexibleConnection] = useState<boolean>(false);
   const [submittingDecision, setSubmittingDecision] = useState<boolean>(false);
   const [substationChangeNotice, setSubstationChangeNotice] = useState<string | null>(null);
-  const [inspireGeoJson, setInspireGeoJson] = useState<any>(null);
+  const [inspireGeoJson, setInspireGeoJson] = useState<GeoJSON.GeoJSON | null>(null);
   const [siteData, setSiteData] = useState<any>(null);
   const [siteDataLoading, setSiteDataLoading] = useState(false);
 
@@ -111,6 +110,100 @@ export default function Home() {
   // Assessment Final Result
   const [result, setResult] = useState<AssessmentResult | null>(null);
   const initializedRef = useRef(false);
+
+  // Interactive local simulation for UI verification when backend is starting
+  const activateFallbackFlow = (targetPostcode: string, centerCoords: [number, number]) => {
+    const isOutOfArea = targetPostcode.toUpperCase().startsWith('M1');
+    const isFlexibleNeeded = targetPostcode.toUpperCase().startsWith('CB');
+
+    const fakeRunId = `run_${Date.now().toString(36)}`;
+    setRunId(fakeRunId);
+
+    // Initial events
+    setEvents([
+      { id: 1, t: new Date().toISOString(), stage: 'location', msg: `Geocoded ${targetPostcode} to [${centerCoords[1].toFixed(4)}, ${centerCoords[0].toFixed(4)}]` },
+      { id: 2, t: new Date().toISOString(), stage: 'grid', msg: 'Querying UKPN network snapshot for distribution primary substation...' },
+    ]);
+
+    if (isOutOfArea) {
+      setTimeout(() => {
+        setEvents((prev) => [
+          ...prev,
+          { id: 3, t: new Date().toISOString(), stage: 'grid', msg: 'Error: Location falls outside UKPN licensed area.' },
+        ]);
+        setRunStatus({
+          run_id: fakeRunId,
+          status: 'not_viable',
+          message: 'The requested postcode is located in Manchester (Electricity North West area). Bessible screening currently covers UKPN license regions (London, South East, Eastern England).',
+        });
+      }, 1000);
+      return;
+    }
+
+    const firmMw = isFlexibleNeeded ? 3 : 12;
+    const ceilingMw = isFlexibleNeeded ? 14 : 18;
+
+    const mockSubstations: SubstationOption[] = [
+      {
+        name: 'Southwark Central Primary',
+        distance_km: 0.65,
+        voltage_kv: 33,
+        import_headroom_mw: 15,
+        export_headroom_mw: ceilingMw,
+        effective_headroom_mw: firmMw,
+        is_marginal: false,
+      },
+      {
+        name: 'Borough High Alternate',
+        distance_km: 1.45,
+        voltage_kv: 11,
+        import_headroom_mw: 8,
+        export_headroom_mw: 8,
+        effective_headroom_mw: 6,
+        is_marginal: true,
+      },
+      {
+        name: 'Elephant North Alternate',
+        distance_km: 2.1,
+        voltage_kv: 33,
+        import_headroom_mw: 18,
+        export_headroom_mw: 18,
+        effective_headroom_mw: 14,
+        is_marginal: true,
+      },
+    ];
+
+    const mockCapacity: CapacityOutput = {
+      viable: !isFlexibleNeeded || flexibleConnection,
+      out_of_area: false,
+      serving_substation: 'Southwark Central Primary',
+      voltage_kv: 33,
+      firm_mw: firmMw,
+      ceiling_mw: ceilingMw,
+      recommended_mw: flexibleConnection ? ceilingMw : firmMw,
+      binding_direction: 'export',
+      binding_season: 'summer',
+      alternates: mockSubstations,
+    };
+
+    setTimeout(() => {
+      setEvents((prev) => [
+        ...prev,
+        { id: 3, t: new Date().toISOString(), stage: 'capacity', msg: `Identified serving substation: Southwark Central (${firmMw} MW firm, ${ceilingMw} MW ceiling)` },
+        { id: 4, t: new Date().toISOString(), stage: 'title', msg: 'HM Land Registry INSPIRE boundaries retrieved. Awaiting human confirmation...' },
+      ]);
+
+      setCapacityProposal(mockCapacity);
+      setSelectedCapacityMw(flexibleConnection ? ceilingMw : firmMw);
+      setInspireGeoJson(generateMockInspireParcels(centerCoords));
+      setRunStatus({
+        run_id: fakeRunId,
+        status: 'awaiting_confirmation',
+        capacity: mockCapacity,
+        position: centerCoords,
+      });
+    }, 1500);
+  };
 
   // Check URL parameters for direct state preview (e.g. ?state=confirm or ?state=report)
   useEffect(() => {
@@ -277,14 +370,16 @@ export default function Home() {
     overrideCoords?: [number, number],
     overrideFlexible?: boolean
   ) => {
-    let targetPostcode = overridePostcode || postcode;
+    const targetInput = (overridePostcode || postcode).trim();
+    const isUrl = targetInput.startsWith('http://') || targetInput.startsWith('https://');
+    let targetPostcode = isUrl ? 'SE1 7PB' : targetInput;
     const flexible = overrideFlexible ?? flexibleConnection;
 
     // Pin dragged away from the last assessed postcode (and the postcode text untouched): assess where the pin is.
     // A run starts from a postcode, so use the nearest one and keep the pin where the user put it.
     pendingPinRef.current = null;
     const pinMoved = distanceKm(initialCenter, currentPosition) > 0.05;
-    if (!overridePostcode && pinMoved && postcode === lastRunPostcodeRef.current) {
+    if (!overridePostcode && !isUrl && pinMoved && postcode === lastRunPostcodeRef.current) {
       try {
         const r = await fetch(
           `https://api.postcodes.io/postcodes?lon=${currentPosition[0]}&lat=${currentPosition[1]}&limit=1&radius=2000&widesearch=true`
@@ -310,11 +405,17 @@ export default function Home() {
     setCurrentPosition(centerCoords);
 
     try {
-      const payload: AssessmentRequest = {
-        postcode: targetPostcode,
-        link: propertyLink || undefined,
-        flexible_connection: flexible,
-      };
+      const payload: AssessmentRequest = isUrl
+        ? {
+            link: targetInput,
+            property_url: targetInput,
+            flexible_connection: flexible,
+          }
+        : {
+            postcode: targetPostcode,
+            link: propertyLink.trim() || undefined,
+            flexible_connection: flexible,
+          };
 
       const res = await startRun(payload);
       setRunId(res.run_id);
@@ -324,100 +425,6 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Interactive local simulation for UI verification when backend is starting
-  const activateFallbackFlow = (targetPostcode: string, centerCoords: [number, number]) => {
-    const isOutOfArea = targetPostcode.toUpperCase().startsWith('M1');
-    const isFlexibleNeeded = targetPostcode.toUpperCase().startsWith('CB');
-
-    const fakeRunId = `run_${Date.now().toString(36)}`;
-    setRunId(fakeRunId);
-
-    // Initial events
-    setEvents([
-      { id: 1, t: new Date().toISOString(), stage: 'location', msg: `Geocoded ${targetPostcode} to [${centerCoords[1].toFixed(4)}, ${centerCoords[0].toFixed(4)}]` },
-      { id: 2, t: new Date().toISOString(), stage: 'grid', msg: 'Querying UKPN network snapshot for distribution primary substation...' },
-    ]);
-
-    if (isOutOfArea) {
-      setTimeout(() => {
-        setEvents((prev) => [
-          ...prev,
-          { id: 3, t: new Date().toISOString(), stage: 'grid', msg: 'Error: Location falls outside UKPN licensed area.' },
-        ]);
-        setRunStatus({
-          run_id: fakeRunId,
-          status: 'not_viable',
-          message: 'The requested postcode is located in Manchester (Electricity North West area). Bessible screening currently covers UKPN license regions (London, South East, Eastern England).',
-        });
-      }, 1000);
-      return;
-    }
-
-    const firmMw = isFlexibleNeeded ? 3 : 12;
-    const ceilingMw = isFlexibleNeeded ? 14 : 18;
-
-    const mockSubstations: SubstationOption[] = [
-      {
-        name: 'Southwark Central Primary',
-        distance_km: 0.65,
-        voltage_kv: 33,
-        import_headroom_mw: 15,
-        export_headroom_mw: ceilingMw,
-        effective_headroom_mw: firmMw,
-        is_marginal: false,
-      },
-      {
-        name: 'Borough High Alternate',
-        distance_km: 1.45,
-        voltage_kv: 11,
-        import_headroom_mw: 8,
-        export_headroom_mw: 8,
-        effective_headroom_mw: 6,
-        is_marginal: true,
-      },
-      {
-        name: 'Elephant North Alternate',
-        distance_km: 2.1,
-        voltage_kv: 33,
-        import_headroom_mw: 18,
-        export_headroom_mw: 18,
-        effective_headroom_mw: 14,
-        is_marginal: true,
-      },
-    ];
-
-    const mockCapacity: CapacityOutput = {
-      viable: !isFlexibleNeeded || flexibleConnection,
-      out_of_area: false,
-      serving_substation: 'Southwark Central Primary',
-      voltage_kv: 33,
-      firm_mw: firmMw,
-      ceiling_mw: ceilingMw,
-      recommended_mw: flexibleConnection ? ceilingMw : firmMw,
-      binding_direction: 'export',
-      binding_season: 'summer',
-      alternates: mockSubstations,
-    };
-
-    setTimeout(() => {
-      setEvents((prev) => [
-        ...prev,
-        { id: 3, t: new Date().toISOString(), stage: 'capacity', msg: `Identified serving substation: Southwark Central (${firmMw} MW firm, ${ceilingMw} MW ceiling)` },
-        { id: 4, t: new Date().toISOString(), stage: 'title', msg: 'HM Land Registry INSPIRE boundaries retrieved. Awaiting human confirmation...' },
-      ]);
-
-      setCapacityProposal(mockCapacity);
-      setSelectedCapacityMw(flexibleConnection ? ceilingMw : firmMw);
-      setInspireGeoJson(generateMockInspireParcels(centerCoords));
-      setRunStatus({
-        run_id: fakeRunId,
-        status: 'awaiting_confirmation',
-        capacity: mockCapacity,
-        position: centerCoords,
-      });
-    }, 1500);
   };
 
   // Re-check capacity when pin moves

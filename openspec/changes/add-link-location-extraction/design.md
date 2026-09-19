@@ -14,10 +14,18 @@ Replaces the link branch of the skeleton's `resolve_location` (`LocationInput â†
 
 ```
 src/bessible/location/
-  fetch.py      # fetch + cache (httpx, or Tavily Extract per task 1.1)
+  fetch.py      # fetch + cache (httpx)
   extract.py    # Pydantic AI agent
 data/fixtures/pages/<sha1(url)>.json     # cached {url, fetched_at, text}
 ```
+
+### Fetch Client Decision
+
+We choose `httpx` for page fetching over Tavily Extract:
+- `httpx` is already an existing project dependency and requires no extra API keys.
+- Cached JSON fixtures under `data/fixtures/pages/` ensure tests and demo runs work reliably offline without network dependencies.
+- HTML text extraction combined with Gemini structured output handles property listing pages cleanly.
+- No new environment variables are required in `.env.example`.
 
 ### Interfaces
 
@@ -50,4 +58,4 @@ Page text is trimmed to a fixed length before it goes to the model. The stage wr
 
 ## Open Questions
 
-- `httpx` or Tavily Extract (task 1.1).
+- None. `httpx` chosen per task 1.1.

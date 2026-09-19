@@ -6,6 +6,7 @@ import pytest
 
 from bessible.models import (
     AssessmentRequest,
+    CapacityOutput,
     ConfirmedSite,
     FinancialInput,
     LocationInput,
@@ -14,6 +15,7 @@ from bessible.models import (
     Position,
     SynthesisInput,
     TitleInput,
+    TitleOutput,
 )
 from bessible.stages.capacity import propose_capacity
 from bessible.stages.financial import financial_model
@@ -46,6 +48,14 @@ async def test_location_and_capacity_stages():
     assert cap_out.firm_mw == 8.0  # import 14.7 MW, capped by the 11 kV limit
     assert cap_out.ceiling_mw == 8.0
     assert cap_out.binding_direction == "import"
+
+    # Request 80 MW uses grid-level tier (Leatherhead 132kV)
+    req_80 = AssessmentRequest(postcode="RH4 1AD", battery_mw=80.0)
+    cap_80 = await propose_capacity(CapacityInput(run_id=run_id, request=req_80, location=loc_out))
+    assert cap_80.viable is True
+    assert cap_80.substation == "Leatherhead 132kV"
+    assert cap_80.connection_voltage_kv == 132.0
+    assert cap_80.firm_mw == 85.0
 
 
 @pytest.mark.anyio
@@ -142,3 +152,35 @@ async def test_title_and_analysis_stages():
     assert len(synth.findings) > 0
     report_file = Path(f"out/{run_id}/report.md")
     assert report_file.exists()
+
+
+@pytest.mark.anyio
+async def test_site_land_stage_with_location_data():
+    """Verify site_land stage integrates LocationData and possibility checks."""
+    from unittest.mock import patch
+
+    from tests.possibility.test_hard import good_site
+
+    mock_loc = good_site()
+    req = AssessmentRequest(postcode="RH4 1AD")
+    pos = Position(lat=51.2329, lon=-0.3315)
+    site = ConfirmedSite(
+        position=pos,
+        capacity_mw=20.0,
+        boundary=TitleOutput(title_number="RH1", boundary_geojson={}, area_m2=100000.0),
+    )
+    node_in = NodeInput(
+        run_id="test-land-loc",
+        request=req,
+        site=site,
+        capacity=CapacityOutput(viable=True, firm_mw=20.0, ceiling_mw=25.0),
+    )
+
+    with patch("bessible.stages.site_land.collate", return_value=mock_loc):
+        out = await site_land(node_in)
+
+    assert "Grade 3b" in out.land_use
+    assert len(out.artifacts) >= 3
+    assert any("site_land-outside_flood_zone_3" in a.id for a in out.artifacts)
+    assert any("site_land-title_found" in a.id for a in out.artifacts)
+    assert all(a.stage == "site_land" for a in out.artifacts)

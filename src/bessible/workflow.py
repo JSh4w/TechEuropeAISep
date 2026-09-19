@@ -44,7 +44,7 @@ TASK_QUEUE = "bessible"
 
 RETRY_POLICY = RetryPolicy(
     maximum_attempts=3,
-    non_retryable_error_types=["ValidationError"],
+    non_retryable_error_types=["ValidationError", "LocationNotFound", "PageUnavailable", "PostcodeNotFound"],
 )
 
 DEFAULT_OPTS = {
@@ -215,6 +215,7 @@ class AssessmentWorkflow:
             position=chosen_pos,
             capacity_mw=chosen_cap,
             boundary=title,
+            footprint_geojson=decision.footprint_geojson,
             flexible_connection=is_flex,
         )
 

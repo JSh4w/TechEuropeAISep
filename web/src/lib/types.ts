@@ -58,8 +58,8 @@ export interface ConfirmedSite {
   position: [number, number] | PositionCoords; // [lng, lat] or { lat, lon }
   capacity_mw: number;
   reserved_acres?: number;
-  footprint_geojson?: any;
-  boundary?: any;
+  footprint_geojson?: Record<string, unknown> | null;
+  boundary?: Record<string, unknown> | null;
 }
 
 export interface SiteDecision {
@@ -88,7 +88,7 @@ export interface RunStatus {
   message?: string;
   capacity?: CapacityOutput;
   position?: [number, number] | PositionCoords;
-  boundary?: any;
+  boundary?: Record<string, unknown> | null;
 }
 
 export interface FinancialCase {

@@ -13,7 +13,8 @@ from temporalio.client import Client, WorkflowFailureError
 from temporalio.contrib.pydantic import pydantic_data_converter
 
 from bessible.config import settings
-from bessible.models import AssessmentRequest, AssessmentResult, RunStatus, SiteDecision
+from bessible.footprint import footprint_polygon, reserved_acres, reserved_acres_by_duration
+from bessible.models import AssessmentRequest, AssessmentResult, Position, RunStatus, SiteDecision
 from bessible.workflow import TASK_QUEUE, AssessmentWorkflow
 
 if TYPE_CHECKING:
@@ -76,6 +77,24 @@ def _print_result(raw_result: AssessmentResult | dict[str, Any]) -> None:
         print(f"Report File: {result.run_dir}/{result.report.report_path}")  # ruff: ignore[print]
 
 
+def _format_footprint(capacity_mw: float) -> str:
+    """Format planning-grade area ranges across standard durations."""
+    by_dur = reserved_acres_by_duration(capacity_mw)
+    r4 = by_dur[4]
+    r2 = by_dur[2]
+    r8 = by_dur[8]
+    return f"{r4[0]:.1f}-{r4[1]:.1f} acres (4 h default; 2 h: {r2[0]:.1f}-{r2[1]:.1f}, 8 h: {r8[0]:.1f}-{r8[1]:.1f})"
+
+
+def _build_footprint_polygon(position: Position | None, capacity_mw: float) -> dict[str, Any] | None:
+    """Generate footprint polygon for the given position and capacity at default 4h duration."""
+    if position is None or capacity_mw <= 0:
+        return None
+    r4 = reserved_acres(capacity_mw, 4)
+    mid_acres = (r4[0] + r4[1]) / 2.0
+    return footprint_polygon(position, mid_acres)
+
+
 async def _handle_confirmation_prompt(
     handle: WorkflowHandle[Any, Any],
     status: RunStatus,
@@ -97,12 +116,18 @@ async def _handle_confirmation_prompt(
 
     if status.boundary:
         print(f"Title Number:       {status.boundary.title_number} ({status.boundary.area_m2:,.0f} m²)")  # ruff: ignore[print]
+    print(f"Reserved Area:      {_format_footprint(cap.recommended_mw)}")  # ruff: ignore[print]
 
     if auto_yes:
         print(f"Auto-confirming recommended capacity: {cap.recommended_mw:g} MW (--yes)")  # ruff: ignore[print]
+        footprint = _build_footprint_polygon(status.position, cap.recommended_mw)
         await handle.execute_update(
             AssessmentWorkflow.decide_site,
-            SiteDecision(confirmed=True, capacity_mw=cap.recommended_mw),
+            SiteDecision(
+                confirmed=True,
+                capacity_mw=cap.recommended_mw,
+                footprint_geojson=footprint,
+            ),
         )
         return
 
@@ -120,10 +145,12 @@ async def _handle_confirmation_prompt(
         prompt_msg = f"Enter capacity in MW [{cap.recommended_mw:g}]: "
         cap_str = (await asyncio.to_thread(input, prompt_msg)).strip()
         chosen_mw = float(cap_str) if cap_str else cap.recommended_mw
+        print(f"Reserved Area:      {_format_footprint(chosen_mw)}")  # ruff: ignore[print]
         try:
+            footprint = _build_footprint_polygon(status.position, chosen_mw)
             await handle.execute_update(
                 AssessmentWorkflow.decide_site,
-                SiteDecision(confirmed=True, capacity_mw=chosen_mw),
+                SiteDecision(confirmed=True, capacity_mw=chosen_mw, footprint_geojson=footprint),
             )
             print(f"Confirmed site at {chosen_mw:g} MW.")  # ruff: ignore[print]
             break
@@ -204,7 +231,11 @@ async def cmd_confirm(args: argparse.Namespace) -> None:
         print(f"Run {args.run_id} rejected.")  # ruff: ignore[print]
         return
 
-    decision = SiteDecision(confirmed=True, capacity_mw=args.capacity_mw)
+    status: RunStatus = await handle.query(AssessmentWorkflow.status)
+    cap_mw = args.capacity_mw or (status.capacity.recommended_mw if status.capacity else None)
+    footprint = _build_footprint_polygon(status.position, cap_mw) if status.position and cap_mw else None
+
+    decision = SiteDecision(confirmed=True, capacity_mw=args.capacity_mw, footprint_geojson=footprint)
     await handle.execute_update(AssessmentWorkflow.decide_site, decision)
     cap_msg = f"with {args.capacity_mw:g} MW" if args.capacity_mw else "with default capacity"
     print(f"Run {args.run_id} confirmed {cap_msg}.")  # ruff: ignore[print]
