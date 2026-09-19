@@ -22,7 +22,7 @@ deepmind llama : do you save cache between those multiple models/ threads? Consu
 2. Accept the invite to Josh's Modal workspace, then `uv run modal profile activate <workspace>` if you're in more than one.
 3. Start Temporal in its own terminal: `temporal server start-dev` (UI at http://localhost:8233).
 4. Check everything: `uv run python scripts/check_env.py` (add `--live` to test Gemini and the Modal model)
-5. Run the app: `uv run python -m bessible.worker`, then `cd web && npm install && npm run dev` → http://localhost:3000 (see `web/README.md`).
+5. Map prototype (base for the final build): see `sandbox/map_session/web/README.md`.
 
 Run Python with `uv run ...` (or `source .venv/bin/activate`). Add packages with `uv add <pkg>`, not pip.
 For OpenSpec's `/opsx` commands: `npm install -g @fission-ai/openspec@latest`.

@@ -221,5 +221,6 @@ __marimo__/
 .python-version
 
 # local experiments and run output
-sandbox/
+sandbox/*
+!sandbox/map_session/
 out/

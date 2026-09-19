@@ -1,16 +1,16 @@
-"""Run the Temporal worker: `uv run python -m bessible.worker`."""
+"""Run the Temporal worker: `uv run python sandbox/map_session/worker.py` (from the repo root)."""
 
 from __future__ import annotations
 
 import asyncio
 
+import activities
 from temporalio.client import Client
 from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.worker import Worker
+from workflow import TASK_QUEUE, AssessWorkflow
 
-from bessible import activities
 from bessible.config import settings
-from bessible.workflow import TASK_QUEUE, AssessWorkflow
 
 
 async def main() -> None:

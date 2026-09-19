@@ -15,8 +15,8 @@ from temporalio import workflow
 from temporalio.common import RetryPolicy
 
 with workflow.unsafe.imports_passed_through():
-    from bessible import activities
-    from bessible.models import (
+    import activities
+    from models import (
         AreaFeedback,
         AssessmentInput,
         EngineInput,

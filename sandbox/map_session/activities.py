@@ -6,9 +6,7 @@ import asyncio
 import math
 from itertools import pairwise
 
-from temporalio import activity
-
-from bessible.models import (
+from models import (
     AreaFeedback,
     AreaSuggestion,
     Artifact,
@@ -18,6 +16,7 @@ from bessible.models import (
     Polygon,
     ValidateInput,
 )
+from temporalio import activity
 
 M2_PER_MW = 250  # rough BESS footprint incl. spacing; placeholder for the real feasibility model
 EARTH_RADIUS_M = 6_371_000

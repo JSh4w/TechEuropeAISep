@@ -1,6 +1,7 @@
 """Pydantic models shared by the workflow, activities and (as JSON) the web frontend.
 
 Field names are the JSON contract with `web/`: keep them snake_case and in sync with `web/lib/types.ts`.
+Run from the repo root so `bessible` (config) is importable; sibling modules are imported by name.
 """
 
 from __future__ import annotations
