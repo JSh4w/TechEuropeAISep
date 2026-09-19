@@ -137,12 +137,12 @@ class EmbeddedCapacityRecord(ApiResponse):
     county: str | None = None
     postcode: str | None = None
     country: str | None = None
-    eastings: str | None = Field(None, alias="location_x_coordinate_eastings_where_data_is_held")  # EPSG:27700
-    northings: str | None = Field(None, alias="location_y_coordinate_northings_where_data_is_held")
+    eastings: str | None = Field(default=None, alias="location_x_coordinate_eastings_where_data_is_held")  # EPSG:27700
+    northings: str | None = Field(default=None, alias="location_y_coordinate_northings_where_data_is_held")
     grid_supply_point: str | None = None
     bulk_supply_point: str | None = None
     primary: str | None = None  # primary substation it connects through
-    poc_voltage_kv: float | None = Field(None, alias="point_of_connection_poc_voltage_kv")
+    poc_voltage_kv: float | None = Field(default=None, alias="point_of_connection_poc_voltage_kv")
     licence_area: str | None = None
     # up to three technologies per site; capacities 2 and 3 are text upstream ("-" when unused)
     energy_source_1: str | None = None  # e.g. "Solar", "Stored Energy"
@@ -151,7 +151,7 @@ class EmbeddedCapacityRecord(ApiResponse):
     storage_capacity_1_mwh: str | None = None
     storage_duration_1_hours: str | None = None
     registered_capacity_1_mw: float | None = Field(
-        None, alias="energy_source_energy_conversion_technology_1_registered_capacity_mw"
+        default=None, alias="energy_source_energy_conversion_technology_1_registered_capacity_mw"
     )
     energy_source_2: str | None = None
     energy_conversion_technology_2: str | None = None
@@ -159,7 +159,7 @@ class EmbeddedCapacityRecord(ApiResponse):
     storage_capacity_2_mwh: str | None = None
     storage_duration_2_hours: str | None = None
     registered_capacity_2_mw: str | None = Field(
-        None, alias="energy_source_energy_conversion_technology_2_registered_capacity_mw"
+        default=None, alias="energy_source_energy_conversion_technology_2_registered_capacity_mw"
     )
     energy_source_3: str | None = None
     energy_conversion_technology_3: str | None = None
@@ -167,7 +167,7 @@ class EmbeddedCapacityRecord(ApiResponse):
     storage_capacity_3_mwh: str | None = None
     storage_duration_3_hours: str | None = None
     registered_capacity_3_mw: str | None = Field(
-        None, alias="energy_source_energy_conversion_technology_3_registered_capacity_mw"
+        default=None, alias="energy_source_energy_conversion_technology_3_registered_capacity_mw"
     )
     flexible_connection_yes_no: str | None = None
     connection_status: str | None = None  # "Connected" | "Accepted to Connect"

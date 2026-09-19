@@ -20,16 +20,19 @@ import os
 import sys
 import webbrowser
 from concurrent.futures import ThreadPoolExecutor
+from operator import itemgetter
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import httpx
-from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from pydantic import BaseModel
 
 # Lets this run from any env with pydantic + httpx (e.g. conda), without installing the package.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from bessible.api import (  # noqa: E402
+from bessible.api import (
     ckan,
     ea_flood,
     ea_lidar,
@@ -54,6 +57,7 @@ SSEN_RADIUS_M = 25_000  # transmission substations are sparse
 GRID_N = 10  # elevation labels on the map: GRID_N x GRID_N over the title's bounding box (Open-Meteo max 100 points)
 LIDAR_MAX_PX = 250  # longer side of the LIDAR raster; plots under 250 m stay at the native 1 m
 NESO_MAX_SITES = 4  # nearest distinct grid supply points matched against the TEC register
+ARGS_LAT_LON = 2  # argv holds lat and lon; a third value is the grid search radius in km
 MAX_STR = 200  # long strings in the tables are cut to this
 
 # Natural England layers drawn on the map: name -> colour
@@ -79,7 +83,7 @@ def env(name: str) -> str | None:
     if os.environ.get(name):
         return os.environ[name]
     dotenv = Path(__file__).resolve().parents[1] / ".env"
-    for line in dotenv.read_text().splitlines() if dotenv.is_file() else []:
+    for line in dotenv.read_text(encoding="utf-8").splitlines() if dotenv.is_file() else []:
         key, _, value = line.partition("=")
         if key.strip() == name and value.strip():
             return value.strip().strip("'\"")
@@ -87,12 +91,13 @@ def env(name: str) -> str | None:
 
 
 def fetch(client: httpx.Client, req: Any, resp: Any, url: str | None = None) -> BaseModel:
-    url = url or (req.url() if callable(getattr(req, "url", None)) else req.URL)
+    """GET a request model and parse the body with its response model (or registry spec)."""
+    address: str = url or (req.url() if callable(getattr(req, "url", None)) else req.URL)
     headers = None
     if isinstance(req, opendatasoft.RecordsRequest):  # Opendatasoft: the key depends on the portal
         key = env("SSEN_API_KEY" if req.base_url == ssen.BASE_URL else "UKPN_API_KEY")
         headers = opendatasoft.auth_headers(key or "")
-    r = client.get(url, params=req.params(), headers=headers)
+    r = client.get(address, params=req.params(), headers=headers)
     r.raise_for_status()
     has_parse = isinstance(resp, (natural_england.LayerSpec, opendatasoft.DatasetSpec))
     return resp.parse(r.json()) if has_parse else resp.model_validate(r.json())
@@ -118,9 +123,11 @@ def fetch_ssen_lines(client: httpx.Client, lat: float, lon: float) -> BaseModel:
     r.raise_for_status()
     model = ssen_distribution.LinesResponse.model_validate(r.json())
     dlat, dlon = UKPN_LINES_M / 110_540, UKPN_LINES_M / (111_320 * math.cos(math.radians(lat)))
-    model.result.records = [  # type: ignore[union-attr]
+    result = model.result
+    assert result is not None and isinstance(result.records, list)  # ruff: ignore[assert, pytest-composite-assertion] - narrows the CKAN union
+    result.records = [
         ln
-        for ln in model.result.records  # type: ignore[union-attr]
+        for ln in result.records
         if ln.route_lat_long
         and any(
             abs(y - lat) <= dlat and abs(x - lon) <= dlon
@@ -174,6 +181,7 @@ def rings(geom: dict[str, Any]) -> list[list[list[list[float]]]]:
 
 
 def in_ring(lon: float, lat: float, ring: list[list[float]]) -> bool:
+    """Ray-casting point-in-ring test."""
     inside = False
     for (x1, y1), (x2, y2) in zip(ring, ring[1:] + ring[:1], strict=True):
         if (y1 > lat) != (y2 > lat) and lon < (x2 - x1) * (lat - y1) / (y2 - y1) + x1:
@@ -182,6 +190,7 @@ def in_ring(lon: float, lat: float, ring: list[list[float]]) -> bool:
 
 
 def in_geom(lon: float, lat: float, geom: dict[str, Any]) -> bool:
+    """Whether a point is inside a GeoJSON Polygon / MultiPolygon (holes excluded)."""
     return any(
         in_ring(lon, lat, poly[0]) and not any(in_ring(lon, lat, hole) for hole in poly[1:]) for poly in rings(geom)
     )
@@ -243,7 +252,7 @@ def lidar_terrain(client: httpx.Client, geom: dict[str, Any]) -> tuple[list[dict
         "max_m": max(heights),
         "median_slope_percent": round(slopes[len(slopes) // 2], 1) if slopes else None,
         "p90_slope_percent": round(slopes[int(len(slopes) * 0.9)], 1) if slopes else None,
-        "share_over_5_percent": round(sum(x > 5 for x in slopes) / len(slopes), 2) if slopes else None,  # noqa: PLR2004
+        "share_over_5_percent": round(sum(x > 5 for x in slopes) / len(slopes), 2) if slopes else None,  # ruff: ignore[magic-value-comparison]
     }
     labels = [
         {"lat": y, "lon": x, "m": m}
@@ -279,6 +288,7 @@ def elevation_grid(client: httpx.Client, geom: dict[str, Any]) -> list[dict[str,
 
 
 def render(v: Any) -> str:
+    """Nested dicts / lists as HTML tables; geometry is left out and long strings are cut."""
     if isinstance(v, dict):
         rows = "".join(
             f"<tr><th>{html.escape(str(k))}</th><td>{render(x)}</td></tr>" for k, x in v.items() if k != "geometry"
@@ -390,13 +400,14 @@ L.control.scale({imperial: false}).addTo(map);
 
 
 def main() -> None:
+    """Fetch everything for one coordinate and write the report page."""
     lat, lon = (
         (float(x.strip(",")) for x in sys.argv[1:3])
-        if len(sys.argv) > 2
+        if len(sys.argv) > ARGS_LAT_LON
         else map(float, input("lat, lon: ").replace(",", " ").split())
     )
-    if len(sys.argv) > 3:  # noqa: PLR2004 - optional grid search radius in km (substations, headroom, registers)
-        global UKPN_RADIUS_M  # noqa: PLW0603
+    if len(sys.argv) > ARGS_LAT_LON + 1:  # optional grid search radius in km (substations, headroom, registers)
+        global UKPN_RADIUS_M  # ruff: ignore[global-statement]
         UKPN_RADIUS_M = int(float(sys.argv[3]) * 1000)
     sections: list[str] = []
     results: dict[str, BaseModel] = {}
@@ -453,22 +464,23 @@ def main() -> None:
             add(name, tb)
             feats = [f for f in tb.features if f.geometry]  # type: ignore[attr-defined]
             if feats:
-                title_geom = feats[0].geometry.model_dump(mode="json")
+                geom: dict[str, Any] = feats[0].geometry.model_dump(mode="json")
+                title_geom = geom
                 ref = feats[0].properties.reference
-                title_popup = f"<b>Title boundary</b><br>INSPIRE id {ref}<br>~{area_ha(title_geom):.2f} ha"
-        except Exception as e:  # noqa: BLE001 - show every failure on the page
+                title_popup = f"<b>Title boundary</b><br>INSPIRE id {ref}<br>~{area_ha(geom):.2f} ha"
+        except Exception as e:  # ruff: ignore[blind-except] - show every failure on the page
             fail(name, e)
         if title_geom:
             name = "EA LIDAR: 1 m terrain inside the title"
             try:
                 elev, terrain = lidar_terrain(client, title_geom)
-            except Exception as e:  # noqa: BLE001 - not England, or the service is down: use the coarse DEM
+            except Exception as e:  # ruff: ignore[blind-except] - not England, or the service is down: use the coarse DEM
                 print("skip", name, f"({type(e).__name__}: {e})"[:120])
                 name = "Open-Meteo: elevation grid inside the title (90 m DEM, LIDAR unavailable)"
                 try:
                     elev = elevation_grid(client, title_geom)
                     terrain = {"source": "Open-Meteo 90 m DEM", "points": len(elev)}
-                except Exception as e2:  # noqa: BLE001
+                except Exception as e2:  # ruff: ignore[blind-except]
                     fail(name, e2)
             if elev:
                 sections.append(
@@ -480,7 +492,7 @@ def main() -> None:
         for title, fut in futures.items():
             try:
                 add(title, fut.result())
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:  # ruff: ignore[blind-except]
                 fail(title, e)
 
         # Second round: the transmission registers have no coordinates, so they are matched on the
@@ -504,7 +516,7 @@ def main() -> None:
                     name,
                     fetch(client, neso.tec_at_sites(sites), ckan.DatastoreSearchSqlResponse[neso.TecRegisterRecord]),
                 )
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:  # ruff: ignore[blind-except]
                 fail(name, e)
         else:
             print("skip NESO: no grid supply point name known for this point (needs DNO data)")
@@ -519,7 +531,7 @@ def main() -> None:
                     )
                     r.raise_for_status()
                     add(name, ssen.parse_register(r.json()))
-                except Exception as e:  # noqa: BLE001
+                except Exception as e:  # ruff: ignore[blind-except]
                     fail(name, e)
 
     # Map data
@@ -560,7 +572,7 @@ def main() -> None:
                     for s in m.results  # type: ignore[attr-defined]
                     if (p := s.geo_point_2d)
                 ),
-                key=lambda d: d["km"],
+                key=itemgetter("km"),
             ),
             "headroom": [
                 {
@@ -712,7 +724,7 @@ def main() -> None:
             for e in sd_ecr
         ]
         for key in ("substations", "headroom", "ecr"):
-            grid[key].sort(key=lambda d: d["km"])
+            grid[key].sort(key=itemgetter("km"))
     dlat, dlon = MAP_M / 2 / 110_540, MAP_M / 2 / (111_320 * math.cos(math.radians(lat)))
     data = {
         "point": [lat, lon],
@@ -759,7 +771,8 @@ def main() -> None:
         '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>'
         f"<style>{CSS}</style><h1>Site report: {lat}, {lon}</h1><div class=facts>{facts}</div><div id=map></div>"
         f'<script id=data type="application/json">{json.dumps(data).replace("</", "<\\/")}</script>'
-        f"<script>{MAP_JS}</script>{''.join(sections)}"
+        f"<script>{MAP_JS}</script>{''.join(sections)}",
+        encoding="utf-8",
     )
     print("wrote", out, f"({out.stat().st_size // 1024} KB)")
     webbrowser.open(out.resolve().as_uri())

@@ -91,7 +91,7 @@ class EntitySearchRequest(ApiRequest):
     geometry_curie: list[str] | None = None
     geometry_relation: GeometryRelation | None = None  # server default "within"
 
-    limit: int | None = Field(None, ge=1, le=500)  # server default 10
+    limit: int | None = Field(default=None, ge=1, le=500)  # server default 10
     offset: int | None = None
     field: list[str] | None = None  # wire (hyphenated) field names to include
     exclude_field: list[str] | None = None  # e.g. ["geometry"] to keep responses small
@@ -207,17 +207,17 @@ class EntityBase(NullMarkerResponse):
     name: str | None = None
     reference: str | None = None  # id within the dataset (e.g. ONS code, list entry number)
     prefix: str | None = None  # CURIE prefix; curie = f"{prefix}:{reference}"
-    organisation_entity: int | None = Field(None, alias="organisation-entity")
-    entry_date: date | None = Field(None, alias="entry-date")
-    start_date: date | None = Field(None, alias="start-date")
-    end_date: date | None = Field(None, alias="end-date")  # set => entity is historical
+    organisation_entity: int | None = Field(default=None, alias="organisation-entity")
+    entry_date: date | None = Field(default=None, alias="entry-date")
+    start_date: date | None = Field(default=None, alias="start-date")
+    end_date: date | None = Field(default=None, alias="end-date")  # set => entity is historical
     quality: str | None = None  # e.g. "authoritative", "some"
     geometry: str | None = None  # WKT (usually MULTIPOLYGON), EPSG:4326, lon lat order
     point: str | None = None  # WKT "POINT (lon lat)", EPSG:4326
     description: str | None = None
     notes: str | None = None
-    document_url: str | None = Field(None, alias="document-url")
-    documentation_url: str | None = Field(None, alias="documentation-url")
+    document_url: str | None = Field(default=None, alias="document-url")
+    documentation_url: str | None = Field(default=None, alias="documentation-url")
     wikidata: str | None = None
     wikipedia: str | None = None
 
@@ -225,67 +225,69 @@ class EntityBase(NullMarkerResponse):
 class TitleBoundary(EntityBase):
     """HM Land Registry INSPIRE index polygon. reference = INSPIRE id."""
 
-    dataset: Literal["title-boundary"]
+    dataset: Literal["title-boundary"] = "title-boundary"
 
 
 class GreenBelt(EntityBase):
     """Green belt designation polygon."""
 
-    dataset: Literal["green-belt"]
-    green_belt_core: str | None = Field(None, alias="green-belt-core")
-    local_authority_district: str | None = Field(None, alias="local-authority-district")  # ONS code
+    dataset: Literal["green-belt"] = "green-belt"
+    green_belt_core: str | None = Field(default=None, alias="green-belt-core")
+    local_authority_district: str | None = Field(default=None, alias="local-authority-district")  # ONS code
 
 
 class FloodRiskZone(EntityBase):
     """EA Flood Map for Planning zones."""
 
-    dataset: Literal["flood-risk-zone"]
-    flood_risk_level: str | None = Field(None, alias="flood-risk-level")  # "2" | "3"
-    flood_risk_type: str | None = Field(None, alias="flood-risk-type")  # e.g. "Fluvial Models"
+    dataset: Literal["flood-risk-zone"] = "flood-risk-zone"
+    flood_risk_level: str | None = Field(default=None, alias="flood-risk-level")  # "2" | "3"
+    flood_risk_type: str | None = Field(default=None, alias="flood-risk-type")  # e.g. "Fluvial Models"
 
 
 class AgriculturalLandClassification(EntityBase):
     """Natural England provisional agricultural land classification polygon."""
 
-    dataset: Literal["agricultural-land-classification"]
+    dataset: Literal["agricultural-land-classification"] = "agricultural-land-classification"
     # "Grade 1".."Grade 5", "Non Agricultural", "Urban", "Exclusion"
-    agricultural_land_classification_grade: str | None = Field(None, alias="agricultural-land-classification-grade")
+    agricultural_land_classification_grade: str | None = Field(
+        default=None, alias="agricultural-land-classification-grade"
+    )
 
 
 class ConservationArea(EntityBase):
     """Conservation area polygon (Historic England / LPA supplied)."""
 
-    dataset: Literal["conservation-area"]
-    designation_date: date | None = Field(None, alias="designation-date")
+    dataset: Literal["conservation-area"] = "conservation-area"
+    designation_date: date | None = Field(default=None, alias="designation-date")
     legislation: str | None = None  # documented, not seen live
 
 
 class ListedBuilding(EntityBase):
     """Point dataset (Historic England). reference = NHLE list entry number."""
 
-    dataset: Literal["listed-building"]
-    listed_building_grade: Literal["I", "II*", "II"] | None = Field(None, alias="listed-building-grade")
+    dataset: Literal["listed-building"] = "listed-building"
+    listed_building_grade: Literal["I", "II*", "II"] | None = Field(default=None, alias="listed-building-grade")
 
 
 class ListedBuildingOutline(EntityBase):
     """LPA-supplied polygons. Spec fields below were not seen in live samples."""
 
-    dataset: Literal["listed-building-outline"]
-    listed_building: str | None = Field(None, alias="listed-building")
-    address_text: str | None = Field(None, alias="address-text")
+    dataset: Literal["listed-building-outline"] = "listed-building-outline"
+    listed_building: str | None = Field(default=None, alias="listed-building")
+    address_text: str | None = Field(default=None, alias="address-text")
     uprns: str | None = None
 
 
 class ScheduledMonument(EntityBase):
     """Scheduled monument polygon (Historic England)."""
 
-    dataset: Literal["scheduled-monument"]
+    dataset: Literal["scheduled-monument"] = "scheduled-monument"
 
 
 class AreaOfOutstandingNaturalBeauty(EntityBase):
     """Area of Outstanding Natural Beauty (National Landscape) polygon."""
 
-    dataset: Literal["area-of-outstanding-natural-beauty"]
+    dataset: Literal["area-of-outstanding-natural-beauty"] = "area-of-outstanding-natural-beauty"
     twitter: str | None = None
     website: str | None = None
 
@@ -293,173 +295,177 @@ class AreaOfOutstandingNaturalBeauty(EntityBase):
 class NationalPark(EntityBase):
     """National park boundary."""
 
-    dataset: Literal["national-park"]
+    dataset: Literal["national-park"] = "national-park"
 
 
 class SiteOfSpecialScientificInterest(EntityBase):
     """Site of Special Scientific Interest polygon (Natural England)."""
 
-    dataset: Literal["site-of-special-scientific-interest"]
+    dataset: Literal["site-of-special-scientific-interest"] = "site-of-special-scientific-interest"
 
 
 class SpecialAreaOfConservation(EntityBase):
     """Special Area of Conservation polygon."""
 
-    dataset: Literal["special-area-of-conservation"]
+    dataset: Literal["special-area-of-conservation"] = "special-area-of-conservation"
 
 
 class SpecialProtectionArea(EntityBase):
     """Special Protection Area polygon."""
 
-    dataset: Literal["special-protection-area"]
+    dataset: Literal["special-protection-area"] = "special-protection-area"
 
 
 class Ramsar(EntityBase):
     """Ramsar wetland site polygon."""
 
-    dataset: Literal["ramsar"]
+    dataset: Literal["ramsar"] = "ramsar"
     ramsar: str | None = None  # UK site code, e.g. "UK11001"
-    ramsar_site: str | None = Field(None, alias="ramsar-site")  # Ramsar convention site number
-    special_protection_area: str | None = Field(None, alias="special-protection-area")
+    ramsar_site: str | None = Field(default=None, alias="ramsar-site")  # Ramsar convention site number
+    special_protection_area: str | None = Field(default=None, alias="special-protection-area")
 
 
 class AncientWoodland(EntityBase):
     """Ancient woodland inventory polygon (Natural England)."""
 
-    dataset: Literal["ancient-woodland"]
+    dataset: Literal["ancient-woodland"] = "ancient-woodland"
     # ASNW = ancient semi-natural, PAWS = plantation on ancient woodland site, AWP = wood pasture
-    ancient_woodland_status: str | None = Field(None, alias="ancient-woodland-status")
+    ancient_woodland_status: str | None = Field(default=None, alias="ancient-woodland-status")
 
 
 class LocalNatureReserve(EntityBase):
     """Local nature reserve polygon."""
 
-    dataset: Literal["local-nature-reserve"]
-    nature_reserve_status: str | None = Field(None, alias="nature-reserve-status")
+    dataset: Literal["local-nature-reserve"] = "local-nature-reserve"
+    nature_reserve_status: str | None = Field(default=None, alias="nature-reserve-status")
 
 
 class NationalNatureReserve(EntityBase):
     """National nature reserve polygon."""
 
-    dataset: Literal["national-nature-reserve"]
-    nature_reserve_status: str | None = Field(None, alias="nature-reserve-status")
+    dataset: Literal["national-nature-reserve"] = "national-nature-reserve"
+    nature_reserve_status: str | None = Field(default=None, alias="nature-reserve-status")
 
 
 class ParkAndGarden(EntityBase):
     """Registered historic park or garden (Historic England)."""
 
-    dataset: Literal["park-and-garden"]
-    park_and_garden_grade: Literal["I", "II*", "II"] | None = Field(None, alias="park-and-garden-grade")
+    dataset: Literal["park-and-garden"] = "park-and-garden"
+    park_and_garden_grade: Literal["I", "II*", "II"] | None = Field(default=None, alias="park-and-garden-grade")
 
 
 class Battlefield(EntityBase):
     """Registered historic battlefield (Historic England)."""
 
-    dataset: Literal["battlefield"]
+    dataset: Literal["battlefield"] = "battlefield"
 
 
 class WorldHeritageSite(EntityBase):
     """UNESCO World Heritage Site boundary."""
 
-    dataset: Literal["world-heritage-site"]
-    world_heritage_convention_site: str | None = Field(None, alias="world-heritage-convention-site")  # UNESCO id
+    dataset: Literal["world-heritage-site"] = "world-heritage-site"
+    world_heritage_convention_site: str | None = Field(
+        default=None, alias="world-heritage-convention-site"
+    )  # UNESCO id
 
 
 class WorldHeritageSiteBufferZone(EntityBase):
     """Buffer zone around a World Heritage Site."""
 
-    dataset: Literal["world-heritage-site-buffer-zone"]
-    world_heritage_site: str | None = Field(None, alias="world-heritage-site")  # reference of WHS
+    dataset: Literal["world-heritage-site-buffer-zone"] = "world-heritage-site-buffer-zone"
+    world_heritage_site: str | None = Field(default=None, alias="world-heritage-site")  # reference of WHS
 
 
 class HeritageCoast(EntityBase):
     """Heritage coast polygon."""
 
-    dataset: Literal["heritage-coast"]
+    dataset: Literal["heritage-coast"] = "heritage-coast"
 
 
 class TreePreservationZone(EntityBase):
     """Area covered by a tree preservation order."""
 
-    dataset: Literal["tree-preservation-zone"]
-    tree_preservation_order: str | None = Field(None, alias="tree-preservation-order")
-    tree_preservation_zone_type: str | None = Field(None, alias="tree-preservation-zone-type")
-    tree_species_list: str | None = Field(None, alias="tree-species-list")
-    address_text: str | None = Field(None, alias="address-text")
+    dataset: Literal["tree-preservation-zone"] = "tree-preservation-zone"
+    tree_preservation_order: str | None = Field(default=None, alias="tree-preservation-order")
+    tree_preservation_zone_type: str | None = Field(default=None, alias="tree-preservation-zone-type")
+    tree_species_list: str | None = Field(default=None, alias="tree-species-list")
+    address_text: str | None = Field(default=None, alias="address-text")
     uprn: str | None = None
 
 
 class Article4DirectionArea(EntityBase):
     """Area where an Article 4 direction removes permitted development rights."""
 
-    dataset: Literal["article-4-direction-area"]
-    article_4_direction: str | None = Field(None, alias="article-4-direction")
-    permitted_development_rights: str | None = Field(None, alias="permitted-development-rights")
-    address_texts: str | None = Field(None, alias="address-texts")
+    dataset: Literal["article-4-direction-area"] = "article-4-direction-area"
+    article_4_direction: str | None = Field(default=None, alias="article-4-direction")
+    permitted_development_rights: str | None = Field(default=None, alias="permitted-development-rights")
+    address_texts: str | None = Field(default=None, alias="address-texts")
     uprns: str | None = None
 
 
 class BrownfieldLand(EntityBase):
     """LPA brownfield land registers. Point-only (no polygon geometry)."""
 
-    dataset: Literal["brownfield-land"]
-    site_address: str | None = Field(None, alias="site-address")
-    site_plan_url: str | None = Field(None, alias="site-plan-url")
+    dataset: Literal["brownfield-land"] = "brownfield-land"
+    site_address: str | None = Field(default=None, alias="site-address")
+    site_plan_url: str | None = Field(default=None, alias="site-plan-url")
     hectares: float | None = None
     deliverable: str | None = None  # "yes" or blank
-    hazardous_substances: str | None = Field(None, alias="hazardous-substances")
-    ownership_status: str | None = Field(None, alias="ownership-status")
-    minimum_net_dwellings: int | None = Field(None, alias="minimum-net-dwellings")
-    maximum_net_dwellings: int | None = Field(None, alias="maximum-net-dwellings")
-    planning_permission_date: date | None = Field(None, alias="planning-permission-date")
-    planning_permission_type: str | None = Field(None, alias="planning-permission-type")
-    planning_permission_status: str | None = Field(None, alias="planning-permission-status")
-    planning_permission_history: str | None = Field(None, alias="planning-permission-history")
+    hazardous_substances: str | None = Field(default=None, alias="hazardous-substances")
+    ownership_status: str | None = Field(default=None, alias="ownership-status")
+    minimum_net_dwellings: int | None = Field(default=None, alias="minimum-net-dwellings")
+    maximum_net_dwellings: int | None = Field(default=None, alias="maximum-net-dwellings")
+    planning_permission_date: date | None = Field(default=None, alias="planning-permission-date")
+    planning_permission_type: str | None = Field(default=None, alias="planning-permission-type")
+    planning_permission_status: str | None = Field(default=None, alias="planning-permission-status")
+    planning_permission_history: str | None = Field(default=None, alias="planning-permission-history")
 
 
 class LocalPlanningAuthority(EntityBase):
     """reference = ONS LPA code (E60...)."""
 
-    dataset: Literal["local-planning-authority"]
+    dataset: Literal["local-planning-authority"] = "local-planning-authority"
     region: str | None = None  # documented, not seen live
 
 
 class LocalAuthorityDistrict(EntityBase):
     """reference = ONS LAD code (E06/E07/E08/E09...)."""
 
-    dataset: Literal["local-authority-district"]
+    dataset: Literal["local-authority-district"] = "local-authority-district"
 
 
 class Parish(EntityBase):
     """Civil parish boundary."""
 
-    dataset: Literal["parish"]
+    dataset: Literal["parish"] = "parish"
 
 
 class Ward(EntityBase):
     """Electoral ward boundary."""
 
-    dataset: Literal["ward"]
+    dataset: Literal["ward"] = "ward"
 
 
 class Region(EntityBase):
     """English region boundary."""
 
-    dataset: Literal["region"]
+    dataset: Literal["region"] = "region"
 
 
 class LocalPlan(EntityBase):
     """typology=legal-instrument: no geometry; link via local-plan-boundary / LPA codes."""
 
-    dataset: Literal["local-plan"]
-    adopted_date: date | None = Field(None, alias="adopted-date")
-    period_start_date: date | None = Field(None, alias="period-start-date")
-    period_end_date: date | None = Field(None, alias="period-end-date")
-    local_plan_process: str | None = Field(None, alias="local-plan-process")
-    local_plan_boundary: str | None = Field(None, alias="local-plan-boundary")
-    local_planning_authorities: str | None = Field(None, alias="local-planning-authorities")  # ";"-separated LPA codes
+    dataset: Literal["local-plan"] = "local-plan"
+    adopted_date: date | None = Field(default=None, alias="adopted-date")
+    period_start_date: date | None = Field(default=None, alias="period-start-date")
+    period_end_date: date | None = Field(default=None, alias="period-end-date")
+    local_plan_process: str | None = Field(default=None, alias="local-plan-process")
+    local_plan_boundary: str | None = Field(default=None, alias="local-plan-boundary")
+    local_planning_authorities: str | None = Field(
+        default=None, alias="local-planning-authorities"
+    )  # ";"-separated LPA codes
     organisations: str | None = None  # ";"-separated organisation CURIEs
-    required_housing: int | None = Field(None, alias="required-housing")
+    required_housing: int | None = Field(default=None, alias="required-housing")
 
 
 class _PlanBoundary(EntityBase):
@@ -469,93 +475,95 @@ class _PlanBoundary(EntityBase):
 class LocalPlanBoundary(_PlanBoundary):
     """Area covered by a local plan."""
 
-    dataset: Literal["local-plan-boundary"]
-    local_planning_authorities: str | None = Field(None, alias="local-planning-authorities")  # ";"-separated LPA codes
+    dataset: Literal["local-plan-boundary"] = "local-plan-boundary"
+    local_planning_authorities: str | None = Field(
+        default=None, alias="local-planning-authorities"
+    )  # ";"-separated LPA codes
 
 
 class MineralsPlanBoundary(_PlanBoundary):
     """Area covered by a minerals plan."""
 
-    dataset: Literal["minerals-plan-boundary"]
+    dataset: Literal["minerals-plan-boundary"] = "minerals-plan-boundary"
 
 
 class WastePlanBoundary(_PlanBoundary):
     """Area covered by a waste plan."""
 
-    dataset: Literal["waste-plan-boundary"]
+    dataset: Literal["waste-plan-boundary"] = "waste-plan-boundary"
 
 
 class DevelopmentPlanDocument(EntityBase):
     """typology=document: no geometry."""
 
-    dataset: Literal["development-plan-document"]
-    development_plan: str | None = Field(None, alias="development-plan")
-    document_types: str | None = Field(None, alias="document-types")  # ";"-separated
+    dataset: Literal["development-plan-document"] = "development-plan-document"
+    development_plan: str | None = Field(default=None, alias="development-plan")
+    document_types: str | None = Field(default=None, alias="document-types")  # ";"-separated
 
 
 class PlanningApplication(EntityBase):
     """Patchy national coverage (only LPAs that publish to the platform)."""
 
-    dataset: Literal["planning-application"]
-    decision_date: date | None = Field(None, alias="decision-date")
+    dataset: Literal["planning-application"] = "planning-application"
+    decision_date: date | None = Field(default=None, alias="decision-date")
     # Remaining fields are documented in the specification but were not seen live.
-    address_text: str | None = Field(None, alias="address-text")
+    address_text: str | None = Field(default=None, alias="address-text")
     uprn: str | None = None
-    development_classification: str | None = Field(None, alias="development-classification")
-    ground_area: str | None = Field(None, alias="ground-area")
-    planning_application_status: str | None = Field(None, alias="planning-application-status")
-    planning_application_type: str | None = Field(None, alias="planning-application-type")
-    planning_decision: str | None = Field(None, alias="planning-decision")
-    planning_decision_type: str | None = Field(None, alias="planning-decision-type")
+    development_classification: str | None = Field(default=None, alias="development-classification")
+    ground_area: str | None = Field(default=None, alias="ground-area")
+    planning_application_status: str | None = Field(default=None, alias="planning-application-status")
+    planning_application_type: str | None = Field(default=None, alias="planning-application-type")
+    planning_decision: str | None = Field(default=None, alias="planning-decision")
+    planning_decision_type: str | None = Field(default=None, alias="planning-decision-type")
 
 
 class InfrastructureProject(EntityBase):
     """Nationally Significant Infrastructure Projects (Planning Inspectorate)."""
 
-    dataset: Literal["infrastructure-project"]
-    infrastructure_project_type: str | None = Field(None, alias="infrastructure-project-type")
-    infrastructure_project_decision: str | None = Field(None, alias="infrastructure-project-decision")
+    dataset: Literal["infrastructure-project"] = "infrastructure-project"
+    infrastructure_project_type: str | None = Field(default=None, alias="infrastructure-project-type")
+    infrastructure_project_decision: str | None = Field(default=None, alias="infrastructure-project-decision")
     # documented, not seen live
-    applicant_organisation: str | None = Field(None, alias="applicant-organisation")
-    decision_date: date | None = Field(None, alias="decision-date")
-    decision_maker: str | None = Field(None, alias="decision-maker")
+    applicant_organisation: str | None = Field(default=None, alias="applicant-organisation")
+    decision_date: date | None = Field(default=None, alias="decision-date")
+    decision_maker: str | None = Field(default=None, alias="decision-maker")
 
 
 class BuiltUpArea(EntityBase):
     """ONS built-up area polygon."""
 
-    dataset: Literal["built-up-area"]
+    dataset: Literal["built-up-area"] = "built-up-area"
 
 
 class HeritageAtRisk(EntityBase):
     """Historic England Heritage at Risk register entry."""
 
-    dataset: Literal["heritage-at-risk"]
+    dataset: Literal["heritage-at-risk"] = "heritage-at-risk"
 
 
 class ArchaeologicalPriorityArea(EntityBase):
     """Greater London only."""
 
-    dataset: Literal["archaeological-priority-area"]
-    archaeological_risk_tier: str | None = Field(None, alias="archaeological-risk-tier")
+    dataset: Literal["archaeological-priority-area"] = "archaeological-priority-area"
+    archaeological_risk_tier: str | None = Field(default=None, alias="archaeological-risk-tier")
 
 
 class CentralActivitiesZone(EntityBase):
     """London only."""
 
-    dataset: Literal["central-activities-zone"]
+    dataset: Literal["central-activities-zone"] = "central-activities-zone"
 
 
 class FloodStorageArea(EntityBase):
     """EA flood storage area polygon."""
 
-    dataset: Literal["flood-storage-area"]
+    dataset: Literal["flood-storage-area"] = "flood-storage-area"
 
 
 class MainRiver(EntityBase):
     """Dataset exists but had 0 entities when checked (2026-09); fields unverified."""
 
-    dataset: Literal["main-river"]
+    dataset: Literal["main-river"] = "main-river"
 
 
 def _entity_tag(v: object) -> str:
@@ -674,23 +682,23 @@ class Dataset(NullMarkerResponse):
     text: str | None = None  # markdown
     prefix: str | None = None
     themes: list[str] | None = None
-    entity_count: int | None = Field(None, alias="entity-count")
-    entity_minimum: int | None = Field(None, alias="entity-minimum")
-    entity_maximum: int | None = Field(None, alias="entity-maximum")
+    entity_count: int | None = Field(default=None, alias="entity-count")
+    entity_minimum: int | None = Field(default=None, alias="entity-minimum")
+    entity_maximum: int | None = Field(default=None, alias="entity-maximum")
     entities: str | None = None
-    entry_date: date | None = Field(None, alias="entry-date")
-    start_date: date | None = Field(None, alias="start-date")
-    end_date: date | None = Field(None, alias="end-date")
+    entry_date: date | None = Field(default=None, alias="entry-date")
+    start_date: date | None = Field(default=None, alias="start-date")
+    end_date: date | None = Field(default=None, alias="end-date")
     phase: str | None = None  # discovery | prioritised | alpha | beta | live
     realm: str | None = None  # dataset | specification | configuration | ...
     attribution: str | None = None
-    attribution_text: str | None = Field(None, alias="attribution-text")
+    attribution_text: str | None = Field(default=None, alias="attribution-text")
     licence: str | None = None
-    licence_text: str | None = Field(None, alias="licence-text")
+    licence_text: str | None = Field(default=None, alias="licence-text")
     consideration: str | None = None
-    github_discussion: int | None = Field(None, alias="github-discussion")
-    paint_options: PaintOptions | None = Field(None, alias="paint-options")
-    replacement_dataset: str | None = Field(None, alias="replacement-dataset")
+    github_discussion: int | None = Field(default=None, alias="github-discussion")
+    paint_options: PaintOptions | None = Field(default=None, alias="paint-options")
+    replacement_dataset: str | None = Field(default=None, alias="replacement-dataset")
     version: str | None = None
     wikidata: str | None = None
     wikipedia: str | None = None

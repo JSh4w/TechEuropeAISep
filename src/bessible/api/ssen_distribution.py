@@ -94,7 +94,7 @@ class _Record(NullMarkerResponse):
 
     NULL_MARKERS: ClassVar[frozenset[str]] = frozenset({"", "N/A", "DATA NOT AVAILABLE", "DATA NOT APPLICABLE"})
 
-    id: int | None = Field(None, alias="_id")
+    id: int | None = Field(default=None, alias="_id")
 
 
 class HeadroomSite(_Record):
@@ -105,139 +105,161 @@ class HeadroomSite(_Record):
     reinforcement already planned (works + completion date).
     """
 
-    assetid: str | None = Field(None, alias="AssetID")
-    gsp_grouping: str | None = Field(None, alias="gsp_grouping___default_order")
-    licence_area: str | None = Field(None, alias="map___license_area")  # "England / SEPD" | "Scotland / SHEPD"
-    substation: str | None = Field(None, alias="Substation")  # e.g. "Westbury Primary"
+    assetid: str | None = Field(default=None, alias="AssetID")
+    gsp_grouping: str | None = Field(default=None, alias="gsp_grouping___default_order")
+    licence_area: str | None = Field(default=None, alias="map___license_area")  # "England / SEPD" | "Scotland / SHEPD"
+    substation: str | None = Field(default=None, alias="Substation")  # e.g. "Westbury Primary"
     upstream_gsp: str | None = Field(
-        None, alias="Upstream GSP"
+        default=None, alias="Upstream GSP"
     )  # e.g. "Melksham GSP" (join to NESO after clean_site_name)
-    upstream_bsp: str | None = Field(None, alias="Upstream BSP")
-    substation_type: str | None = Field(None, alias="Substation Type")  # "Primary" | "BSP" | "GSP"
-    voltage_kv: str | None = Field(None, alias="voltage__kv_")  # text, e.g. "33 / 11"
-    lat: float | None = Field(None, alias="Location Latitude")
-    lon: float | None = Field(None, alias="Location Longitude")
-    grid_reference: str | None = Field(None, alias="Grid Reference")
-    substation_comment: str | None = Field(None, alias="Substation Comment")
-    ltds_cim_nodes: str | None = Field(None, alias="LTDS CIM Nodes")
-    transformer_nameplate_ratings: str | None = Field(None, alias="Transformer Nameplate Ratings")
-    single_transformer_site: str | None = Field(None, alias="Single Transformer Site")
-    maximum_observed_gross_demand_mva: float | None = Field(None, alias="maximum_observed_gross_demand__mva_")
-    minimum_observed_gross_demand_mva: float | None = Field(None, alias="minimum_observed_gross_demand__mva_")
-    contracted_demand_excl_bess_mva: float | None = Field(None, alias="contracted_demand_excl_bess__mva_")
+    upstream_bsp: str | None = Field(default=None, alias="Upstream BSP")
+    substation_type: str | None = Field(default=None, alias="Substation Type")  # "Primary" | "BSP" | "GSP"
+    voltage_kv: str | None = Field(default=None, alias="voltage__kv_")  # text, e.g. "33 / 11"
+    lat: float | None = Field(default=None, alias="Location Latitude")
+    lon: float | None = Field(default=None, alias="Location Longitude")
+    grid_reference: str | None = Field(default=None, alias="Grid Reference")
+    substation_comment: str | None = Field(default=None, alias="Substation Comment")
+    ltds_cim_nodes: str | None = Field(default=None, alias="LTDS CIM Nodes")
+    transformer_nameplate_ratings: str | None = Field(default=None, alias="Transformer Nameplate Ratings")
+    single_transformer_site: str | None = Field(default=None, alias="Single Transformer Site")
+    maximum_observed_gross_demand_mva: float | None = Field(default=None, alias="maximum_observed_gross_demand__mva_")
+    minimum_observed_gross_demand_mva: float | None = Field(default=None, alias="minimum_observed_gross_demand__mva_")
+    contracted_demand_excl_bess_mva: float | None = Field(default=None, alias="contracted_demand_excl_bess__mva_")
     contracted_bess_demand_mva: float | None = Field(
-        None, alias="contracted_bess_demand__mva_"
+        default=None, alias="contracted_bess_demand__mva_"
     )  # batteries already contracted to import here
     estimated_demand_headroom_mva: float | None = Field(
-        None, alias="estimated_demand_headroom__mva_"
+        default=None, alias="estimated_demand_headroom__mva_"
     )  # import headroom
-    substation_demand_rag_status: str | None = Field(None, alias="Substation Demand RAG Status")
-    demand_constraint: str | None = Field(None, alias="Demand Constraint")
+    substation_demand_rag_status: str | None = Field(default=None, alias="Substation Demand RAG Status")
+    demand_constraint: str | None = Field(default=None, alias="Demand Constraint")
     tia_threshold: str | None = Field(
-        None, alias="TIA Threshold"
+        default=None, alias="TIA Threshold"
     )  # above this size NESO must assess the transmission impact, e.g. "1MW"
-    connected_generation_mw: float | None = Field(None, alias="connected_generation__mw_")
-    contracted_generation_mw: float | None = Field(None, alias="contracted_generation__mw_")
+    connected_generation_mw: float | None = Field(default=None, alias="connected_generation__mw_")
+    contracted_generation_mw: float | None = Field(default=None, alias="contracted_generation__mw_")
     technical_limits_agreed_at_gsp: str | None = Field(
-        None, alias="Technical Limits Agreed at GSP"
+        default=None, alias="Technical Limits Agreed at GSP"
     )  # "Yes" = curtailable connections ahead of transmission works
     estimated_generation_headroom_mw: float | None = Field(
-        None, alias="estimated_generation_headroom__mw_"
+        default=None, alias="estimated_generation_headroom__mw_"
     )  # export headroom
-    unsafe_3_phase_break_fault_rating_ka: float | None = Field(None, alias="unsafe_3_phase_break_fault_rating__ka_")
-    unsafe_3_phase_break_fault_level_ka: float | None = Field(None, alias="unsafe_3_phase_break_fault_level__ka_")
+    unsafe_3_phase_break_fault_rating_ka: float | None = Field(
+        default=None, alias="unsafe_3_phase_break_fault_rating__ka_"
+    )
+    unsafe_3_phase_break_fault_level_ka: float | None = Field(
+        default=None, alias="unsafe_3_phase_break_fault_level__ka_"
+    )
     substation_generation_rag_status: str | None = Field(
-        None, alias="Substation Generation RAG Status"
+        default=None, alias="Substation Generation RAG Status"
     )  # "Red" | "Amber" | "Green"
-    generation_constraint: str | None = Field(None, alias="Generation Constraint")  # e.g. "Upstream Thermal Capacity"
-    upstream_reinforcement_works: str | None = Field(None, alias="Upstream Reinforcement Works")
-    upstream_reinforcement_completion_date: str | None = Field(None, alias="Upstream Reinforcement Completion Date")
-    substation_reinforcement_works: str | None = Field(None, alias="Substation Reinforcement Works")
-    substation_reinforcement_completion_date: str | None = Field(None, alias="Substation Reinforcement Completion Date")
+    generation_constraint: str | None = Field(
+        default=None, alias="Generation Constraint"
+    )  # e.g. "Upstream Thermal Capacity"
+    upstream_reinforcement_works: str | None = Field(default=None, alias="Upstream Reinforcement Works")
+    upstream_reinforcement_completion_date: str | None = Field(
+        default=None, alias="Upstream Reinforcement Completion Date"
+    )
+    substation_reinforcement_works: str | None = Field(default=None, alias="Substation Reinforcement Works")
+    substation_reinforcement_completion_date: str | None = Field(
+        default=None, alias="Substation Reinforcement Completion Date"
+    )
 
 
 class EcrRecord(_Record):
     """Row of the Embedded Capacity Register, >= 1 MW (Ofgem-mandated columns, as ``ukpn.EmbeddedCapacityRecord``)."""
 
-    export_mpan_msid: str | None = Field(None, alias="export_mpan___msid")  # mangled upstream ("2.00006E+12")
-    import_mpan_msid: str | None = Field(None, alias="import_mpan___msid")
-    customer_name: str | None = Field(None, alias="Customer Name")
-    customer_site: str | None = Field(None, alias="Customer Site")
-    address_line_1: str | None = Field(None, alias="Address Line 1")
-    address_line_2: str | None = Field(None, alias="Address Line 2")
-    town_city: str | None = Field(None, alias="town__city")
-    county: str | None = Field(None, alias="County")
-    postcode: str | None = Field(None, alias="Postcode")
-    country: str | None = Field(None, alias="Country")
-    eastings: str | None = Field(None, alias="location__x_coordinate___eastings__where_data_is_held_")
-    northings: str | None = Field(None, alias="location__y_coordinate___northings__where_data_is_held_")
-    grid_supply_point: str | None = Field(None, alias="Grid Supply Point")
-    bulk_supply_point: str | None = Field(None, alias="Bulk Supply Point")
-    primary: str | None = Field(None, alias="Primary")
-    poc_voltage_kv: float | None = Field(None, alias="point_of_connection__poc__voltage__kv_")
-    licence_area: str | None = Field(None, alias="Licence Area")
-    energy_source_1: str | None = Field(None, alias="Energy Source 1")  # upper case: "SOLAR", "STORED ENERGY", ...
-    energy_conversion_technology_1: str | None = Field(None, alias="Energy Conversion Technology 1")
-    chp_cogeneration_yes_no: str | None = Field(None, alias="chp_cogeneration__yes_no_")
-    storage_capacity_1_mwh: str | None = Field(None, alias="storage_capacity_1__mwh_")
-    storage_duration_1_hours: str | None = Field(None, alias="storage_duration_1__hours_")
+    export_mpan_msid: str | None = Field(default=None, alias="export_mpan___msid")  # mangled upstream ("2.00006E+12")
+    import_mpan_msid: str | None = Field(default=None, alias="import_mpan___msid")
+    customer_name: str | None = Field(default=None, alias="Customer Name")
+    customer_site: str | None = Field(default=None, alias="Customer Site")
+    address_line_1: str | None = Field(default=None, alias="Address Line 1")
+    address_line_2: str | None = Field(default=None, alias="Address Line 2")
+    town_city: str | None = Field(default=None, alias="town__city")
+    county: str | None = Field(default=None, alias="County")
+    postcode: str | None = Field(default=None, alias="Postcode")
+    country: str | None = Field(default=None, alias="Country")
+    eastings: str | None = Field(default=None, alias="location__x_coordinate___eastings__where_data_is_held_")
+    northings: str | None = Field(default=None, alias="location__y_coordinate___northings__where_data_is_held_")
+    grid_supply_point: str | None = Field(default=None, alias="Grid Supply Point")
+    bulk_supply_point: str | None = Field(default=None, alias="Bulk Supply Point")
+    primary: str | None = Field(default=None, alias="Primary")
+    poc_voltage_kv: float | None = Field(default=None, alias="point_of_connection__poc__voltage__kv_")
+    licence_area: str | None = Field(default=None, alias="Licence Area")
+    energy_source_1: str | None = Field(
+        default=None, alias="Energy Source 1"
+    )  # upper case: "SOLAR", "STORED ENERGY", ...
+    energy_conversion_technology_1: str | None = Field(default=None, alias="Energy Conversion Technology 1")
+    chp_cogeneration_yes_no: str | None = Field(default=None, alias="chp_cogeneration__yes_no_")
+    storage_capacity_1_mwh: str | None = Field(default=None, alias="storage_capacity_1__mwh_")
+    storage_duration_1_hours: str | None = Field(default=None, alias="storage_duration_1__hours_")
     registered_capacity_1_mw: float | None = Field(
-        None, alias="energy_source___energy_conversion_technology_1___registered_"
+        default=None, alias="energy_source___energy_conversion_technology_1___registered_"
     )
-    energy_source_2: str | None = Field(None, alias="Energy Source 2")
-    energy_conversion_technology_2: str | None = Field(None, alias="Energy Conversion Technology 2")
-    chp_cogeneration_2_yes_no: str | None = Field(None, alias="chp_cogeneration_2__yes_no_")
-    storage_capacity_2_mwh: str | None = Field(None, alias="storage_capacity_2__mwh_")
-    storage_duration_2_hours: str | None = Field(None, alias="storage_duration_2__hours_")
+    energy_source_2: str | None = Field(default=None, alias="Energy Source 2")
+    energy_conversion_technology_2: str | None = Field(default=None, alias="Energy Conversion Technology 2")
+    chp_cogeneration_2_yes_no: str | None = Field(default=None, alias="chp_cogeneration_2__yes_no_")
+    storage_capacity_2_mwh: str | None = Field(default=None, alias="storage_capacity_2__mwh_")
+    storage_duration_2_hours: str | None = Field(default=None, alias="storage_duration_2__hours_")
     registered_capacity_2_mw: float | None = Field(
-        None, alias="energy_source___energy_conversion_technology_2___registered_"
+        default=None, alias="energy_source___energy_conversion_technology_2___registered_"
     )
-    energy_source_3: str | None = Field(None, alias="Energy Source 3")
-    energy_conversion_technology_3: str | None = Field(None, alias="Energy Conversion Technology 3")
-    chp_cogeneration_3_yes_no: str | None = Field(None, alias="chp_cogeneration_3__yes_no_")
-    storage_capacity_3_mwh: str | None = Field(None, alias="storage_capacity_3__mwh_")
-    storage_duration_3_hours: str | None = Field(None, alias="storage_duration_3__hours_")
+    energy_source_3: str | None = Field(default=None, alias="Energy Source 3")
+    energy_conversion_technology_3: str | None = Field(default=None, alias="Energy Conversion Technology 3")
+    chp_cogeneration_3_yes_no: str | None = Field(default=None, alias="chp_cogeneration_3__yes_no_")
+    storage_capacity_3_mwh: str | None = Field(default=None, alias="storage_capacity_3__mwh_")
+    storage_duration_3_hours: str | None = Field(default=None, alias="storage_duration_3__hours_")
     registered_capacity_3_mw: str | None = Field(
-        None, alias="energy_source___energy_conversion_technology_3___registered_"
+        default=None, alias="energy_source___energy_conversion_technology_3___registered_"
     )
-    flexible_connection_yes_no: str | None = Field(None, alias="flexible_connection__yes_no_")
-    connection_status: str | None = Field(None, alias="Connection Status")  # "CONNECTED" | "ACCEPTED TO CONNECT"
+    flexible_connection_yes_no: str | None = Field(default=None, alias="flexible_connection__yes_no_")
+    connection_status: str | None = Field(
+        default=None, alias="Connection Status"
+    )  # "CONNECTED" | "ACCEPTED TO CONNECT"
     already_connected_registered_capacity_mw: float | None = Field(
-        None, alias="already_connected_registered_capacity__mw_"
+        default=None, alias="already_connected_registered_capacity__mw_"
     )
-    maximum_export_capacity_mw: float | None = Field(None, alias="maximum_export_capacity__mw_")
-    maximum_export_capacity_mva: float | None = Field(None, alias="maximum_export_capacity__mva_")
-    maximum_import_capacity_mw: float | None = Field(None, alias="maximum_import_capacity__mw_")
-    maximum_import_capacity_mva: float | None = Field(None, alias="maximum_import_capacity__mva_")
-    date_connected: str | None = Field(None, alias="Date Connected")  # text, "19/11/2024"
+    maximum_export_capacity_mw: float | None = Field(default=None, alias="maximum_export_capacity__mw_")
+    maximum_export_capacity_mva: float | None = Field(default=None, alias="maximum_export_capacity__mva_")
+    maximum_import_capacity_mw: float | None = Field(default=None, alias="maximum_import_capacity__mw_")
+    maximum_import_capacity_mva: float | None = Field(default=None, alias="maximum_import_capacity__mva_")
+    date_connected: str | None = Field(default=None, alias="Date Connected")  # text, "19/11/2024"
     accepted_to_connect_registered_capacity_mw: float | None = Field(
-        None, alias="accepted_to_connect_registered_capacity__mw_"
+        default=None, alias="accepted_to_connect_registered_capacity__mw_"
     )
-    change_to_maximum_export_capacity_mw: float | None = Field(None, alias="change_to_maximum_export_capacity__mw_")
-    change_to_maximum_export_capacity_mva: float | None = Field(None, alias="change_to_maximum_export_capacity__mva_")
-    change_to_maximum_import_capacity_mw: float | None = Field(None, alias="change_to_maximum_import_capacity__mw_")
-    change_to_maximum_import_capacity_mva: float | None = Field(None, alias="change_to_maximum_import_capacity__mva_")
-    date_accepted: str | None = Field(None, alias="Date Accepted")
-    target_energisation_date: str | None = Field(None, alias="Target Energisation Date")
-    distribution_service_provider_y_n: str | None = Field(None, alias="distribution_service_provider__y_n_")
-    transmission_service_provider_y_n: str | None = Field(None, alias="transmission_service_provider__y_n_")
-    reference: str | None = Field(None, alias="Reference")
-    in_a_connection_queue_y_n: str | None = Field(None, alias="in_a_connection_queue__y_n_")
-    distribution_reinforcement_reference: str | None = Field(None, alias="Distribution Reinforcement Reference")
-    transmission_reinforcement_reference: str | None = Field(None, alias="Transmission Reinforcement Reference")
-    last_updated: datetime | None = Field(None, alias="Last Updated")
+    change_to_maximum_export_capacity_mw: float | None = Field(
+        default=None, alias="change_to_maximum_export_capacity__mw_"
+    )
+    change_to_maximum_export_capacity_mva: float | None = Field(
+        default=None, alias="change_to_maximum_export_capacity__mva_"
+    )
+    change_to_maximum_import_capacity_mw: float | None = Field(
+        default=None, alias="change_to_maximum_import_capacity__mw_"
+    )
+    change_to_maximum_import_capacity_mva: float | None = Field(
+        default=None, alias="change_to_maximum_import_capacity__mva_"
+    )
+    date_accepted: str | None = Field(default=None, alias="Date Accepted")
+    target_energisation_date: str | None = Field(default=None, alias="Target Energisation Date")
+    distribution_service_provider_y_n: str | None = Field(default=None, alias="distribution_service_provider__y_n_")
+    transmission_service_provider_y_n: str | None = Field(default=None, alias="transmission_service_provider__y_n_")
+    reference: str | None = Field(default=None, alias="Reference")
+    in_a_connection_queue_y_n: str | None = Field(default=None, alias="in_a_connection_queue__y_n_")
+    distribution_reinforcement_reference: str | None = Field(default=None, alias="Distribution Reinforcement Reference")
+    transmission_reinforcement_reference: str | None = Field(default=None, alias="Transmission Reinforcement Reference")
+    last_updated: datetime | None = Field(default=None, alias="Last Updated")
     transmission_and_distribution_contracted_t_d: str | None = Field(
-        None, alias="transmission_and_distribution_contracted__t_d_"
+        default=None, alias="transmission_and_distribution_contracted__t_d_"
     )
-    lat: float | None = Field(None, alias="Latitude")
-    lon: float | None = Field(None, alias="Longitude")
-    unique_id: str | None = Field(None, alias="Unique ID")  # e.g. "SSEN0663-1MW-CONNECTED"
+    lat: float | None = Field(default=None, alias="Latitude")
+    lon: float | None = Field(default=None, alias="Longitude")
+    unique_id: str | None = Field(default=None, alias="Unique ID")  # e.g. "SSEN0663-1MW-CONNECTED"
 
 
 class OverheadLine(_Record):
     """Row of SSEN Overhead Lines: one line section."""
 
-    line_id: int | None = Field(None, alias="id")
+    line_id: int | None = Field(default=None, alias="id")
     nominal_voltage_pp: str | None = None  # "33.000 kV", "132.000 kV", "11.000 kV", "230.000 V"
     circuit_id: int | None = None
     circuit_nrn: str | None = None  # network reference number, e.g. "6709.004.000.00"

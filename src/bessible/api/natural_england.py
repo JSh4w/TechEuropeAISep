@@ -102,21 +102,21 @@ class ArcGisQueryRequest(ApiRequest):
 
     where: str | None = None  # SQL-92 where clause, e.g. "1=1"
     geometry: str | None = None  # simple syntax "x,y" (point) or "xmin,ymin,xmax,ymax" (envelope), or Esri JSON
-    geometry_type: GeometryType | None = Field(None, alias="geometryType")
-    in_sr: int | None = Field(None, alias="inSR")  # WKID of input geometry, e.g. 4326
-    spatial_rel: SpatialRel | None = Field(None, alias="spatialRel")
+    geometry_type: GeometryType | None = Field(default=None, serialization_alias="geometryType")
+    in_sr: int | None = Field(default=None, serialization_alias="inSR")  # WKID of input geometry, e.g. 4326
+    spatial_rel: SpatialRel | None = Field(default=None, serialization_alias="spatialRel")
     distance: float | None = None  # buffer around input geometry, in `units`
     units: DistanceUnits | None = None
-    out_fields: str | None = Field(None, alias="outFields")  # comma-separated or "*"
-    return_geometry: bool | None = Field(None, alias="returnGeometry")
-    out_sr: int | None = Field(None, alias="outSR")  # f=geojson defaults to 4326
-    result_record_count: int | None = Field(None, alias="resultRecordCount")
-    result_offset: int | None = Field(None, alias="resultOffset")
-    return_count_only: bool | None = Field(None, alias="returnCountOnly")
-    order_by_fields: str | None = Field(None, alias="orderByFields")  # e.g. "NAME ASC"
-    geometry_precision: int | None = Field(None, alias="geometryPrecision")  # decimal places
+    out_fields: str | None = Field(default=None, serialization_alias="outFields")  # comma-separated or "*"
+    return_geometry: bool | None = Field(default=None, serialization_alias="returnGeometry")
+    out_sr: int | None = Field(default=None, serialization_alias="outSR")  # f=geojson defaults to 4326
+    result_record_count: int | None = Field(default=None, serialization_alias="resultRecordCount")
+    result_offset: int | None = Field(default=None, serialization_alias="resultOffset")
+    return_count_only: bool | None = Field(default=None, serialization_alias="returnCountOnly")
+    order_by_fields: str | None = Field(default=None, serialization_alias="orderByFields")  # e.g. "NAME ASC"
+    geometry_precision: int | None = Field(default=None, serialization_alias="geometryPrecision")  # decimal places
     max_allowable_offset: float | None = Field(
-        None, alias="maxAllowableOffset"
+        default=None, serialization_alias="maxAllowableOffset"
     )  # simplification tolerance, outSR units
     f: ResponseFormat = "geojson"
 
@@ -161,7 +161,7 @@ class ArcGisGeoJsonResponse[PropsT](ApiResponse):
     crs: GeoJsonCrs | None = None
     properties: ArcGisCollectionProperties | None = None
     # Documented at top level for f=json; in geojson it is seen under `properties`. Kept for safety.
-    exceeded_transfer_limit: bool | None = Field(None, alias="exceededTransferLimit")
+    exceeded_transfer_limit: bool | None = Field(default=None, alias="exceededTransferLimit")
     features: list[ArcGisFeature[PropsT]]
 
 
@@ -197,100 +197,104 @@ class LayerMetadataResponse(ApiResponse):
     id: int
     name: str
     type: str  # "Feature Layer"
-    current_version: float | None = Field(None, alias="currentVersion")
-    service_item_id: str | None = Field(None, alias="serviceItemId")
+    current_version: float | None = Field(default=None, alias="currentVersion")
+    service_item_id: str | None = Field(default=None, alias="serviceItemId")
     description: str | None = None
-    copyright_text: str | None = Field(None, alias="copyrightText")
-    display_field: str | None = Field(None, alias="displayField")
-    geometry_type: str | None = Field(None, alias="geometryType")
-    object_id_field: str | None = Field(None, alias="objectIdField")
-    global_id_field: str | None = Field(None, alias="globalIdField")
+    copyright_text: str | None = Field(default=None, alias="copyrightText")
+    display_field: str | None = Field(default=None, alias="displayField")
+    geometry_type: str | None = Field(default=None, alias="geometryType")
+    object_id_field: str | None = Field(default=None, alias="objectIdField")
+    global_id_field: str | None = Field(default=None, alias="globalIdField")
     extent: Extent | None = None
     fields: list[LayerField]
-    max_record_count: int | None = Field(None, alias="maxRecordCount")
-    standard_max_record_count: int | None = Field(None, alias="standardMaxRecordCount")
-    supported_query_formats: str | None = Field(None, alias="supportedQueryFormats")
+    max_record_count: int | None = Field(default=None, alias="maxRecordCount")
+    standard_max_record_count: int | None = Field(default=None, alias="standardMaxRecordCount")
+    supported_query_formats: str | None = Field(default=None, alias="supportedQueryFormats")
     capabilities: str | None = None
-    has_z: bool | None = Field(None, alias="hasZ")
-    has_m: bool | None = Field(None, alias="hasM")
+    has_z: bool | None = Field(default=None, alias="hasZ")
+    has_m: bool | None = Field(default=None, alias="hasM")
     # Everything below is unused by us but modelled so that extra="forbid" holds; nested blobs stay raw.
-    cache_max_age: int | None = Field(None, alias="cacheMaxAge")
-    default_visibility: bool | None = Field(None, alias="defaultVisibility")
-    editing_info: dict[str, Any] | None = Field(None, alias="editingInfo")
+    cache_max_age: int | None = Field(default=None, alias="cacheMaxAge")
+    default_visibility: bool | None = Field(default=None, alias="defaultVisibility")
+    editing_info: dict[str, Any] | None = Field(default=None, alias="editingInfo")
     relationships: list[dict[str, Any]] | None = None
-    is_data_versioned: bool | None = Field(None, alias="isDataVersioned")
-    has_contingent_values_definition: bool | None = Field(None, alias="hasContingentValuesDefinition")
-    supports_append: bool | None = Field(None, alias="supportsAppend")
-    supports_calculate: bool | None = Field(None, alias="supportsCalculate")
-    supports_async_calculate: bool | None = Field(None, alias="supportsASyncCalculate")
-    supports_truncate: bool | None = Field(None, alias="supportsTruncate")
-    supports_attachments_by_upload_id: bool | None = Field(None, alias="supportsAttachmentsByUploadId")
-    supports_attachments_resizing: bool | None = Field(None, alias="supportsAttachmentsResizing")
-    supports_rollback_on_failure_parameter: bool | None = Field(None, alias="supportsRollbackOnFailureParameter")
-    supports_statistics: bool | None = Field(None, alias="supportsStatistics")
-    supports_exceeds_limit_statistics: bool | None = Field(None, alias="supportsExceedsLimitStatistics")
-    supports_advanced_queries: bool | None = Field(None, alias="supportsAdvancedQueries")
-    supports_validate_sql: bool | None = Field(None, alias="supportsValidateSql")
-    supports_coordinates_quantization: bool | None = Field(None, alias="supportsCoordinatesQuantization")
-    supports_layer_overrides: bool | None = Field(None, alias="supportsLayerOverrides")
-    supports_tiles_and_basic_queries_mode: bool | None = Field(None, alias="supportsTilesAndBasicQueriesMode")
-    supports_field_description_property: bool | None = Field(None, alias="supportsFieldDescriptionProperty")
-    supports_quantization_edit_mode: bool | None = Field(None, alias="supportsQuantizationEditMode")
-    supports_column_store_index: bool | None = Field(None, alias="supportsColumnStoreIndex")
-    supports_apply_edits_with_global_ids: bool | None = Field(None, alias="supportsApplyEditsWithGlobalIds")
-    supports_multi_scale_geometry: bool | None = Field(None, alias="supportsMultiScaleGeometry")
-    supports_returning_query_geometry: bool | None = Field(None, alias="supportsReturningQueryGeometry")
-    enable_null_geometry: bool | None = Field(None, alias="enableNullGeometry")
-    has_geometry_properties: bool | None = Field(None, alias="hasGeometryProperties")
-    geometry_properties: dict[str, Any] | None = Field(None, alias="geometryProperties")
-    advanced_query_capabilities: dict[str, Any] | None = Field(None, alias="advancedQueryCapabilities")
-    advanced_query_analytic_capabilities: dict[str, Any] | None = Field(None, alias="advancedQueryAnalyticCapabilities")
-    query_bins_capabilities: dict[str, Any] | None = Field(None, alias="queryBinsCapabilities")
-    supported_operations_with_collation: str | None = Field(None, alias="supportedOperationsWithCollation")
-    advanced_editing_capabilities: dict[str, Any] | None = Field(None, alias="advancedEditingCapabilities")
-    info_in_estimates: list[str] | None = Field(None, alias="infoInEstimates")
-    use_standardized_queries: bool | None = Field(None, alias="useStandardizedQueries")
-    min_scale: float | None = Field(None, alias="minScale")
-    max_scale: float | None = Field(None, alias="maxScale")
-    spatial_reference: SpatialReference | None = Field(None, alias="spatialReference")
-    drawing_info: dict[str, Any] | None = Field(None, alias="drawingInfo")
-    allow_geometry_updates: bool | None = Field(None, alias="allowGeometryUpdates")
-    true_curve_support_mode: str | None = Field(None, alias="trueCurveSupportMode")
-    supported_curve_types: list[str] | None = Field(None, alias="supportedCurveTypes")
+    is_data_versioned: bool | None = Field(default=None, alias="isDataVersioned")
+    has_contingent_values_definition: bool | None = Field(default=None, alias="hasContingentValuesDefinition")
+    supports_append: bool | None = Field(default=None, alias="supportsAppend")
+    supports_calculate: bool | None = Field(default=None, alias="supportsCalculate")
+    supports_async_calculate: bool | None = Field(default=None, alias="supportsASyncCalculate")
+    supports_truncate: bool | None = Field(default=None, alias="supportsTruncate")
+    supports_attachments_by_upload_id: bool | None = Field(default=None, alias="supportsAttachmentsByUploadId")
+    supports_attachments_resizing: bool | None = Field(default=None, alias="supportsAttachmentsResizing")
+    supports_rollback_on_failure_parameter: bool | None = Field(
+        default=None, alias="supportsRollbackOnFailureParameter"
+    )
+    supports_statistics: bool | None = Field(default=None, alias="supportsStatistics")
+    supports_exceeds_limit_statistics: bool | None = Field(default=None, alias="supportsExceedsLimitStatistics")
+    supports_advanced_queries: bool | None = Field(default=None, alias="supportsAdvancedQueries")
+    supports_validate_sql: bool | None = Field(default=None, alias="supportsValidateSql")
+    supports_coordinates_quantization: bool | None = Field(default=None, alias="supportsCoordinatesQuantization")
+    supports_layer_overrides: bool | None = Field(default=None, alias="supportsLayerOverrides")
+    supports_tiles_and_basic_queries_mode: bool | None = Field(default=None, alias="supportsTilesAndBasicQueriesMode")
+    supports_field_description_property: bool | None = Field(default=None, alias="supportsFieldDescriptionProperty")
+    supports_quantization_edit_mode: bool | None = Field(default=None, alias="supportsQuantizationEditMode")
+    supports_column_store_index: bool | None = Field(default=None, alias="supportsColumnStoreIndex")
+    supports_apply_edits_with_global_ids: bool | None = Field(default=None, alias="supportsApplyEditsWithGlobalIds")
+    supports_multi_scale_geometry: bool | None = Field(default=None, alias="supportsMultiScaleGeometry")
+    supports_returning_query_geometry: bool | None = Field(default=None, alias="supportsReturningQueryGeometry")
+    enable_null_geometry: bool | None = Field(default=None, alias="enableNullGeometry")
+    has_geometry_properties: bool | None = Field(default=None, alias="hasGeometryProperties")
+    geometry_properties: dict[str, Any] | None = Field(default=None, alias="geometryProperties")
+    advanced_query_capabilities: dict[str, Any] | None = Field(default=None, alias="advancedQueryCapabilities")
+    advanced_query_analytic_capabilities: dict[str, Any] | None = Field(
+        default=None, alias="advancedQueryAnalyticCapabilities"
+    )
+    query_bins_capabilities: dict[str, Any] | None = Field(default=None, alias="queryBinsCapabilities")
+    supported_operations_with_collation: str | None = Field(default=None, alias="supportedOperationsWithCollation")
+    advanced_editing_capabilities: dict[str, Any] | None = Field(default=None, alias="advancedEditingCapabilities")
+    info_in_estimates: list[str] | None = Field(default=None, alias="infoInEstimates")
+    use_standardized_queries: bool | None = Field(default=None, alias="useStandardizedQueries")
+    min_scale: float | None = Field(default=None, alias="minScale")
+    max_scale: float | None = Field(default=None, alias="maxScale")
+    spatial_reference: SpatialReference | None = Field(default=None, alias="spatialReference")
+    drawing_info: dict[str, Any] | None = Field(default=None, alias="drawingInfo")
+    allow_geometry_updates: bool | None = Field(default=None, alias="allowGeometryUpdates")
+    true_curve_support_mode: str | None = Field(default=None, alias="trueCurveSupportMode")
+    supported_curve_types: list[str] | None = Field(default=None, alias="supportedCurveTypes")
     supported_true_curve_pbf_feature_encodings: list[str] | None = Field(
-        None, alias="supportedTrueCurvePbfFeatureEncodings"
+        default=None, alias="supportedTrueCurvePbfFeatureEncodings"
     )
-    allow_true_curves_updates: bool | None = Field(None, alias="allowTrueCurvesUpdates")
+    allow_true_curves_updates: bool | None = Field(default=None, alias="allowTrueCurvesUpdates")
     only_allow_true_curve_updates_by_true_curve_clients: bool | None = Field(
-        None, alias="onlyAllowTrueCurveUpdatesByTrueCurveClients"
+        default=None, alias="onlyAllowTrueCurveUpdatesByTrueCurveClients"
     )
-    has_attachments: bool | None = Field(None, alias="hasAttachments")
-    html_popup_type: str | None = Field(None, alias="htmlPopupType")
-    unique_id_field: dict[str, Any] | None = Field(None, alias="uniqueIdField")
-    type_id_field: str | None = Field(None, alias="typeIdField")
+    has_attachments: bool | None = Field(default=None, alias="hasAttachments")
+    html_popup_type: str | None = Field(default=None, alias="htmlPopupType")
+    unique_id_field: dict[str, Any] | None = Field(default=None, alias="uniqueIdField")
+    type_id_field: str | None = Field(default=None, alias="typeIdField")
     collation: dict[str, Any] | None = None
     indexes: list[dict[str, Any]] | None = None
-    date_fields_time_reference: dict[str, Any] | None = Field(None, alias="dateFieldsTimeReference")
-    preferred_time_reference: dict[str, Any] | None = Field(None, alias="preferredTimeReference")
+    date_fields_time_reference: dict[str, Any] | None = Field(default=None, alias="dateFieldsTimeReference")
+    preferred_time_reference: dict[str, Any] | None = Field(default=None, alias="preferredTimeReference")
     types: list[dict[str, Any]] | None = None
     templates: list[dict[str, Any]] | None = None
-    supported_append_formats: str | None = Field(None, alias="supportedAppendFormats")
-    supported_append_source_filter_formats: str | None = Field(None, alias="supportedAppendSourceFilterFormats")
-    supported_export_formats: str | None = Field(None, alias="supportedExportFormats")
-    supported_convert_file_formats: str | None = Field(None, alias="supportedConvertFileFormats")
-    supported_convert_content_formats: str | None = Field(None, alias="supportedConvertContentFormats")
-    supported_spatial_relationships: list[str] | None = Field(None, alias="supportedSpatialRelationships")
-    guid_format: str | None = Field(None, alias="guidFormat")
-    supports_contingent_values: bool | None = Field(None, alias="supportsContingentValues")
-    supports_editing_contingent_values: bool | None = Field(None, alias="supportsEditingContingentValues")
-    supported_contingent_values_formats: str | None = Field(None, alias="supportedContingentValuesFormats")
-    supports_field_groups: bool | None = Field(None, alias="supportsFieldGroups")
-    supported_sync_data_options: int | None = Field(None, alias="supportedSyncDataOptions")
-    has_static_data: bool | None = Field(None, alias="hasStaticData")
-    max_ids_count: int | None = Field(None, alias="maxIdsCount")
-    standard_max_record_count_no_geometry: int | None = Field(None, alias="standardMaxRecordCountNoGeometry")
-    tile_max_record_count: int | None = Field(None, alias="tileMaxRecordCount")
-    max_record_count_factor: float | None = Field(None, alias="maxRecordCountFactor")
+    supported_append_formats: str | None = Field(default=None, alias="supportedAppendFormats")
+    supported_append_source_filter_formats: str | None = Field(default=None, alias="supportedAppendSourceFilterFormats")
+    supported_export_formats: str | None = Field(default=None, alias="supportedExportFormats")
+    supported_convert_file_formats: str | None = Field(default=None, alias="supportedConvertFileFormats")
+    supported_convert_content_formats: str | None = Field(default=None, alias="supportedConvertContentFormats")
+    supported_spatial_relationships: list[str] | None = Field(default=None, alias="supportedSpatialRelationships")
+    guid_format: str | None = Field(default=None, alias="guidFormat")
+    supports_contingent_values: bool | None = Field(default=None, alias="supportsContingentValues")
+    supports_editing_contingent_values: bool | None = Field(default=None, alias="supportsEditingContingentValues")
+    supported_contingent_values_formats: str | None = Field(default=None, alias="supportedContingentValuesFormats")
+    supports_field_groups: bool | None = Field(default=None, alias="supportsFieldGroups")
+    supported_sync_data_options: int | None = Field(default=None, alias="supportedSyncDataOptions")
+    has_static_data: bool | None = Field(default=None, alias="hasStaticData")
+    max_ids_count: int | None = Field(default=None, alias="maxIdsCount")
+    standard_max_record_count_no_geometry: int | None = Field(default=None, alias="standardMaxRecordCountNoGeometry")
+    tile_max_record_count: int | None = Field(default=None, alias="tileMaxRecordCount")
+    max_record_count_factor: float | None = Field(default=None, alias="maxRecordCountFactor")
 
 
 # ------------------------------------ 3. Response sub-models ------------------------------------ #
@@ -328,7 +332,7 @@ class GeoJsonCrs(ApiResponse):
 class ArcGisCollectionProperties(ApiResponse):
     """Top-level FeatureCollection `properties` (only present when there is something to say)."""
 
-    exceeded_transfer_limit: bool | None = Field(None, alias="exceededTransferLimit")
+    exceeded_transfer_limit: bool | None = Field(default=None, alias="exceededTransferLimit")
     count: int | None = None  # returnCountOnly=true
 
 
@@ -342,7 +346,7 @@ class SpatialReference(ApiResponse):
     """Esri spatial reference (WKID pair)."""
 
     wkid: int | None = None
-    latest_wkid: int | None = Field(None, alias="latestWkid")
+    latest_wkid: int | None = Field(default=None, alias="latestWkid")
 
 
 class Extent(ApiResponse):
@@ -352,7 +356,7 @@ class Extent(ApiResponse):
     ymin: float
     xmax: float
     ymax: float
-    spatial_reference: SpatialReference | None = Field(None, alias="spatialReference")
+    spatial_reference: SpatialReference | None = Field(default=None, alias="spatialReference")
 
 
 class CodedValue(ApiResponse):
@@ -367,7 +371,7 @@ class FieldDomain(ApiResponse):
 
     type: str  # "codedValue" | "range"
     name: str | None = None
-    coded_values: list[CodedValue] | None = Field(None, alias="codedValues")
+    coded_values: list[CodedValue] | None = Field(default=None, alias="codedValues")
     range: list[float] | None = None
 
 
@@ -377,13 +381,13 @@ class LayerField(ApiResponse):
     name: str
     type: str  # esriFieldTypeOID/String/Integer/SmallInteger/Double/Date/GlobalID/...
     alias: str | None = None
-    sql_type: str | None = Field(None, alias="sqlType")
+    sql_type: str | None = Field(default=None, alias="sqlType")
     length: int | None = None  # strings, dates, GlobalID only
     precision: int | None = None  # numeric fields only
     nullable: bool | None = None
     editable: bool | None = None
     domain: FieldDomain | None = None
-    default_value: Any | None = Field(None, alias="defaultValue")
+    default_value: Any | None = Field(default=None, alias="defaultValue")
     description: str | None = None
 
 
@@ -392,48 +396,48 @@ class LayerField(ApiResponse):
 
 
 class _ShapeProps(ApiResponse):
-    shape_area: float | None = Field(None, alias="Shape__Area")  # m2 (EPSG:27700)
-    shape_length: float | None = Field(None, alias="Shape__Length")  # m
+    shape_area: float | None = Field(default=None, alias="Shape__Area")  # m2 (EPSG:27700)
+    shape_length: float | None = Field(default=None, alias="Shape__Length")  # m
 
 
 class AlcProvisionalProps(_ShapeProps):
     """Provisional ALC (pre-1988, 1:250k). Does not split Grade 3 into 3a/3b."""
 
     objectid: int = Field(alias="OBJECTID")
-    geogext: str | None = Field(None, alias="GEOGEXT")
-    area: float | None = Field(None, alias="AREA")  # ha
+    geogext: str | None = Field(default=None, alias="GEOGEXT")
+    area: float | None = Field(default=None, alias="AREA")  # ha
     # seen: "Grade 1".."Grade 5", "Non Agricultural", "Urban", "Exclusion"
-    alc_grade: str | None = Field(None, alias="ALC_GRADE")
-    perimeter: float | None = Field(None, alias="PERIMETER")  # m
+    alc_grade: str | None = Field(default=None, alias="ALC_GRADE")
+    perimeter: float | None = Field(default=None, alias="PERIMETER")  # m
 
 
 class AlcPost1988Props(_ShapeProps):
     """Post-1988 detailed ALC surveys (patchy coverage). Splits 3a/3b."""
 
     objectid_1: int = Field(alias="OBJECTID_1")  # the real OID
-    objectid: int | None = Field(None, alias="OBJECTID")
-    geogext: str | None = Field(None, alias="GEOGEXT")
-    job_number: str | None = Field(None, alias="JOB_NUMBER")
-    rpt: str | None = Field(None, alias="RPT")  # reporting office
-    alc_grade: str | None = Field(None, alias="ALC_GRADE")  # e.g. "Grade 3b"
-    hectares: float | None = Field(None, alias="HECTARES")
-    rpt_jobnum: str | None = Field(None, alias="RPT_JOBNUM")
-    published: str | None = Field(None, alias="Published_")  # report URL
+    objectid: int | None = Field(default=None, alias="OBJECTID")
+    geogext: str | None = Field(default=None, alias="GEOGEXT")
+    job_number: str | None = Field(default=None, alias="JOB_NUMBER")
+    rpt: str | None = Field(default=None, alias="RPT")  # reporting office
+    alc_grade: str | None = Field(default=None, alias="ALC_GRADE")  # e.g. "Grade 3b"
+    hectares: float | None = Field(default=None, alias="HECTARES")
+    rpt_jobnum: str | None = Field(default=None, alias="RPT_JOBNUM")
+    published: str | None = Field(default=None, alias="Published_")  # report URL
 
 
 class AncientWoodlandProps(_ShapeProps):
     """Ancient Woodland Inventory polygon attributes."""
 
     objectid: int = Field(alias="OBJECTID")
-    name: str | None = Field(None, alias="NAME")  # often " "
-    theme: str | None = Field(None, alias="THEME")
-    themname: str | None = Field(None, alias="THEMNAME")
-    themid: float | None = Field(None, alias="THEMID")
-    status: str | None = Field(None, alias="STATUS")  # "ASNW" | "PAWS" (others possible)
-    perimeter: float | None = Field(None, alias="PERIMETER")  # m
-    area: float | None = Field(None, alias="AREA")  # ha
-    x_coord: int | None = Field(None, alias="X_COORD")  # BNG easting
-    y_coord: int | None = Field(None, alias="Y_COORD")  # BNG northing
+    name: str | None = Field(default=None, alias="NAME")  # often " "
+    theme: str | None = Field(default=None, alias="THEME")
+    themname: str | None = Field(default=None, alias="THEMNAME")
+    themid: float | None = Field(default=None, alias="THEMID")
+    status: str | None = Field(default=None, alias="STATUS")  # "ASNW" | "PAWS" (others possible)
+    perimeter: float | None = Field(default=None, alias="PERIMETER")  # m
+    area: float | None = Field(default=None, alias="AREA")  # ha
+    x_coord: int | None = Field(default=None, alias="X_COORD")  # BNG easting
+    y_coord: int | None = Field(default=None, alias="Y_COORD")  # BNG northing
     global_id: str = Field(alias="GlobalID")
 
 
@@ -441,15 +445,15 @@ class AncientWoodlandRevisedProps(_ShapeProps):
     """Revised inventory (rolling county updates). Note THEMENAME/THEMEID spelling + str id."""
 
     objectid: int = Field(alias="OBJECTID")
-    name: str | None = Field(None, alias="NAME")
-    theme: str | None = Field(None, alias="THEME")
-    themename: str | None = Field(None, alias="THEMENAME")
-    status: str | None = Field(None, alias="STATUS")
-    x_coord: int | None = Field(None, alias="X_COORD")
-    y_coord: int | None = Field(None, alias="Y_COORD")
-    themeid: str | None = Field(None, alias="THEMEID")  # e.g. "ESS-2501"
-    area: float | None = Field(None, alias="AREA")  # ha
-    perimeter: float | None = Field(None, alias="PERIMETER")  # km in sample (unlike unrevised layer)
+    name: str | None = Field(default=None, alias="NAME")
+    theme: str | None = Field(default=None, alias="THEME")
+    themename: str | None = Field(default=None, alias="THEMENAME")
+    status: str | None = Field(default=None, alias="STATUS")
+    x_coord: int | None = Field(default=None, alias="X_COORD")
+    y_coord: int | None = Field(default=None, alias="Y_COORD")
+    themeid: str | None = Field(default=None, alias="THEMEID")  # e.g. "ESS-2501"
+    area: float | None = Field(default=None, alias="AREA")  # ha
+    perimeter: float | None = Field(default=None, alias="PERIMETER")  # km in sample (unlike unrevised layer)
     global_id: str = Field(alias="GlobalID")
 
 
@@ -457,12 +461,12 @@ class SssiProps(_ShapeProps):
     """Site of Special Scientific Interest polygon attributes."""
 
     objectid: int = Field(alias="OBJECTID")
-    ref_code: str | None = Field(None, alias="REF_CODE")
-    name: str | None = Field(None, alias="NAME")
-    measure: float | None = Field(None, alias="MEASURE")  # ha
-    label: str | None = Field(None, alias="LABEL")
-    hyperlink: str | None = Field(None, alias="HYPERLINK")  # designated-sites site code, not a URL
-    contact_no: str | None = Field(None, alias="CONTACT_NO")
+    ref_code: str | None = Field(default=None, alias="REF_CODE")
+    name: str | None = Field(default=None, alias="NAME")
+    measure: float | None = Field(default=None, alias="MEASURE")  # ha
+    label: str | None = Field(default=None, alias="LABEL")
+    hyperlink: str | None = Field(default=None, alias="HYPERLINK")  # designated-sites site code, not a URL
+    contact_no: str | None = Field(default=None, alias="CONTACT_NO")
     global_id: str = Field(alias="GlobalID")
 
 
@@ -470,66 +474,66 @@ class SssiImpactRiskZoneProps(_ShapeProps):
     """IRZ polygons carry only a URL; development-type rules are at that URL (irzcode/notes query args)."""
 
     objectid: int = Field(alias="OBJECTID")
-    irzurl: str | None = Field(None, alias="IRZURL")  # contains a raw space; URL-encode before fetching
+    irzurl: str | None = Field(default=None, alias="IRZURL")  # contains a raw space; URL-encode before fetching
     global_id: str = Field(alias="GlobalID")
 
 
 class _EuropeanSiteProps(_ShapeProps):
     objectid: int = Field(alias="OBJECTID")
-    grid_ref: str | None = Field(None, alias="GRID_REF")
-    easting: float | None = Field(None, alias="EASTING")
-    northing: float | None = Field(None, alias="NORTHING")
-    latitude: str | None = Field(None, alias="LATITUDE")  # DMS string e.g. "52:55:27N"
-    longitude: str | None = Field(None, alias="LONGITUDE")
-    status: str | None = Field(None, alias="STATUS")  # "Designated" / "Classified" / "Listed"
-    id: float | None = Field(None, alias="ID")
-    file: str | None = Field(None, alias="FILE_")
-    easting0: float | None = Field(None, alias="EASTING0")
-    northing0: float | None = Field(None, alias="NORTHING0")
-    gis_date: str | None = Field(None, alias="GIS_DATE")  # string "YYYYMMDD", not an Esri date
-    version: int | None = Field(None, alias="VERSION")
+    grid_ref: str | None = Field(default=None, alias="GRID_REF")
+    easting: float | None = Field(default=None, alias="EASTING")
+    northing: float | None = Field(default=None, alias="NORTHING")
+    latitude: str | None = Field(default=None, alias="LATITUDE")  # DMS string e.g. "52:55:27N"
+    longitude: str | None = Field(default=None, alias="LONGITUDE")
+    status: str | None = Field(default=None, alias="STATUS")  # "Designated" / "Classified" / "Listed"
+    id: float | None = Field(default=None, alias="ID")
+    file: str | None = Field(default=None, alias="FILE_")
+    easting0: float | None = Field(default=None, alias="EASTING0")
+    northing0: float | None = Field(default=None, alias="NORTHING0")
+    gis_date: str | None = Field(default=None, alias="GIS_DATE")  # string "YYYYMMDD", not an Esri date
+    version: int | None = Field(default=None, alias="VERSION")
     global_id: str = Field(alias="GlobalID")
 
 
 class SacProps(_EuropeanSiteProps):
     """Special Area of Conservation polygon attributes."""
 
-    sac_name: str | None = Field(None, alias="SAC_NAME")
-    sac_code: str | None = Field(None, alias="SAC_CODE")
-    sac_area: float | None = Field(None, alias="SAC_AREA")  # ha
-    name: str | None = Field(None, alias="NAME")  # legacy, usually ""
-    area: float | None = Field(None, alias="AREA")
+    sac_name: str | None = Field(default=None, alias="SAC_NAME")
+    sac_code: str | None = Field(default=None, alias="SAC_CODE")
+    sac_area: float | None = Field(default=None, alias="SAC_AREA")  # ha
+    name: str | None = Field(default=None, alias="NAME")  # legacy, usually ""
+    area: float | None = Field(default=None, alias="AREA")
 
 
 class SpaProps(_EuropeanSiteProps):
     """Special Protection Area polygon attributes."""
 
-    spa_name: str | None = Field(None, alias="SPA_NAME")
-    spa_code: str | None = Field(None, alias="SPA_CODE")
-    spa_area: float | None = Field(None, alias="SPA_AREA")  # ha
-    name: str | None = Field(None, alias="NAME")  # legacy, usually ""
-    area: float | None = Field(None, alias="AREA")
+    spa_name: str | None = Field(default=None, alias="SPA_NAME")
+    spa_code: str | None = Field(default=None, alias="SPA_CODE")
+    spa_area: float | None = Field(default=None, alias="SPA_AREA")  # ha
+    name: str | None = Field(default=None, alias="NAME")  # legacy, usually ""
+    area: float | None = Field(default=None, alias="AREA")
 
 
 class RamsarProps(_EuropeanSiteProps):
     """Ramsar wetland site polygon attributes."""
 
-    name: str | None = Field(None, alias="NAME")
-    code: str | None = Field(None, alias="CODE")
-    area: float | None = Field(None, alias="AREA")  # ha
-    name0: str | None = Field(None, alias="NAME0")  # legacy, usually ""
-    area0: float | None = Field(None, alias="AREA0")
+    name: str | None = Field(default=None, alias="NAME")
+    code: str | None = Field(default=None, alias="CODE")
+    area: float | None = Field(default=None, alias="AREA")  # ha
+    name0: str | None = Field(default=None, alias="NAME0")  # legacy, usually ""
+    area0: float | None = Field(default=None, alias="AREA0")
 
 
 class NatureReserveProps(_ShapeProps):
     """National and Local Nature Reserves share a schema."""
 
     objectid: int = Field(alias="OBJECTID")
-    hyperlink: str | None = Field(None, alias="HYPERLINK")  # null seen on LNR
-    ref_code: str | None = Field(None, alias="REF_CODE")
-    name: str | None = Field(None, alias="NAME")
-    measure: float | None = Field(None, alias="MEASURE")  # ha
-    label: str | None = Field(None, alias="LABEL")
+    hyperlink: str | None = Field(default=None, alias="HYPERLINK")  # null seen on LNR
+    ref_code: str | None = Field(default=None, alias="REF_CODE")
+    name: str | None = Field(default=None, alias="NAME")
+    measure: float | None = Field(default=None, alias="MEASURE")  # ha
+    label: str | None = Field(default=None, alias="LABEL")
     global_id: str = Field(alias="GlobalID")
 
 
@@ -537,11 +541,11 @@ class AonbProps(_ShapeProps):
     """AONB (now branded National Landscapes)."""
 
     objectid: int = Field(alias="OBJECTID")
-    code: str | None = Field(None, alias="CODE")
-    name: str | None = Field(None, alias="NAME")
-    desig_date: str | None = Field(None, alias="DESIG_DATE")  # free string e.g. "Sep-63"
-    hotlink: str | None = Field(None, alias="HOTLINK")
-    stat_area: float | None = Field(None, alias="STAT_AREA")  # km2
+    code: str | None = Field(default=None, alias="CODE")
+    name: str | None = Field(default=None, alias="NAME")
+    desig_date: str | None = Field(default=None, alias="DESIG_DATE")  # free string e.g. "Sep-63"
+    hotlink: str | None = Field(default=None, alias="HOTLINK")
+    stat_area: float | None = Field(default=None, alias="STAT_AREA")  # km2
     global_id: str = Field(alias="GlobalID")
 
 
@@ -549,28 +553,28 @@ class NationalParkProps(_ShapeProps):
     """National Park polygon attributes."""
 
     objectid: int = Field(alias="OBJECTID")
-    code: int | None = Field(None, alias="CODE")
-    name: str | None = Field(None, alias="NAME")
-    measure: float | None = Field(None, alias="MEASURE")  # km2
-    desig_date: int | None = Field(None, alias="DESIG_DATE")  # Esri date: epoch ms (UTC); see esri_date()
-    hotlink: str | None = Field(None, alias="HOTLINK")
-    status: str | None = Field(None, alias="STATUS")
+    code: int | None = Field(default=None, alias="CODE")
+    name: str | None = Field(default=None, alias="NAME")
+    measure: float | None = Field(default=None, alias="MEASURE")  # km2
+    desig_date: int | None = Field(default=None, alias="DESIG_DATE")  # Esri date: epoch ms (UTC); see esri_date()
+    hotlink: str | None = Field(default=None, alias="HOTLINK")
+    status: str | None = Field(default=None, alias="STATUS")
 
 
 class PriorityHabitatProps(_ShapeProps):
     """Priority Habitats Inventory (single England-wide service; millions of small polygons)."""
 
     objectid: int = Field(alias="OBJECTID")
-    main_habs: str | None = Field(None, alias="MainHabs")
-    hab_codes: str | None = Field(None, alias="HabCodes")
-    feat_desc: str | None = Field(None, alias="FeatDesc")
-    feat_codes: str | None = Field(None, alias="FeatCodes")
-    other_class: str | None = Field(None, alias="OtherClass")
-    add_habs: str | None = Field(None, alias="AddHabs")
-    prim_source: str | None = Field(None, alias="PrimSource")
-    area_ha: float | None = Field(None, alias="AreaHa")
-    version: str | None = Field(None, alias="Version")  # e.g. "Sep_25"
-    uid: str | None = Field(None, alias="UID")
+    main_habs: str | None = Field(default=None, alias="MainHabs")
+    hab_codes: str | None = Field(default=None, alias="HabCodes")
+    feat_desc: str | None = Field(default=None, alias="FeatDesc")
+    feat_codes: str | None = Field(default=None, alias="FeatCodes")
+    other_class: str | None = Field(default=None, alias="OtherClass")
+    add_habs: str | None = Field(default=None, alias="AddHabs")
+    prim_source: str | None = Field(default=None, alias="PrimSource")
+    area_ha: float | None = Field(default=None, alias="AreaHa")
+    version: str | None = Field(default=None, alias="Version")  # e.g. "Sep_25"
+    uid: str | None = Field(default=None, alias="UID")
     global_id: str = Field(alias="GlobalID")
 
 

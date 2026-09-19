@@ -39,7 +39,7 @@ class ReverseRequest(ApiRequest):
     extratags: Flag | None = None  # server default 0
     namedetails: Flag | None = None  # server default 0
     entrances: Flag | None = None  # server default 0
-    accept_language: str | None = Field(default=None, alias="accept-language")
+    accept_language: str | None = Field(default=None, serialization_alias="accept-language")
     # 3 country, 5 state, 8 county, 10 city, 12 town/borough, 13 village/suburb,
     # 14 neighbourhood, 15 any settlement, 16 major streets, 17 major+minor streets, 18 building
     zoom: int | None = Field(default=None, ge=0, le=18)  # server default 18
