@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# local pyenv pin (teammates may use a different 3.14.x)
+.python-version

@@ -1,0 +1,51 @@
+schema: spec-driven
+
+context: |
+  Tech {Europe} AI hackathon. 3 people, ~2 hours to build.
+  Goal: build an AI agent that uses >=2 of the event's tech partners.
+  Judging: ~50% technical execution, ~30% presentation/demo, ~20% solves a real problem.
+  Each teammate wrote a 1-page plan in docs/plans/; read them before proposing changes.
+  Python 3.14 in a .venv (see requirements.txt); Modal is available for compute/deployment.
+  Priorities: a working end-to-end demo first, then polish. Partner tech must be visible in the demo.
+
+rules:
+  proposal:
+    - Keep proposals under 400 words
+    - Include a Non-goals section; cut anything not needed for the demo
+    - Name the owner (one of the 3 teammates) of the change
+  design:
+    - Define interfaces between changes concretely (function signatures, JSON shapes) so people can build in parallel against mocks
+  tasks:
+    - Tasks are at most 30 minutes each
+    - Order tasks so a rough end-to-end version works as early as possible
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+# Example:
+#   context: |
+#     Tech stack: TypeScript, React, Node.js
+#     We use conventional commits
+#     Domain: e-commerce platform
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing
