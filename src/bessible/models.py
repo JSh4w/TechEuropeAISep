@@ -17,6 +17,7 @@ Stage = Literal[
     "financial",
     "planning",
     "synthesis",
+    "sentiment",
 ]
 
 Verdict = Literal["go", "maybe", "no_go"]
@@ -253,6 +254,15 @@ class FinancialInput(NodeInput):
     site_land: SiteLandOutput | None = None
 
 
+class CaseBound(BaseModel):
+    """Lower or upper bound for financial metrics in a duration case."""
+
+    capex_gbp: float
+    npv_gbp: float
+    irr: float | None = None
+    payback_years: float | None = None
+
+
 class DurationCase(BaseModel):
     """Financial returns for a specific storage duration case."""
 
@@ -262,6 +272,9 @@ class DurationCase(BaseModel):
     irr: float | None = None
     over_budget: bool = False
     curtailment_pct: float | None = None
+    low: CaseBound | None = None
+    high: CaseBound | None = None
+    payback_years: float | None = None
 
 
 REQUIRED_DURATION_HOURS = (2, 4, 8)
@@ -271,6 +284,8 @@ class FinancialOutput(BaseModel):
     """Financial modeling outputs across storage durations."""
 
     cases: list[DurationCase]
+    recommended_h: Literal[2, 4, 8] | None = None
+    rationale: str | None = None
     artifacts: list[Artifact] = Field(default_factory=list)
 
     @model_validator(mode="after")
@@ -316,6 +331,16 @@ class Finding(BaseModel):
     artifact_ids: list[str] = Field(min_length=1)
 
 
+class SentimentOutput(BaseModel):
+    """Local community sentiment analysis output."""
+
+    opposition_index: float | None = None  # 0-1, None = unknown
+    top_concerns: list[str] = Field(default_factory=list)  # up to 3
+    sources: int = 0
+    paragraphs: int = 0
+    artifacts: list[Artifact] = Field(default_factory=list)
+
+
 class SynthesisInput(NodeInput):
     """Input for final report synthesis stage."""
 
@@ -324,6 +349,7 @@ class SynthesisInput(NodeInput):
     market: MarketOutput
     financial: FinancialOutput
     planning: PlanningOutput
+    sentiment: SentimentOutput | None = None
     artifacts: list[Artifact] = Field(default_factory=list)
 
 
