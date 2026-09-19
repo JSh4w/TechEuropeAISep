@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import uuid
+from pathlib import Path
 
 import pytest
 from temporalio.contrib.pydantic import pydantic_data_converter
@@ -45,9 +46,13 @@ async def test_workflow_end_to_end_suitability():
         assert st.status == "awaiting_confirmation"
 
         # Human confirmation update
+        footprint = {
+            "type": "Polygon",
+            "coordinates": [[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0], [0.0, 0.0]]],
+        }
         await handle.execute_update(
             AssessmentWorkflow.decide_site,
-            SiteDecision(confirmed=True, capacity_mw=8.0),
+            SiteDecision(confirmed=True, capacity_mw=8.0, footprint_geojson=footprint),
         )
 
         # Await workflow completion
@@ -56,7 +61,10 @@ async def test_workflow_end_to_end_suitability():
         assert result.report is not None
         assert result.report.verdict in ("go", "maybe", "no_go")
         assert len(result.report.findings) >= 2
+        assert any("Reserved area" in f.text for f in result.report.findings)
         assert result.financial is not None
         assert len(result.financial.cases) == 3
         assert result.financial.recommended_h in (2, 4, 8)
         assert len(result.artifacts) >= 10
+        assert any(a.file_path == "footprint.json" for a in result.artifacts)
+        assert (Path(result.run_dir) / "footprint.json").exists()

@@ -186,6 +186,7 @@ class SiteDecision(BaseModel):
     capacity_mw: float | None = None
     footprint_acres: float | None = None
     flexible_connection: bool | None = None
+    footprint_geojson: dict[str, Any] | None = None
 
 
 class ConfirmedSite(BaseModel):

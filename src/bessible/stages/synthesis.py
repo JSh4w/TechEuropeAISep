@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from pathlib import Path
 
+from bessible.footprint import reserved_acres, reserved_acres_by_duration
 from bessible.guard import check_narration
 from bessible.models import Artifact, Finding, ReportOutput, SynthesisInput, Verdict
 from bessible.suitability.verdict import decide
@@ -20,11 +22,15 @@ def _write_report_file(run_id: str, file_name: str, content: str) -> None:
 
 def flatten_state(inp: SynthesisInput) -> dict[str, float]:
     """Extract numeric run state for the narration guard."""
+    acres_4h = reserved_acres(inp.site.capacity_mw, REFERENCE_DURATION_HOURS)
     state: dict[str, float] = {
         "capacity_mw": inp.site.capacity_mw,
         "firm_mw": inp.capacity.firm_mw,
         "ceiling_mw": inp.capacity.ceiling_mw,
         "recommended_mw": inp.capacity.recommended_mw,
+        "footprint_acres_min": acres_4h[0],
+        "footprint_acres_max": acres_4h[1],
+        "footprint_duration_h": float(REFERENCE_DURATION_HOURS),
     }
     if inp.capacity.connection_voltage_kv is not None:
         state["connection_voltage_kv"] = inp.capacity.connection_voltage_kv
@@ -116,6 +122,25 @@ def _build_findings(inp: SynthesisInput, art_ids_by_stage: dict[str, list[str]])
                 artifact_ids=art_ids_by_stage["sentiment"],
             )
         )
+
+    # Reserved area planning-grade finding
+    acres_4h = reserved_acres(inp.site.capacity_mw, REFERENCE_DURATION_HOURS)
+    footprint_cites = (
+        art_ids_by_stage.get("title")
+        or art_ids_by_stage.get("site_land")
+        or art_ids_by_stage.get("capacity")
+        or ([inp.artifacts[0].id] if inp.artifacts else [f"synthesis-{inp.run_id[:8]}"])
+    )
+    findings.append(
+        Finding(
+            text=(
+                f"Reserved area requirement: {acres_4h[0]:.1f} to {acres_4h[1]:.1f} acres "
+                f"for {inp.site.capacity_mw:g} MW (planning-grade estimate at {REFERENCE_DURATION_HOURS}-hour duration)."
+            ),
+            artifact_ids=list(footprint_cites),
+        )
+    )
+
     if not findings:
         fallback_art_id = f"synthesis-{inp.run_id[:8]}"
         findings.append(
@@ -143,11 +168,18 @@ def _build_findings(inp: SynthesisInput, art_ids_by_stage: dict[str, list[str]])
     return guarded_findings
 
 
-def _render_markdown(inp: SynthesisInput, verdict: Verdict, findings: list[Finding]) -> str:
+def _render_markdown(
+    inp: SynthesisInput,
+    verdict: Verdict,
+    findings: list[Finding],
+    extra_artifacts: list[Artifact] | None = None,
+) -> str:
     sub = inp.capacity.substation or "N/A"
     volt = f"{inp.capacity.connection_voltage_kv:g} kV" if inp.capacity.connection_voltage_kv else "N/A"
     direction = inp.capacity.binding_direction or "None"
     season = inp.capacity.binding_season or "N/A"
+    acres_4h = reserved_acres(inp.site.capacity_mw, REFERENCE_DURATION_HOURS)
+    by_dur = reserved_acres_by_duration(inp.site.capacity_mw)
 
     lines = [
         f"# Bessible BESS Suitability Assessment Report — Run {inp.run_id}",
@@ -157,6 +189,7 @@ def _render_markdown(inp: SynthesisInput, verdict: Verdict, findings: list[Findi
         "## Site & Connection Summary",
         f"- **Coordinates:** {inp.site.position.lat:.4f}, {inp.site.position.lon:.4f}",
         f"- **Confirmed Capacity:** {inp.site.capacity_mw:g} MW",
+        f"- **Reserved Area:** {acres_4h[0]:.1f} to {acres_4h[1]:.1f} acres (4 h default; 2 h: {by_dur[2][0]:.1f} to {by_dur[2][1]:.1f}, 8 h: {by_dur[8][0]:.1f} to {by_dur[8][1]:.1f})",
         f"- **Firm Headroom:** {inp.capacity.firm_mw:g} MW",
         f"- **Ceiling Headroom:** {inp.capacity.ceiling_mw:g} MW",
         f"- **Substation:** {sub}",
@@ -192,7 +225,10 @@ def _render_markdown(inp: SynthesisInput, verdict: Verdict, findings: list[Findi
         lines.append(f"- {f.text} (Evidence: {cites})")
 
     lines.extend(["", "## Supporting Evidence Artifacts"])
-    for art in inp.artifacts:
+    evidence_artifacts = list(inp.artifacts)
+    if extra_artifacts:
+        evidence_artifacts.extend(extra_artifacts)
+    for art in evidence_artifacts:
         ref = art.source_url or art.file_path or art.image_path or "N/A"
         lines.append(
             f"- **[{art.id}]** ({art.stage}): {art.claim} [Source: {ref}] "
@@ -215,23 +251,59 @@ async def synthesise(inp: SynthesisInput) -> ReportOutput:
         art_ids_by_stage.setdefault(art.stage, []).append(art.id)
 
     findings = _build_findings(inp, art_ids_by_stage)
-    report_content = _render_markdown(inp, verdict, findings)
 
-    report_file_name = "report.md"
-    await asyncio.to_thread(_write_report_file, inp.run_id, report_file_name, report_content)
+    # Generate footprint.json artifact
+    acres_4h = reserved_acres(inp.site.capacity_mw, REFERENCE_DURATION_HOURS)
+    by_dur = reserved_acres_by_duration(inp.site.capacity_mw)
+    footprint_file_name = "footprint.json"
+    footprint_payload = {
+        "inputs": {
+            "capacity_mw": inp.site.capacity_mw,
+            "duration_h": REFERENCE_DURATION_HOURS,
+        },
+        "range_acres": {
+            "min": acres_4h[0],
+            "max": acres_4h[1],
+        },
+        "range_by_duration": {str(d): {"min": rng[0], "max": rng[1]} for d, rng in by_dur.items()},
+        "rule_of_thumb": "0.05 to 0.075 acres per MWh (planning-grade estimate)",
+        "source": "BESS planning-grade benchmark (0.1 to 0.15 acres per MW at 2 h)",
+    }
+    await asyncio.to_thread(
+        _write_report_file,
+        inp.run_id,
+        footprint_file_name,
+        json.dumps(footprint_payload, indent=2),
+    )
+
+    art_footprint = Artifact(
+        id=f"footprint-{inp.run_id[:8]}",
+        stage="synthesis",
+        claim=(
+            f"Planning-grade reserved area estimate: {acres_4h[0]:.1f} to {acres_4h[1]:.1f} acres "
+            f"for {inp.site.capacity_mw:g} MW (4-hour duration)"
+        ),
+        file_path=footprint_file_name,
+        confidence=0.95,
+        model_used="deterministic",
+    )
 
     art_synth = Artifact(
         id=f"synthesis-{inp.run_id[:8]}",
         stage="synthesis",
         claim=f"Assessment report compiled with verdict '{verdict.upper()}' and duration comparison",
-        file_path=report_file_name,
+        file_path="report.md",
         confidence=0.95,
         model_used="deterministic",
     )
+
+    report_content = _render_markdown(inp, verdict, findings, extra_artifacts=[art_footprint, art_synth])
+    report_file_name = "report.md"
+    await asyncio.to_thread(_write_report_file, inp.run_id, report_file_name, report_content)
 
     return ReportOutput(
         verdict=verdict,
         findings=findings,
         report_path=report_file_name,
-        artifacts=[art_synth],
+        artifacts=[art_synth, art_footprint],
     )

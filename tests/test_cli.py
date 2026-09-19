@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from bessible.cli import build_parser
 
 
@@ -42,3 +44,44 @@ def test_cli_parser_result():
     args = parser.parse_args(["result", "bessible-123456"])
     assert args.command == "result"
     assert args.run_id == "bessible-123456"
+
+
+def test_format_footprint():
+    from bessible.cli import _format_footprint
+
+    txt = _format_footprint(10.0)
+    assert "2.0-3.0 acres" in txt
+    assert "2 h: 1.0-1.5" in txt
+    assert "8 h: 4.0-6.0" in txt
+
+
+def test_build_footprint_polygon():
+    from bessible.cli import _build_footprint_polygon
+    from bessible.models import Position
+
+    poly = _build_footprint_polygon(Position(lat=51.5, lon=-0.1), 10.0)
+    assert poly is not None
+    assert poly["type"] == "Polygon"
+
+
+@pytest.mark.anyio
+async def test_handle_confirmation_prompt_auto_yes():
+    from unittest.mock import AsyncMock
+
+    from bessible.cli import _handle_confirmation_prompt
+    from bessible.models import CapacityOutput, Position, RunStatus, TitleOutput
+
+    handle = AsyncMock()
+    status = RunStatus(
+        status="awaiting_confirmation",
+        capacity=CapacityOutput(viable=True, firm_mw=10.0, ceiling_mw=15.0, recommended_mw=10.0),
+        boundary=TitleOutput(title_number="BK123", area_m2=5000.0),
+        position=Position(lat=51.5, lon=-0.1),
+    )
+    await _handle_confirmation_prompt(handle, status, auto_yes=True)
+    handle.execute_update.assert_called_once()
+    decision = handle.execute_update.call_args[0][1]
+    assert decision.confirmed is True
+    assert decision.capacity_mw == 10.0
+    assert decision.footprint_geojson is not None
+    assert decision.footprint_geojson["type"] == "Polygon"

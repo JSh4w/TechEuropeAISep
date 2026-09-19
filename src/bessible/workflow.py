@@ -215,6 +215,7 @@ class AssessmentWorkflow:
             position=chosen_pos,
             capacity_mw=chosen_cap,
             boundary=title,
+            footprint_geojson=decision.footprint_geojson,
             flexible_connection=is_flex,
         )
 
