@@ -41,6 +41,9 @@ Grid: distribution network operators (substations, headroom, competing projects)
     ssen_distribution  SSEN Distribution (central southern England, north Scotland): headroom dashboard (headroom,
                        RAG, named constraint, planned reinforcement), embedded capacity register (>= 1 MW),
                        overhead lines 22-132 kV. No spatial query. No key, browser User-Agent.
+    sp_energy          SP Energy Networks (central & southern Scotland, Merseyside, North Wales, Cheshire): capacity
+                       heatmaps (MW headroom + RAG), embedded capacity register (>= 1 MW), overhead lines, substations.
+                       Spatial queries. Key.
 
 Grid: transmission
     ssen               SSEN Transmission (north Scotland only): 132 / 275 / 400 kV substations and overhead lines,
@@ -51,6 +54,7 @@ Grid: transmission
 Shared
     base               ApiRequest / ApiResponse (forbid unknown fields) and NullMarkerResponse ("" / "N/A" -> None).
     ckan               CKAN action API envelope, package and datastore models (neso, nged, ssen_distribution).
-    opendatasoft       Opendatasoft Explore v2.1 records request, envelope, geo fields, DatasetSpec (ukpn, ssen).
+    opendatasoft       Opendatasoft Explore v2.1 records request, envelope, geo fields, DatasetSpec
+                       (ukpn, ssen, sp_energy).
     geo                distance_km / nearest, for the portals without a spatial query.
 """

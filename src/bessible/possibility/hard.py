@@ -29,7 +29,7 @@ TERRAIN_SOURCES = ("EA LIDAR", "Open-Meteo")
 FLOOD_SOURCE = ("EA: flood zones",)
 LAND_SOURCES = ("Natural England: alc", "Planning Data: designations on the title")
 DESIGNATION_SOURCES = ("Natural England", "Planning Data: designations")
-GRID_SOURCES = ("UKPN", "NGED", "SSEN")
+GRID_SOURCES = ("UKPN", "NGED", "SSEN", "SP Energy Networks")
 
 
 # ------------------------------------------- the land ------------------------------------------- #

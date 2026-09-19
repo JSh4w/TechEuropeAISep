@@ -44,6 +44,7 @@ from bessible.api import (
     opendatasoft,
     planning_data,
     postcodes_io,
+    sp_energy,
     ssen,
     ssen_distribution,
     ukpn,
@@ -95,7 +96,13 @@ def fetch(client: httpx.Client, req: Any, resp: Any, url: str | None = None) -> 
     address: str = url or (req.url() if callable(getattr(req, "url", None)) else req.URL)
     headers = None
     if isinstance(req, opendatasoft.RecordsRequest):  # Opendatasoft: the key depends on the portal
-        key = env("SSEN_API_KEY" if req.base_url == ssen.BASE_URL else "UKPN_API_KEY")
+        key = env(
+            "SSEN_API_KEY"
+            if req.base_url == ssen.BASE_URL
+            else "SPEN_API_KEY"
+            if req.base_url == sp_energy.BASE_URL
+            else "UKPN_API_KEY"
+        )
         headers = opendatasoft.auth_headers(key or "")
     r = client.get(address, params=req.params(), headers=headers)
     r.raise_for_status()
@@ -169,6 +176,10 @@ def calls(lat: float, lon: float) -> dict[str, tuple[Any, Any]]:
     if env("SSEN_API_KEY"):
         for name, spec in ssen.DATASETS.items():
             out[f"SSEN: {name} ({SSEN_RADIUS_M / 1000:g} km)"] = (spec.near(lat, lon, SSEN_RADIUS_M), spec)
+    if env("SPEN_API_KEY"):
+        for name, spec in sp_energy.DATASETS.items():
+            radius = UKPN_LINES_M if "lines" in name else UKPN_RADIUS_M
+            out[f"SP Energy: {name} ({radius / 1000:g} km)"] = (spec.near(lat, lon, radius), spec)
     return out
 
 
@@ -543,7 +554,7 @@ def main() -> None:
             if feats:
                 ne[layer] = {"colour": NE_COLOURS[layer], "features": feats}
     grid: dict[str, Any] | None = None
-    if any(t.startswith(("UKPN", "SSEN", "NGED")) for t in results):  # "SSEN" covers both SSEN portals
+    if any(t.startswith(("UKPN", "SSEN", "NGED", "SP Energy")) for t in results):  # "SSEN" covers both SSEN portals
 
         def rows(name: str) -> list[Any]:
             return next((m.results for t, m in results.items() if t.startswith(f"UKPN: {name} ")), [])  # type: ignore[attr-defined]
@@ -762,7 +773,7 @@ def main() -> None:
             f" · {len(grid['ecr'])} registered projects ≥1 MW within {UKPN_RADIUS_M // 1000} km, {len(storage)} storage"
         )
     elif grid:
-        facts += "<br>No UKPN / NGED / SSEN substations nearby (Northern Powergrid, ENWL or SPEN area?)"
+        facts += "<br>No UKPN / NGED / SSEN / SP Energy substations nearby (Northern Powergrid or ENWL area?)"
 
     out = Path(f"site_report_{lat}_{lon}.html")
     out.write_text(

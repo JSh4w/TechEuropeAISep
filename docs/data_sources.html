@@ -45,7 +45,7 @@ an unknown field means our model is stale. “Not used” therefore means “par
   <div class="step"><b>2. The site</b>title boundary polygon containing the point: the thing we assess<small>planning_data</small></div><div class="arrow">→</div>
   <div class="step"><b>3. Land &amp; constraints</b>designations, land grade, flood zone, habitats on / near the polygon<small>planning_data · natural_england · ea_flood</small></div><div class="arrow">→</div>
   <div class="step"><b>4. Terrain</b>1 m heights and slope inside the polygon<small>ea_lidar · open_meteo (fallback)</small></div><div class="arrow">→</div>
-  <div class="step"><b>5. Grid</b>nearest substation, headroom, queue, lines<small>ukpn · nged · ssen_distribution · ssen · neso</small></div><div class="arrow">→</div>
+  <div class="step"><b>5. Grid</b>nearest substation, headroom, queue, lines<small>ukpn · nged · ssen_distribution · sp_energy · ssen · neso</small></div><div class="arrow">→</div>
   <div class="step"><b>6. Policy</b>which LPA / local plan applies → agentic reading<small>planning_data → LLM</small></div>
 </div>
 <p class="meta">Try it: <code>python scripts/site_report.py &lt;lat&gt; &lt;lon&gt;</code> runs steps 1–5 (grid first, then NESO filtered by the grid supply points it found) and writes a map + every parsed response to one HTML page.</p>
@@ -158,6 +158,20 @@ an unknown field means our model is stale. “Not used” therefore means “par
 </section>
 
 <section class="src">
+  <header><h3>sp_energy <small>· SP Energy Networks open data (Opendatasoft)</small></h3><span class="q">Can it connect to the grid, and how far away? (central & southern Scotland, Merseyside, North Wales, Cheshire)</span><i class="tag use">CORE</i></header>
+  <div class="body">
+    <p class="meta"><b>Key required</b> (<code>SPEN_API_KEY</code> in <code>.env</code>) · portal <code>spenergynetworks.opendatasoft.com</code> · same request shape as <code>ukpn</code> (shared <code>opendatasoft.RecordsRequest</code>) with native spatial queries: <code>DATASETS["capacity_heatmap_spd"].near(lat, lon, metres)</code>, <code>DATASETS["embedded_capacity_register"].near(...)</code></p>
+    <table>
+      <tr><th>Data</th><th>Status</th><th>What it is / what we do with it</th></tr>
+      <tr><td>Network Capacity Heatmaps (<code>distribution-capacity-heatmaps-spd</code>, <code>-spm</code>): <code>demandavailablecapacity</code>, <code>generationavailablecapacity</code>, RAG flags, <code>voltage</code>, <code>gsp</code>, <code>bsp</code>, <code>coordinates</code></td><td><i class="tag use">USED</i></td><td><b>The headline grid numbers for SP Energy Networks areas</b> (SPD in Scotland, SPM in Manweb) and substation locations. <code>clean_site_name(gsp)</code> feeds the NESO query.</td></tr>
+      <tr><td>Embedded Capacity Register (<code>embedded-capacity-register</code> ≥1 MW): site, energy source, MW, status, primary, coordinates</td><td><i class="tag use">USED</i></td><td>Competing / precedent generation and battery storage projects near the site.</td></tr>
+      <tr><td>GIS Line Assets (<code>spd_spt_gis_shapefiles_line_assets</code>, <code>spm_gis_shapefiles_line_assets</code>): geometry, <code>voltage</code></td><td><i class="tag use">USED</i></td><td>Overhead lines on or near the plot, drawn on the map.</td></tr>
+      <tr><td>GIS Point Assets (<code>spd_spt_gis_shapefiles_point_assets</code>, <code>spm_gis_shapefiles_point_assets</code>): geometry, <code>sub_name</code>, <code>voltage</code></td><td><i class="tag use">USED</i></td><td>Network substations outside the capacity heatmaps.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="src">
   <header><h3>ssen <small>· SSEN Transmission open data (Opendatasoft)</small></h3><span class="q">Transmission substations, lines and queue in the north of Scotland</span><i class="tag part">SCOTLAND ONLY</i></header>
   <div class="body">
     <p class="meta"><b>Key required</b> (<code>SSEN_API_KEY</code> in <code>.env</code>) · same request shape as <code>ukpn</code> (shared <code>opendatasoft.RecordsRequest</code>): <code>DATASETS["substations_supergrid"].near(lat, lon, metres)</code>, <code>register_request("tec_register", site, storage_only=True)</code> · <b>this portal is SSEN <i>Transmission</i> (SHET): lat 55.6–58.5 only. It is not the southern-England distribution network</b> (SSEN Distribution, <code>data.ssen.co.uk</code>), so English sites return nothing.</p>
@@ -238,7 +252,7 @@ an unknown field means our model is stale. “Not used” therefore means “par
 <h2>3. Gaps</h2>
 <div class="gap"><ul>
   <li><b>Checks still run on the point, not the polygon.</b> Steps 3 and 5 query “at the coordinate” or “within N km”. Next: intersect with the title polygon, and report two tiers: <i>on site</i> (can block) vs <i>within X km</i> (consultation / setting), each with a distance.</li>
-  <li><b>Grid data outside UKPN's area.</b> <code>ssen</code> covers SSEN <i>Transmission</i> (north Scotland) only. <code>nged</code> covers the South West, South Wales and the Midlands; <code>ssen_distribution</code> central southern England and north Scotland. Still missing: Northern Powergrid, ENWL, SPEN (north of England, south Scotland, north Wales). Opendatasoft and CKAN portals reuse the shared <code>opendatasoft</code> / <code>ckan</code> modules, so each is a small file. Overhead lines: UKPN, SSEN Distribution and SSEN Transmission have them; NGED publishes shapefiles only.</li>
+  <li><b>Grid data outside UKPN's area.</b> <code>ssen</code> covers SSEN <i>Transmission</i> (north Scotland) only. <code>nged</code> covers the South West, South Wales and the Midlands; <code>ssen_distribution</code> central southern England and north Scotland; <code>sp_energy</code> covers central and southern Scotland (SPD) and Merseyside, North Wales, Cheshire (SPM). Still missing: Northern Powergrid, ENWL. Opendatasoft and CKAN portals reuse the shared <code>opendatasoft</code> / <code>ckan</code> modules, so each is a small file. Overhead lines: UKPN, SSEN Distribution, SSEN Transmission and SP Energy Networks have them; NGED publishes shapefiles only.</li>
   <li><b>Transmission network.</b> National Grid publishes lines, towers and substations as shapefiles (no API).</li>
   <li><b>Nearby BESS precedent.</b> DESNZ Renewable Energy Planning Database (quarterly CSV) lists battery projects with coordinates and planning outcome.</li>
   <li><b>Policy text.</b> We know <i>which</i> local plan applies, not what it says: that is the agentic step.</li>

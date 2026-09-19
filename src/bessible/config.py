@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pydantic import SecretStr
+from pydantic import AliasChoices, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     ukpn_api_key: SecretStr | None = None  # ukpowernetworks.opendatasoft.com
     ssen_api_key: SecretStr | None = None  # ssentransmission.opendatasoft.com
     nged_api_key: SecretStr | None = None  # connecteddata.nationalgrid.co.uk
+    spen_api_key: SecretStr | None = Field(
+        default=None, validation_alias=AliasChoices("spen_api_key", "sp_energy_api_key")
+    )  # spenergynetworks.opendatasoft.com
     os_api_key: SecretStr | None = None  # osdatahub.os.uk (Ordnance Survey maps)
 
     data_dir: Path = Path(__file__).resolve().parents[2] / "data"  # committed fixtures and UKPN snapshot

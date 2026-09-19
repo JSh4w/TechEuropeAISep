@@ -1,0 +1,28 @@
+{
+  "total_count": 1,
+  "results": [
+    {
+      "geo_point_2d": {
+        "lon": -4.245,
+        "lat": 55.855
+      },
+      "geo_shape": {
+        "type": "Feature",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [-4.248, 55.853],
+            [-4.242, 55.857]
+          ]
+        },
+        "properties": {}
+      },
+      "sp_enid": 1001,
+      "voltage": 33.0,
+      "status": "In Service",
+      "lic_area": "SPD",
+      "asset_type": "Overhead Lines",
+      "localauth": "Glasgow City"
+    }
+  ]
+}

@@ -32,6 +32,7 @@ from bessible.api import (
     opendatasoft,
     planning_data,
     postcodes_io,
+    sp_energy,
     ssen,
     ssen_distribution,
     ukpn,
@@ -178,6 +179,7 @@ class _GridRaw:
     def __init__(self) -> None:
         self.ukpn: dict[str, list[Any]] = {}
         self.ssen_t: dict[str, list[Any]] = {}
+        self.sp_energy: dict[str, list[Any]] = {}
         self.nged_capacity: list[nged.CapacityMapSite] = []
         self.nged_ecr: list[nged.EcrRecord] = []
         self.ssen_d_headroom: list[ssen_distribution.HeadroomSite] = []
@@ -190,7 +192,7 @@ async def _fetch_grid(f: _Fetcher, c: Coordinates) -> _GridRaw:
 
     async def ods(module: Any, name: str, radius_m: float, key: str, into: dict[str, list[Any]]) -> None:  # ruff: ignore[any-type]
         spec = module.DATASETS[name]
-        label = "UKPN" if module is ukpn else "SSEN Transmission"
+        label = "UKPN" if module is ukpn else "SSEN Transmission" if module is ssen else "SP Energy Networks"
         got = await f.get(
             f"{label}: {name}",
             spec.near(c.lat, c.lon, radius_m),
@@ -248,16 +250,29 @@ async def _fetch_grid(f: _Fetcher, c: Coordinates) -> _GridRaw:
         jobs += [ods(ssen, n, TRANSMISSION_KM * 1000, key, raw.ssen_t) for n in ssen.DATASETS]
     else:
         f.skip("SSEN Transmission", ssen.BASE_URL, "SSEN_API_KEY is not set")
+    if key := _key(settings.spen_api_key):
+        jobs += [
+            ods(sp_energy, n, LINES_M + 1000 if "lines" in n else GRID_KM * 1000, key, raw.sp_energy)
+            for n in sp_energy.DATASETS
+        ]
+    else:
+        f.skip("SP Energy Networks", sp_energy.BASE_URL, "SPEN_API_KEY is not set")
     await asyncio.gather(*jobs)
     return raw
 
 
 async def _build_grid(f: _Fetcher, raw: _GridRaw, site: Site) -> tuple[Grid, list[str]]:
     sd_subs, notes = transform.ssen_distribution_substations(raw.ssen_d_headroom, site)
+    sp_subs = transform.sp_energy_substations(
+        raw.sp_energy.get("capacity_heatmap_spd", []) + raw.sp_energy.get("capacity_heatmap_spm", []),
+        site,
+        point_assets=raw.sp_energy.get("substations_spd", []) + raw.sp_energy.get("substations_spm", []),
+    )
     distribution = (
         transform.ukpn_substations(raw.ukpn.get("substations", []), raw.ukpn.get("capacity_heatmap", []), site)
         + transform.nged_substations(raw.nged_capacity, site)
         + sd_subs
+        + sp_subs
     )
     ssen_t_rows = raw.ssen_t.get("substations_132kv", []) + raw.ssen_t.get("substations_supergrid", [])
     transmission = sorted(transform.ssen_transmission_substations(ssen_t_rows, site), key=lambda s: s.distance_km)
@@ -266,12 +281,14 @@ async def _build_grid(f: _Fetcher, raw: _GridRaw, site: Site) -> tuple[Grid, lis
         transform.grid_projects(raw.ukpn.get("embedded_capacity_register", []), "UKPN", site)
         + transform.grid_projects(raw.nged_ecr, "NGED", site)
         + transform.grid_projects(raw.ssen_d_ecr, "SSEN Distribution", site)
+        + transform.grid_projects(raw.sp_energy.get("embedded_capacity_register", []), "SP Energy Networks", site)
     )
     lines = transform.overhead_lines(
         transform.line_inputs(
             raw.ukpn.get("overhead_lines_132kv", []) + raw.ukpn.get("overhead_lines_33kv", []),
             raw.ssen_t.get("overhead_lines_132kv", []) + raw.ssen_t.get("overhead_lines_supergrid", []),
             raw.ssen_d_lines,
+            raw.sp_energy.get("lines_spd", []) + raw.sp_energy.get("lines_spm", []),
         ),
         site,
         LINES_M,
