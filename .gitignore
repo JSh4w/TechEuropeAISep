@@ -219,3 +219,7 @@ __marimo__/
 
 # local pyenv pin (teammates may use a different 3.14.x)
 .python-version
+
+# local experiments and run output
+sandbox/
+out/

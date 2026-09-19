@@ -1,0 +1,55 @@
+# Bessible — CLAUDE.md
+
+Tech {Europe} London AI Hackathon, 19 Sep 2026. 3-person team, ~2 hours of build time, live demo on a Mac.
+Judging: ~50% technical execution, ~30% presentation, ~20% solves a real problem. Must use ≥2 event tech partners.
+
+## What we're building
+**Bessible**: give it a link to a property; it assesses the site for a Battery Energy Storage System (BESS).
+Pipeline: grid connection check → title boundaries (government API) → **human-in-the-loop** confirmation in the CLI →
+**feasibility engine** (planning policy, permissions, battery size vs. user's inputs) → **suitability engine**
+(agentic: local news, financial model with interest/fees) → report.
+**Explainable AI**: every step returns `Artifact`s (claim, source link or downloaded file, generated image, confidence,
+model used); the report is built only from artifacts. CLI first; a web UI is optional later.
+
+## Decisions (don't relitigate without the team)
+- **Temporal** orchestrates the pipeline: each stage is an activity with typed Pydantic input/output, for clear
+  delegation, per-stage debugging, retries, and human-in-the-loop via signals/updates. Workflow code stays
+  deterministic (no I/O, no `datetime.now()`, no random) — all I/O goes in activities.
+- **Teammates write stages as plain async functions (or Modal functions) with Pydantic in/out**; Josh wraps them as
+  activities. Teammates shouldn't need to touch workflow code.
+- **Pydantic** validates every input/output. **Pydantic AI** for agents (built-in Temporal integration).
+- **Targeted model usage**: Gemini (Google DeepMind keys, high limits) for reasoning calls; **Modal** for niche/specialist
+  models and heavy compute, e.g. an open-weight model on a Modal endpoint behind the Pydantic AI Gateway
+  (method: github.com/laisbsc/demo_hack_tech_eu), Jev (TypeSafe) for typed classification. Every model call should
+  record which model produced each artifact.
+- **Runs locally** (Temporal dev server + worker on the demo Mac); only model/compute calls go to the cloud.
+- Partners in play: **Modal** (headline), **Pydantic**, **Google DeepMind** (Gemini). Others listed: Tavily, n8n,
+  Superlinked, Mubit, Aikido, Slng.ai.
+
+## Team & planning
+- The team lead writes the OpenSpec plan for everyone: `openspec/changes/<change>/` (proposal, design, specs, tasks).
+  Implement with `/opsx:apply <change>`. Don't create changes unless asked.
+- Individual 1-page plans: `docs/plans/<name>.md` (template in `TEMPLATE.md`).
+- **Josh** owns: Temporal framework (workflow, worker, dummy activities, HITL CLI), Pydantic models + Pydantic AI setup,
+  Modal + model wiring, env setup.
+
+## Setup & commands
+- `./scripts/setup.sh` — installs uv + Temporal CLI (Homebrew on Mac), `uv sync`, creates `.env`, Modal login.
+- `temporal server start-dev` — local Temporal (UI http://localhost:8233). Linux CLI lives in `~/.temporalio/bin`.
+- `uv run python scripts/check_env.py [--live]` — checks keys, Temporal, Modal login; `--live` pings Gemini + Modal.
+- Python via **uv** only: `uv run ...`, `uv add <pkg>` (never pip). Python 3.13–3.14. Package code in `src/bessible/`.
+- `sandbox/` and `out/` are gitignored. `sandbox/workflow_demo.py` is a working single-file Temporal demo of the whole
+  pipeline with dummy activities and the HITL prompt (`uv run python sandbox/workflow_demo.py start <url>`).
+
+## Code map
+- `src/bessible/config.py` — `settings` (pydantic-settings, reads `.env`; empty values count as unset).
+- `src/bessible/llm.py` — `gemini_model()`, `modal_model()` (gateway route), `setup_logfire()`. Keys are passed from
+  `settings` explicitly because `.env` is not loaded into `os.environ`.
+
+## Secrets
+- `.env` is gitignored; `.env.example` lists every key. Keys are Josh's accounts, shared privately — never commit,
+  paste into chat, or print secret values. Teammates join Josh's Modal workspace rather than sharing a Modal token.
+
+## Working style
+- Keep docs short and focused; a person's plan covers only their own part.
+- Hackathon pace: working end-to-end first, then polish. Prefer small, tested steps.
