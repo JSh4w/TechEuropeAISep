@@ -13,7 +13,8 @@ from bessible.stages.capacity import (
     propose,
     tia_threshold_mw,
 )
-from bessible.ukpn.snapshot import Snapshot
+from bessible.ukpn.models import GridSubstation
+from bessible.ukpn.snapshot import Snapshot, load_snapshot
 
 SITE = Position(lat=51.5, lon=-0.5)
 
@@ -179,3 +180,94 @@ def test_distance_helpers():
     assert distance_weight(1.0) == 1.0
     assert 0 < distance_weight(3.0) < distance_weight(2.0) < 1.0
     assert haversine_km(SITE, 51.5 + 1 / 111.2, -0.5) == pytest.approx(1.0, abs=0.01)
+
+
+def grid_row(
+    name: str = "Test Grid 132kV",
+    lat: float = 51.5,
+    lon: float = -0.5,
+    import_mw: float = 85.0,
+    export_mw: float = 95.0,
+    **kw,
+) -> GridSubstation:
+    base = {
+        "id": "SPN-TEST-132",
+        "name": name,
+        "position": {"lat": lat, "lon": lon},
+        "voltage_kv": 132,
+        "headroom_import_mw": import_mw,
+        "headroom_export_mw": export_mw,
+        "site_type": "Grid Substation",
+        "licence_area": "South Eastern Power Networks (SPN)",
+    }
+    return GridSubstation.model_validate(base | kw)
+
+
+def test_snapshot_loads_grid_substations():
+    snapshot = load_snapshot()
+    assert len(snapshot.grid_substations) > 0
+    for g in snapshot.grid_substations:
+        assert g.voltage_kv == 132
+        assert g.name
+        assert g.position.lat is not None
+
+
+def test_grid_level_request_80mw():
+    snap = Snapshot(
+        fetched_at=date(2026, 9, 1),
+        partial=False,
+        substations=[row()],
+        grid_substations=[grid_row(name="Leatherhead 132kV", import_mw=85.0, export_mw=95.0)],
+    )
+    out = propose(SITE, snap, "run-80mw", flexible=False, requested_mw=80.0)
+    assert out.viable is True
+    assert out.substation == "Leatherhead 132kV"
+    assert out.connection_voltage_kv == 132.0
+    assert out.firm_mw == 85.0
+    assert out.ceiling_mw <= 100.0
+    assert any("132 kV" in a.claim for a in out.artifacts)
+    assert any("grid-and-primary-sites" in a.claim for a in out.artifacts)
+
+
+def test_grid_level_request_above_cap_150mw():
+    snap = Snapshot(
+        fetched_at=date(2026, 9, 1),
+        partial=False,
+        substations=[row()],
+        grid_substations=[grid_row()],
+    )
+    out = propose(SITE, snap, "run-150mw", flexible=False, requested_mw=150.0)
+    assert out.viable is False
+    assert out.message is not None
+    assert "100 MW" in out.message or "100" in out.message
+    assert "out of scope" in out.message.lower()
+
+
+def test_grid_level_no_coverage():
+    snap = Snapshot(
+        fetched_at=date(2026, 9, 1),
+        partial=False,
+        substations=[row(lat=53.48, lon=-2.24)],  # primary nearby
+        grid_substations=[grid_row(lat=51.5, lon=-0.5)],  # grid far away (~250 km)
+    )
+    out = propose(Position(lat=53.48, lon=-2.24), snap, "run-no-cov", flexible=False, requested_mw=80.0)
+    assert out.viable is False
+    assert out.message is not None
+    assert "no grid-level data covers the site" in out.message.lower()
+    # verify no fallback to primary
+    assert out.connection_voltage_kv != 33.0
+    assert out.substation is None
+
+
+def test_small_request_20mw_unchanged():
+    snap = Snapshot(
+        fetched_at=date(2026, 9, 1),
+        partial=False,
+        substations=[row(name="Serving 33kV", voltage=33.0)],
+        grid_substations=[grid_row(name="Serving 132kV")],
+    )
+    out_default = propose(SITE, snap, "run-def", flexible=False, requested_mw=None)
+    out_20mw = propose(SITE, snap, "run-20", flexible=False, requested_mw=20.0)
+    assert out_20mw.substation == out_default.substation == "Serving 33kV"
+    assert out_20mw.connection_voltage_kv == out_default.connection_voltage_kv == 33.0
+    assert out_20mw.firm_mw == out_default.firm_mw

@@ -64,3 +64,68 @@ def test_request():
     assert opendatasoft.auth_headers("k") == {"Authorization": "Apikey k"}
     with pytest.raises(ValidationError):
         opendatasoft.RecordsRequest(base_url=ukpn.BASE_URL, dataset="x", limit=101)
+
+
+def test_grid_substation_model():
+    from bessible.ukpn.models import GridSubstation
+
+    raw = {
+        "sitefunctionallocation": "SPN-S000000008100",
+        "licencearea": "South Eastern Power Networks (SPN)",
+        "sitename": "LEATHERHEAD 132/33KV",
+        "sitetype": "Grid Substation",
+        "sitevoltage": 132,
+        "transratingsummer": "90.00, 90.00",
+        "maxdemandsummer": 35.0,
+        "spatial_coordinates": {"lat": 51.255, "lon": -0.335},
+    }
+    sub = GridSubstation.model_validate(raw)
+    assert sub.id == "SPN-S000000008100"
+    assert sub.name == "LEATHERHEAD 132/33KV"
+    assert sub.voltage_kv == 132
+    assert sub.headroom_import_mw == 55.0
+    assert sub.headroom_export_mw == 90.0
+    assert sub.position.lat == 51.255
+    assert sub.position.lon == -0.335
+
+
+def test_ingest_and_snapshot_load(tmp_path, monkeypatch):
+    from unittest.mock import MagicMock
+
+    from pydantic import SecretStr
+
+    from bessible.config import settings
+    from bessible.ukpn import ingest
+    from bessible.ukpn.snapshot import load_snapshot
+
+    monkeypatch.setattr(settings, "ukpn_api_key", SecretStr("test-key"))
+    monkeypatch.setattr(settings, "data_dir", tmp_path)
+
+    heatmap_fixture = load("capacity_heatmap_dorking")
+    substations_fixture = load("substations_dorking")
+
+    def mock_get(url, *args, **kwargs):  # ruff: ignore[unused-function-argument]
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.raise_for_status = MagicMock()
+        if "ukpn-capacity-heatmap" in url:
+            mock_resp.json.return_value = heatmap_fixture
+        else:
+            mock_resp.json.return_value = substations_fixture
+        return mock_resp
+
+    mock_client = MagicMock()
+    mock_client.get.side_effect = mock_get
+    mock_client.__enter__.return_value = mock_client
+    mock_client.__exit__.return_value = None
+    monkeypatch.setattr(ingest.httpx, "Client", lambda **_kw: mock_client)
+
+    exit_code = ingest.main()
+    assert exit_code == 0
+
+    snapshot = load_snapshot(tmp_path / "ukpn")
+    assert len(snapshot.substations) > 0
+    assert (tmp_path / "ukpn" / "manifest.json").exists()
+    manifest = json.loads((tmp_path / "ukpn" / "manifest.json").read_text())
+    assert "ukpn-capacity-heatmap" in manifest["datasets"]
+    assert "grid-and-primary-sites" in manifest["datasets"]

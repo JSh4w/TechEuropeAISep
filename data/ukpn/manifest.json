@@ -1,6 +1,15 @@
 {
   "fetched_at": "2026-09-19",
-  "datasets": {"ukpn-capacity-heatmap": {"rows": 3, "file": "heatmap.json"}},
+  "datasets": {
+    "ukpn-capacity-heatmap": {
+      "rows": 3,
+      "file": "heatmap.json"
+    },
+    "grid-and-primary-sites": {
+      "rows": 3,
+      "file": "grid_substations.json"
+    }
+  },
   "partial": true,
-  "note": "Demo subset: 3 real Dorking primaries copied from the API test fixture. Run `uv run python -m bessible.ukpn.ingest` (needs UKPN_API_KEY) for the full dataset."
+  "note": "Demo subset: real Dorking primaries and grid substations. Run `uv run python -m bessible.ukpn.ingest` (needs UKPN_API_KEY) for the full dataset."
 }

@@ -1,0 +1,56 @@
+{
+  "total_count": 3,
+  "results": [
+    {
+      "id": "SPN-S000000008100",
+      "name": "Leatherhead 132kV",
+      "position": {
+        "lat": 51.255,
+        "lon": -0.335
+      },
+      "voltage_kv": 132,
+      "headroom_import_mw": 85.0,
+      "headroom_export_mw": 95.0,
+      "site_type": "Grid Substation",
+      "licence_area": "South Eastern Power Networks (SPN)",
+      "gsp": "West Weybridge",
+      "bsp": "Leatherhead",
+      "max_demand_mva": 35.0,
+      "firm_capacity_mva": 120.0
+    },
+    {
+      "id": "SPN-S000000008101",
+      "name": "Brockham Grid 132kV",
+      "position": {
+        "lat": 51.245,
+        "lon": -0.280
+      },
+      "voltage_kv": 132,
+      "headroom_import_mw": 75.0,
+      "headroom_export_mw": 80.0,
+      "site_type": "Grid Substation",
+      "licence_area": "South Eastern Power Networks (SPN)",
+      "gsp": "West Weybridge",
+      "bsp": "Brockham",
+      "max_demand_mva": 25.0,
+      "firm_capacity_mva": 100.0
+    },
+    {
+      "id": "SPN-S000000008102",
+      "name": "West Weybridge 132kV",
+      "position": {
+        "lat": 51.365,
+        "lon": -0.465
+      },
+      "voltage_kv": 132,
+      "headroom_import_mw": 90.0,
+      "headroom_export_mw": 90.0,
+      "site_type": "Grid Substation",
+      "licence_area": "South Eastern Power Networks (SPN)",
+      "gsp": "West Weybridge",
+      "bsp": "West Weybridge",
+      "max_demand_mva": 40.0,
+      "firm_capacity_mva": 130.0
+    }
+  ]
+}

@@ -22,15 +22,21 @@ class CapacityCheckRequest(BaseModel):
 
     position: Position
     flexible: bool = False
+    requested_mw: float | None = None
+    battery_mw: float | None = None
 
     @model_validator(mode="before")
     @classmethod
     def normalize_input(cls, data: Any) -> Any:  # ruff: ignore[any-type]
-        """Normalize flexible_connection alias to flexible."""
+        """Normalize flexible_connection alias to flexible and battery_mw to requested_mw."""
         if isinstance(data, dict):
             data = dict(data)
             if "flexible_connection" in data and "flexible" not in data:
                 data["flexible"] = data["flexible_connection"]
+            if "battery_mw" in data and "requested_mw" not in data:
+                data["requested_mw"] = data["battery_mw"]
+            elif "target_mw" in data and "requested_mw" not in data:
+                data["requested_mw"] = data["target_mw"]
         return data
 
 
@@ -38,4 +44,5 @@ class CapacityCheckRequest(BaseModel):
 async def check_capacity(req: CapacityCheckRequest) -> CapacityOutput:
     """Run direct grid capacity proposal for a coordinate under 1 second."""
     snapshot = get_snapshot()
-    return propose(req.position, snapshot, run_id="check", flexible=req.flexible)
+    mw = req.requested_mw if req.requested_mw is not None else req.battery_mw
+    return propose(req.position, snapshot, run_id="check", flexible=req.flexible, requested_mw=mw)

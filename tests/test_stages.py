@@ -49,6 +49,14 @@ async def test_location_and_capacity_stages():
     assert cap_out.ceiling_mw == 8.0
     assert cap_out.binding_direction == "import"
 
+    # Request 80 MW uses grid-level tier (Leatherhead 132kV)
+    req_80 = AssessmentRequest(postcode="RH4 1AD", battery_mw=80.0)
+    cap_80 = await propose_capacity(CapacityInput(run_id=run_id, request=req_80, location=loc_out))
+    assert cap_80.viable is True
+    assert cap_80.substation == "Leatherhead 132kV"
+    assert cap_80.connection_voltage_kv == 132.0
+    assert cap_80.firm_mw == 85.0
+
 
 @pytest.mark.anyio
 async def test_capacity_below_floor_flexible():

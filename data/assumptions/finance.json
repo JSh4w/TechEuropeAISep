@@ -75,9 +75,10 @@
     "mid": 1625000,
     "high": 2000000,
     "unit": "GBP/km",
-    "source": "team brief (recorded, not used: no grid-level data yet)",
+    "source": "UK DNO Standard Connection Charges (132 kV underground)",
     "date": "2026-09-19",
-    "used": false
+    "status": "agreed",
+    "used": true
   },
   "crossing_uplift_pct": {
     "value": 25,
