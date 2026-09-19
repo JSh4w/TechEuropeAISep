@@ -214,6 +214,63 @@ class OverheadLine(ApiResponse):
     geo_point_2d: GeoPoint | None = None  # segment midpoint
 
 
+class Table6InterestRecord(ApiResponse):
+    """Row of ``ltds-table-6-interest-connections``: new connection enquiries and offers."""
+
+    gridsupplypoint: str | None = None
+    substation: str | None = None
+    proposed_connection_voltage_kv: str | None = None
+    status_of_connection: str | None = None
+    demand_numbers_received_total_number: float | None = None
+    demand_numbers_received_total_capacity: float | None = None
+    generation_numbers_received_total_number: float | None = None
+    generation_numbers_received_total_capacity: float | None = None
+    spatial_coordinates: GeoPoint | None = None
+    sitefunctionallocation: str | None = None
+    licencearea: str | None = None
+    id: int | None = None
+
+
+class Table2aTransformerRecord(ApiResponse):
+    """Row of ``ukpn-ltds-table-2a-transformer-2w``: transformer ratings and reverse power capability."""
+
+    gridsupplypoint: str | None = None
+    hv_node: str | None = None
+    hv_substation: str | None = None
+    voltage_hv: float | None = None
+    lv_node: str | None = None
+    lv_substation: str | None = None
+    voltage_lv: float | None = None
+    vector_group: str | None = None
+    positive_sequence_impedance_r_percent: float | None = None
+    positive_sequence_impedance_x_percent: float | None = None
+    zero_sequence_impedance_x_percent: float | None = None
+    tap_range_max_percent: float | None = None
+    tap_range_min_percent: float | None = None
+    transformer_rating_mva_winter: float | None = None
+    transformer_rating_mva_summer: float | None = None
+    reverse_power_capability_percent: str | float | None = None
+    method_of_earthing_hv: str | None = None
+    method_of_earthing_lv: str | None = None
+    sitefunctionallocation: str | None = None
+    licencearea: str | None = None
+    id: int | None = None
+
+
+class GspProjectStatusApiRecord(ApiResponse):
+    """Row of ``ukpn-gsp-project-status``: GSP queue breakdown by gate status."""
+
+    gsp: str | None = None
+    technology_type: str | None = None
+    measure: str | None = None  # "MW" or "#"
+    sortby: str | None = None
+    gate_2_protected_26_27: float | None = None
+    gate_2_phase_1: float | None = None
+    gate_2_phase_2: float | None = None
+    gate_1: float | None = None
+    has_not_undergone_gated_process: float | None = None
+
+
 # -------------------- 4. Not from the API (helpers, registries, transforms) --------------------- #
 
 
@@ -235,5 +292,14 @@ DATASETS: dict[str, DatasetSpec[Any]] = {
     ),
     "overhead_lines_33kv": DatasetSpec(
         BASE_URL, "ukpn-33kv-overhead-lines", "geo_shape", RecordsResponse[OverheadLine], "geo_point_2d"
+    ),
+    "table6": DatasetSpec(
+        BASE_URL, "ltds-table-6-interest-connections", "spatial_coordinates", RecordsResponse[Table6InterestRecord]
+    ),
+    "table2a": DatasetSpec(
+        BASE_URL, "ukpn-ltds-table-2a-transformer-2w", None, RecordsResponse[Table2aTransformerRecord]
+    ),
+    "gsp_project_status": DatasetSpec(
+        BASE_URL, "ukpn-gsp-project-status", None, RecordsResponse[GspProjectStatusApiRecord]
     ),
 }

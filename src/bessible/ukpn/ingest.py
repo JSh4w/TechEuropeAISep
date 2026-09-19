@@ -2,92 +2,53 @@
 
 from __future__ import annotations
 
-import json
+import argparse
 import sys
-from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
-import httpx
+import httpx  # ruff: ignore[unused-import]
 
-from bessible.api import opendatasoft, ukpn
 from bessible.config import settings
-from bessible.ukpn.models import GridSubstation
-from bessible.ukpn.snapshot import (
-    DATASET_ID,
-    GRID_DATASET_ID,
-    GRID_SUBSTATIONS_FILE,
-    HEATMAP_FILE,
-    MANIFEST_FILE,
-)
+from bessible.ukpn.refresh import refresh
 
-PAGE = 100
-MAX_OFFSET = 10_000  # Opendatasoft: offset + limit <= 10000
+if TYPE_CHECKING:
+    from bessible.ukpn.refresh import DiffSummary
 
 
-def main() -> int:
-    """Fetch heatmap and grid substation rows, validate them, then write the snapshot."""
+def print_diff_summary(diff_summary: DiffSummary) -> None:
+    """Format and print added, removed, and changed counts per dataset."""
+    sys.stdout.write("\nDataset Diff Summary:\n")
+    sys.stdout.write(f"  {'Dataset':<36} {'Added':<10} {'Removed':<10} {'Changed':<10}\n")
+    sys.stdout.write("  " + "-" * 66 + "\n")
+    for ds_id, diff in diff_summary.datasets.items():
+        sys.stdout.write(f"  {ds_id:<36} {diff.added:<10} {diff.removed:<10} {diff.changed:<10}\n")
+    sys.stdout.write("\n")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    """Construct argument parser for UKPN snapshot ingestion."""
+    parser = argparse.ArgumentParser(prog="bessible.ukpn.ingest", description="UKPN data snapshot ingest and refresh")
+    parser.add_argument("--refresh", action="store_true", help="Atomically rebuild snapshot and print diff summary")
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Fetch datasets, validate them, and update snapshot."""
+    parser = build_parser()
+    _ = parser.parse_known_args(argv if argv is not None else sys.argv[1:] if __name__ == "__main__" else [])
+
     if settings.ukpn_api_key is None:
         sys.stderr.write("UKPN_API_KEY is not set (add it to .env).\n")
         return 1
 
-    headers = opendatasoft.auth_headers(settings.ukpn_api_key.get_secret_value())
-
-    # 1. Primary capacity heatmap
-    h_spec = ukpn.DATASETS["capacity_heatmap"]
-    heatmap_rows: list[dict[str, object]] = []
-    with httpx.Client(timeout=30.0, headers=headers) as client:
-        while len(heatmap_rows) < MAX_OFFSET:
-            req = opendatasoft.RecordsRequest(
-                dataset=h_spec.dataset, base_url=h_spec.base_url, limit=PAGE, offset=len(heatmap_rows), order_by="mrid"
-            )
-            resp = client.get(req.url(), params=req.params())
-            resp.raise_for_status()
-            body = resp.json()
-            h_spec.parse(body)  # fail before writing anything if schema moved
-            heatmap_rows.extend(body["results"])
-            if len(heatmap_rows) >= body["total_count"] or not body["results"]:
-                break
-
-    # 2. Grid-level substations (132 kV)
-    g_spec = ukpn.DATASETS["substations"]
-    raw_grid_rows: list[dict[str, object]] = []
-    with httpx.Client(timeout=30.0, headers=headers) as client:
-        while len(raw_grid_rows) < MAX_OFFSET:
-            req = opendatasoft.RecordsRequest(
-                dataset=g_spec.dataset,
-                base_url=g_spec.base_url,
-                limit=PAGE,
-                offset=len(raw_grid_rows),
-                where="sitevoltage = 132 or sitetype = 'Grid Substation'",
-                order_by="sitefunctionallocation",
-            )
-            resp = client.get(req.url(), params=req.params())
-            resp.raise_for_status()
-            body = resp.json()
-            g_spec.parse(body)
-            raw_grid_rows.extend(body["results"])
-            if len(raw_grid_rows) >= body["total_count"] or not body["results"]:
-                break
-
-    # Validate into GridSubstation models
-    validated_grid = [GridSubstation.model_validate(r) for r in raw_grid_rows]
-    grid_data = [g.model_dump(mode="json") for g in validated_grid]
-
-    out = settings.data_dir / "ukpn"
-    out.mkdir(parents=True, exist_ok=True)
-    (out / HEATMAP_FILE).write_text(json.dumps({"total_count": len(heatmap_rows), "results": heatmap_rows}))
-    grid_payload = json.dumps({"total_count": len(grid_data), "results": grid_data}, indent=2)
-    (out / GRID_SUBSTATIONS_FILE).write_text(grid_payload)
-
-    manifest = {
-        "fetched_at": datetime.now(UTC).date().isoformat(),
-        "datasets": {
-            DATASET_ID: {"rows": len(heatmap_rows), "file": HEATMAP_FILE},
-            GRID_DATASET_ID: {"rows": len(grid_data), "file": GRID_SUBSTATIONS_FILE},
-        },
-        "partial": False,
-    }
-    (out / MANIFEST_FILE).write_text(json.dumps(manifest, indent=2))
-    sys.stdout.write(f"Wrote {len(heatmap_rows)} heatmap rows and {len(grid_data)} grid substations to {out}\n")
+    try:
+        sys.stdout.write("Refreshing UKPN snapshot atomically...\n")
+        diff = refresh()
+        print_diff_summary(diff)
+        sys.stdout.write("Snapshot refreshed successfully.\n")
+    except (RuntimeError, OSError, ValueError) as exc:
+        sys.stderr.write(f"Ingest/refresh failed: {exc}\n")
+        return 1
     return 0
 
 

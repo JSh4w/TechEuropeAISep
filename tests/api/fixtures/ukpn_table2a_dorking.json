@@ -1,0 +1,50 @@
+{
+  "total_count": 2,
+  "results": [
+    {
+      "gridsupplypoint": "West Weybridge",
+      "hv_node": "DORT31",
+      "hv_substation": "Dorking Town 33kV",
+      "voltage_hv": 33.0,
+      "lv_node": "DORT51",
+      "lv_substation": "Dorking Town 11kV",
+      "voltage_lv": 11.0,
+      "vector_group": "Dyn1",
+      "positive_sequence_impedance_r_percent": 1.0969,
+      "positive_sequence_impedance_x_percent": 98.9639,
+      "zero_sequence_impedance_x_percent": 98.9268,
+      "tap_range_max_percent": 110,
+      "tap_range_min_percent": 90,
+      "transformer_rating_mva_winter": 39.0,
+      "transformer_rating_mva_summer": 30.0,
+      "reverse_power_capability_percent": "100%",
+      "method_of_earthing_hv": "Not Applicable",
+      "method_of_earthing_lv": "Solid Grounding",
+      "sitefunctionallocation": "SPN-S000000008357",
+      "licencearea": "South Eastern Power Networks (SPN)",
+      "id": 2136
+    },
+    {
+      "gridsupplypoint": "West Weybridge",
+      "hv_node": "DORT32",
+      "hv_substation": "Dorking Town 33kV",
+      "voltage_hv": 33.0,
+      "lv_node": "DORT51",
+      "lv_substation": "Dorking Town 11kV",
+      "voltage_lv": 11.0,
+      "vector_group": "Dyn1",
+      "positive_sequence_impedance_r_percent": 1.0969,
+      "positive_sequence_impedance_x_percent": 98.9639,
+      "zero_sequence_impedance_x_percent": 98.9268,
+      "tap_range_max_percent": 110,
+      "tap_range_min_percent": 90,
+      "transformer_rating_mva_winter": 39.0,
+      "transformer_rating_mva_summer": 30.0,
+      "reverse_power_capability_percent": "100%",
+      "method_of_earthing_hv": "Not Applicable",
+      "method_of_earthing_lv": "Solid Grounding",
+      "sitefunctionallocation": "SPN-S000000008357",
+      "id": 2137
+    }
+  ]
+}

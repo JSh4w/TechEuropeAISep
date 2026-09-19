@@ -145,6 +145,9 @@ class CapacityOutput(BaseModel):
     alternates: list[AlternateOption] = Field(default_factory=list)
     tia_threshold_mw: Literal[1, 5] | None = None
     snapshot_date: date | None = None
+    competition: Any = None
+    export_ceiling_mw: float | None = None
+    gsp: str | None = None
     artifacts: list[Artifact] = Field(default_factory=list)
 
     @model_validator(mode="after")

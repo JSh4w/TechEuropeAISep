@@ -15,14 +15,35 @@ from temporalio.contrib.pydantic import pydantic_data_converter
 from bessible.config import settings
 from bessible.footprint import footprint_polygon, reserved_acres, reserved_acres_by_duration
 from bessible.models import AssessmentRequest, AssessmentResult, Position, RunStatus, SiteDecision
+from bessible.ukpn import SnapshotNotFoundError, get_snapshot, snapshot_age_days
 from bessible.workflow import TASK_QUEUE, AssessmentWorkflow
 
 if TYPE_CHECKING:
+    from datetime import date
+
     from temporalio.client import WorkflowHandle
 
 ACTIVE_STATUSES = {"running", "awaiting_confirmation"}
 TERMINAL_STATUSES = {"completed", "rejected", "out_of_area", "not_viable", "failed"}
 AFFIRMATIVE_RESPONSES = {"y", "yes"}
+SIX_MONTHS_DAYS = 182
+
+
+def check_snapshot_age_warning(today: date | None = None) -> bool:
+    """Check snapshot age and print a warning to stderr if older than 6 months (182 days)."""
+    try:
+        snap = get_snapshot()
+        age = snapshot_age_days(snap, today=today)
+        if age > SIX_MONTHS_DAYS:
+            print(  # ruff: ignore[print]
+                f"Warning: UKPN snapshot from {snap.fetched_at.isoformat()} is {age} days old (> 6 months). "
+                "Data may be stale; run `python -m bessible.ukpn.ingest --refresh` to update.",
+                file=sys.stderr,
+            )
+            return True
+    except (SnapshotNotFoundError, OSError, ValueError):
+        pass
+    return False
 
 
 async def _get_client() -> Client:
@@ -188,6 +209,7 @@ async def _watch_workflow(handle: WorkflowHandle[Any, Any], *, auto_yes: bool) -
 
 async def cmd_start(args: argparse.Namespace) -> None:
     """Start an assessment workflow."""
+    check_snapshot_age_warning()
     property_url = HttpUrl(args.url) if args.url else None
     try:
         req = AssessmentRequest(

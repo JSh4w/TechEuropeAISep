@@ -1,0 +1,56 @@
+{
+  "total_count": 3,
+  "results": [
+    {
+      "gridsupplypoint": "West Weybridge",
+      "substation": "Dorking Town 11kV",
+      "proposed_connection_voltage_kv": "11",
+      "status_of_connection": "Connection offers made (not yet accepted by customer)",
+      "demand_numbers_received_total_number": 2.0,
+      "demand_numbers_received_total_capacity": 2.6,
+      "generation_numbers_received_total_number": null,
+      "generation_numbers_received_total_capacity": null,
+      "spatial_coordinates": {
+        "lat": 51.2336,
+        "lon": -0.3385
+      },
+      "sitefunctionallocation": "SPN-S000000008357",
+      "licencearea": "South Eastern Power Networks (SPN)",
+      "id": 922
+    },
+    {
+      "gridsupplypoint": "West Weybridge",
+      "substation": "Dorking Town 11kV",
+      "proposed_connection_voltage_kv": "11",
+      "status_of_connection": "Budget Estimates Provided",
+      "demand_numbers_received_total_number": 1.0,
+      "demand_numbers_received_total_capacity": 1.5,
+      "generation_numbers_received_total_number": null,
+      "generation_numbers_received_total_capacity": null,
+      "spatial_coordinates": {
+        "lat": 51.2336,
+        "lon": -0.3385
+      },
+      "sitefunctionallocation": "SPN-S000000008357",
+      "licencearea": "South Eastern Power Networks (SPN)",
+      "id": 923
+    },
+    {
+      "gridsupplypoint": "West Weybridge",
+      "substation": "Dorking Town 11kV",
+      "proposed_connection_voltage_kv": "11",
+      "status_of_connection": "Enquiry Received",
+      "demand_numbers_received_total_number": 3.0,
+      "demand_numbers_received_total_capacity": 4.0,
+      "generation_numbers_received_total_number": null,
+      "generation_numbers_received_total_capacity": null,
+      "spatial_coordinates": {
+        "lat": 51.2336,
+        "lon": -0.3385
+      },
+      "sitefunctionallocation": "SPN-S000000008357",
+      "licencearea": "South Eastern Power Networks (SPN)",
+      "id": 924
+    }
+  ]
+}

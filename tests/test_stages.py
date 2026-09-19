@@ -110,6 +110,13 @@ async def test_title_and_analysis_stages():
     node_in = NodeInput(run_id=run_id, request=req, site=site, capacity=cap)
 
     grid = await grid_connection(node_in)
+    assert grid.gate2_queue_position == 28
+    assert grid.indicative_connection_months == 36
+    assert len(grid.artifacts) == 2
+    for art in grid.artifacts:
+        assert "ukpn-gsp-project-status" in art.claim
+        assert "2026-09-19" in art.claim
+
     land = await site_land(node_in)
     market = await market_revenue(node_in)
 
@@ -152,6 +159,9 @@ async def test_title_and_analysis_stages():
     assert len(synth.findings) > 0
     report_file = Path(f"out/{run_id}/report.md")
     assert report_file.exists()
+    report_content = report_file.read_text(encoding="utf-8")
+    assert "- **Snapshot Date:** 2026-09-19" in report_content
+    assert "days old" in report_content
 
 
 @pytest.mark.anyio

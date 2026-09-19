@@ -15,11 +15,17 @@ from pydantic import HttpUrl
 
 from bessible.config import settings
 from bessible.models import AlternateOption, Artifact, CapacityInput, CapacityOutput, Position
+from bessible.ukpn.competition import competition
+from bessible.ukpn.export_ceiling import export_ceiling
 from bessible.ukpn.snapshot import (
     DATASET_ID,
     DATASET_URL,
     GRID_DATASET_ID,
     GRID_DATASET_URL,
+    TABLE2A_DATASET_ID,
+    TABLE2A_DATASET_URL,
+    TABLE6_DATASET_ID,
+    TABLE6_DATASET_URL,
     Snapshot,
     get_snapshot,
 )
@@ -27,6 +33,7 @@ from bessible.ukpn.snapshot import (
 if TYPE_CHECKING:
     from bessible.api.ukpn import CapacityHeatmapSite
     from bessible.location.models import Substation
+    from bessible.ukpn.models import Competition
 
 MODEL_USED = "ukpn-snapshot"
 LIVE_MODEL_USED = "live-dno-headroom"
@@ -87,7 +94,13 @@ def distance_weight(distance_km: float) -> float:
 class Headroom:
     """Effective headroom of one primary substation. All values in MW."""
 
-    def __init__(self, row: CapacityHeatmapSite, *, flexible: bool) -> None:
+    def __init__(
+        self,
+        row: CapacityHeatmapSite,
+        *,
+        flexible: bool,
+        export_ceiling_mw: float | None = None,
+    ) -> None:
         """Compute import/export headroom net of accepted offers, then firm, ceiling and size."""
         voltage = connection_voltage_kv(row)
         if voltage is None:
@@ -96,6 +109,7 @@ class Headroom:
         self.row = row
         self.voltage_kv = voltage
         self.cap_mw = voltage_cap_mw(voltage)
+        self.export_ceiling_mw = export_ceiling_mw
         load_accepted = row.loadconnectionoffersacceptedcapacity or 0.0
         gen_accepted = row.generationconnectionoffersacceptedcapacity or 0.0
         reverse = (row.reversepowerflowavailablecapacity or 0.0) if (row.demandminimum or 0.0) < 0 else 0.0
@@ -103,8 +117,11 @@ class Headroom:
         self.export_mw = max(0.0, (row.generationavailablecapacity or 0.0) - gen_accepted + reverse)
         self.binding_direction: Literal["import", "export"] = "import" if self.import_mw <= self.export_mw else "export"
         self.firm_mw = min(self.import_mw, self.export_mw, self.cap_mw)
-        import_ceiling = (row.demandfirmcapacity or 0.0) - (row.demandminimum or 0.0) - load_accepted
-        self.ceiling_mw = max(self.firm_mw, min(import_ceiling, self.cap_mw))
+        self.import_ceiling = (row.demandfirmcapacity or 0.0) - (row.demandminimum or 0.0) - load_accepted
+        if export_ceiling_mw is not None:
+            self.ceiling_mw = max(self.firm_mw, min(self.import_ceiling, export_ceiling_mw, self.cap_mw))
+        else:
+            self.ceiling_mw = max(self.firm_mw, min(self.import_ceiling, self.cap_mw))
         self.size_mw = self.ceiling_mw if flexible else self.firm_mw
 
 
@@ -143,11 +160,17 @@ def _artifact(
     )
 
 
-def _alternates(nearby: list[tuple[float, CapacityHeatmapSite]], *, flexible: bool) -> list[AlternateOption]:
+def _alternates(
+    nearby: list[tuple[float, CapacityHeatmapSite]],
+    snapshot: Snapshot,
+    *,
+    flexible: bool,
+) -> list[AlternateOption]:
     """Up to four other primaries within range, best distance-weighted size first. Far ones are flagged, not hidden."""
     scored: list[tuple[float, AlternateOption]] = []
     for d, row in nearby[1 : MAX_ALTERNATES + 1]:
-        alt = Headroom(row, flexible=flexible)
+        alt_exp = export_ceiling(row, snapshot)
+        alt = Headroom(row, flexible=flexible, export_ceiling_mw=alt_exp)
         option = AlternateOption(
             substation=row.name or "", distance_km=round(d, 2), size_mw=round(alt.size_mw, 2), marginal=d > MARGINAL_KM
         )
@@ -155,12 +178,18 @@ def _alternates(nearby: list[tuple[float, CapacityHeatmapSite]], *, flexible: bo
     return [opt for _, opt in sorted(scored, key=lambda t: -t[0])]
 
 
-def _artifacts(run_id: str, snapshot: Snapshot, head: Headroom, dist: float) -> list[Artifact]:
-    """One artifact per key figure, plus a context-only artifact for RAG, parent GSP and TIA."""
+def _artifacts(
+    run_id: str,
+    snapshot: Snapshot,
+    head: Headroom,
+    dist: float,
+    comp: Competition | None = None,
+) -> list[Artifact]:
+    """One artifact per key figure, plus context artifacts for RAG, parent GSP and TIA, competition, and caveat."""
     row = head.row
     tia = tia_threshold_mw(row)
     marginal_note = f"; {dist:.1f} km away, marginal beyond {MARGINAL_KM:g} km" if dist > MARGINAL_KM else ""
-    return [
+    arts = [
         _artifact(
             run_id,
             "substation",
@@ -181,9 +210,13 @@ def _artifacts(run_id: str, snapshot: Snapshot, head: Headroom, dist: float) -> 
             run_id,
             "range",
             f"Firm {head.firm_mw:.1f} MW, ceiling {head.ceiling_mw:.1f} MW, limited by {head.binding_direction}; "
-            f"{head.voltage_kv:g} kV caps size at {head.cap_mw:g} MW. Ceiling = import-side formula "
-            "(demand firm capacity - minimum demand - accepted load offers), an assumption. "
-            "No seasonal split in this dataset",
+            f"{head.voltage_kv:g} kV caps size at {head.cap_mw:g} MW. Ceiling = "
+            + (
+                f"lower of import-side formula and Table 2a export ceiling ({head.export_ceiling_mw:g} MW)"
+                if head.export_ceiling_mw is not None
+                else "import-side formula (demand firm capacity - minimum demand - accepted load offers), an assumption"
+            )
+            + ". No seasonal split in this dataset",
             snapshot,
         ),
         _artifact(
@@ -195,6 +228,54 @@ def _artifacts(run_id: str, snapshot: Snapshot, head: Headroom, dist: float) -> 
             snapshot,
         ),
     ]
+
+    if head.export_ceiling_mw is None:
+        arts.append(
+            _artifact(
+                run_id,
+                "export-ceiling",
+                f"Export ceiling is unavailable for {row.name}; overall ceiling uses import side only",
+                snapshot,
+                dataset_id=TABLE2A_DATASET_ID,
+                dataset_url=TABLE2A_DATASET_URL,
+            )
+        )
+
+    if comp is not None:
+        if comp.weighted_mw > 0:
+            comp_claim = (
+                f"Connection competition at {row.name}: {comp.offers_not_accepted_mw:.1f} MW offers not accepted, "
+                f"{comp.budget_estimates_mw:.1f} MW budget estimates, {comp.enquiries_mw:.1f} MW enquiries; "
+                f"weighted total {comp.weighted_mw:.1f} MW (pressure: {comp.pressure}). "
+                "Context only; not subtracted from effective headroom"
+            )
+        else:
+            comp_claim = (
+                f"Connection competition at {row.name}: no competing connection records found. "
+                "Weighted total 0.0 MW (pressure: low). Context only; not subtracted from effective headroom"
+            )
+        arts.append(
+            _artifact(
+                run_id,
+                "competition",
+                comp_claim,
+                snapshot,
+                dataset_id=TABLE6_DATASET_ID,
+                dataset_url=TABLE6_DATASET_URL,
+            )
+        )
+
+    arts.append(
+        _artifact(
+            run_id,
+            "caveat",
+            "Effective headroom subtracts the current accepted connection queue; "
+            "this may be pessimistic if speculative projects leave the queue under proposed Ofgem reforms",
+            snapshot,
+        )
+    )
+
+    return arts
 
 
 def _propose_grid_level(
@@ -270,6 +351,8 @@ def _propose_grid_level(
     ceiling_mw = max(firm_mw, min(import_mw, GRID_VOLTAGE_CAP_MW))
     size_mw = ceiling_mw if flexible else firm_mw
 
+    comp = competition(serving, snapshot, effective_headroom=firm_mw)
+
     if size_mw < FLOOR_MW:
         if not flexible and ceiling_mw >= FLOOR_MW:
             msg = (
@@ -340,6 +423,36 @@ def _propose_grid_level(
         ),
     ]
 
+    if comp.weighted_mw > 0:
+        comp_claim = (
+            f"Connection competition at {serving.name}: {comp.offers_not_accepted_mw:.1f} MW offers not accepted, "
+            f"{comp.budget_estimates_mw:.1f} MW budget estimates, {comp.enquiries_mw:.1f} MW enquiries; "
+            f"weighted total {comp.weighted_mw:.1f} MW (pressure: {comp.pressure}). "
+            "Context only; not subtracted from effective headroom"
+        )
+    else:
+        comp_claim = (
+            f"Connection competition at {serving.name}: no competing connection records found. "
+            "Weighted total 0.0 MW (pressure: low). Context only; not subtracted from effective headroom"
+        )
+    artifacts.extend([
+        _artifact(
+            run_id,
+            "competition",
+            comp_claim,
+            snapshot,
+            dataset_id=TABLE6_DATASET_ID,
+            dataset_url=TABLE6_DATASET_URL,
+        ),
+        _artifact(
+            run_id,
+            "caveat",
+            "Effective headroom subtracts the current accepted connection queue; "
+            "this may be pessimistic if speculative projects leave the queue under proposed Ofgem reforms",
+            snapshot,
+        ),
+    ])
+
     return CapacityOutput(
         viable=viable,
         message=msg,
@@ -355,6 +468,8 @@ def _propose_grid_level(
         alternates=alternates,
         tia_threshold_mw=None,
         snapshot_date=snapshot.fetched_at,
+        competition=comp,
+        gsp=serving.gsp,
         artifacts=artifacts,
     )
 
@@ -395,10 +510,13 @@ def propose(
         )
 
     dist, serving_row = nearby[0]  # nearest primary; distribution-area polygons are not in the snapshot yet
-    head = Headroom(serving_row, flexible=flexible)
+    exp_ceil = export_ceiling(serving_row, snapshot)
+    head = Headroom(serving_row, flexible=flexible, export_ceiling_mw=exp_ceil)
     message = _viable_message(head, flexible=flexible)
 
-    alternates = _alternates(nearby, flexible=flexible)
+    comp = competition(serving_row, snapshot, effective_headroom=head.firm_mw)
+
+    alternates = _alternates(nearby, snapshot, flexible=flexible)
 
     return CapacityOutput(
         viable=message is None,
@@ -408,6 +526,7 @@ def propose(
         connection_voltage_kv=head.voltage_kv,
         firm_mw=head.firm_mw,
         ceiling_mw=head.ceiling_mw,
+        export_ceiling_mw=head.export_ceiling_mw,
         recommended_mw=head.size_mw,
         binding_direction=head.binding_direction,
         binding_season=None,
@@ -415,7 +534,9 @@ def propose(
         alternates=alternates,
         tia_threshold_mw=tia_threshold_mw(serving_row),
         snapshot_date=snapshot.fetched_at,
-        artifacts=_artifacts(run_id, snapshot, head, dist),
+        competition=comp,
+        gsp=serving_row.gsp,
+        artifacts=_artifacts(run_id, snapshot, head, dist, comp=comp),
     )
 
 

@@ -1,0 +1,127 @@
+{
+  "total_count": 22,
+  "results": [
+    {
+      "gsp": "WEST WEYBRIDGE",
+      "technology_type": "TOTAL",
+      "measure": "#",
+      "sortby": "x TOTAL",
+      "gate_2_protected_26_27": 6.0,
+      "gate_2_phase_1": 2.0,
+      "gate_2_phase_2": 4.0,
+      "gate_1": 12.0,
+      "has_not_undergone_gated_process": 3.0
+    },
+    {
+      "gsp": "WEST WEYBRIDGE",
+      "technology_type": "TOTAL",
+      "measure": "MW",
+      "sortby": "x TOTAL",
+      "gate_2_protected_26_27": 180.0,
+      "gate_2_phase_1": 45.0,
+      "gate_2_phase_2": 95.0,
+      "gate_1": 310.0,
+      "has_not_undergone_gated_process": 40.0
+    },
+    {
+      "gsp": "WEST WEYBRIDGE",
+      "months": 24.0,
+      "application_date": "2023-01-15",
+      "offer_date": "2025-01-15"
+    },
+    {
+      "gsp": "WEST WEYBRIDGE",
+      "months": 30.0,
+      "application_date": "2022-06-01",
+      "offer_date": "2024-12-01"
+    },
+    {
+      "gsp": "WEST WEYBRIDGE",
+      "months": 36.0,
+      "application_date": "2021-03-10",
+      "offer_date": "2024-03-10"
+    },
+    {
+      "gsp": "WEST WEYBRIDGE",
+      "months": 42.0,
+      "application_date": "2021-09-01",
+      "offer_date": "2025-03-01"
+    },
+    {
+      "gsp": "WEST WEYBRIDGE",
+      "months": 48.0,
+      "application_date": "2020-05-15",
+      "offer_date": "2024-05-15"
+    },
+    {
+      "gsp": "BOLNEY",
+      "technology_type": "TOTAL",
+      "measure": "#",
+      "sortby": "x TOTAL",
+      "gate_2_protected_26_27": 8.0,
+      "gate_2_phase_1": 0.0,
+      "gate_2_phase_2": 3.0,
+      "gate_1": 9.0,
+      "has_not_undergone_gated_process": 3.0
+    },
+    {
+      "gsp": "BOLNEY",
+      "technology_type": "TOTAL",
+      "measure": "MW",
+      "sortby": "x TOTAL",
+      "gate_2_protected_26_27": 254.8,
+      "gate_2_phase_1": 0.0,
+      "gate_2_phase_2": 449.8,
+      "gate_1": 516.9,
+      "has_not_undergone_gated_process": 35.0
+    },
+    {
+      "gsp": "BOLNEY",
+      "months": 18.0,
+      "application_date": "2023-06-01",
+      "offer_date": "2024-12-01"
+    },
+    {
+      "gsp": "BOLNEY",
+      "months": 24.0,
+      "application_date": "2023-01-01",
+      "offer_date": "2025-01-01"
+    },
+    {
+      "gsp": "BOLNEY",
+      "months": 30.0,
+      "application_date": "2022-06-01",
+      "offer_date": "2024-12-01"
+    },
+    {
+      "gsp": "BOLNEY",
+      "months": 36.0,
+      "application_date": "2022-01-01",
+      "offer_date": "2025-01-01"
+    },
+    {
+      "gsp": "BOLNEY",
+      "months": 42.0,
+      "application_date": "2021-06-01",
+      "offer_date": "2024-12-01"
+    },
+    {
+      "gsp": "BOLNEY",
+      "months": 48.0,
+      "application_date": "2021-01-01",
+      "offer_date": "2025-01-01"
+    },
+    {
+      "gsp": "BOLNEY",
+      "months": 54.0,
+      "application_date": "2020-06-01",
+      "offer_date": "2024-12-01"
+    },
+    {
+      "gsp": "BOLNEY",
+      "months": 60.0,
+      "application_date": "2020-01-01",
+      "offer_date": "2025-01-01"
+    }
+  ]
+}

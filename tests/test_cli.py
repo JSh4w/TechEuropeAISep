@@ -110,3 +110,35 @@ async def test_cli_prompt_confirmation_132kv(capsys):
     assert "Substation:         Leatherhead 132kV" in captured.out
     assert "Connection Voltage: 132 kV" in captured.out
     mock_handle.execute_update.assert_awaited_once()
+
+
+def test_snapshot_age_warning_6_months(capsys, monkeypatch):
+    from datetime import date
+
+    from bessible.cli import check_snapshot_age_warning
+    from bessible.ukpn.snapshot import Snapshot
+
+    # 7 months old -> warning printed
+    old_snap = Snapshot(
+        fetched_at=date(2026, 1, 1),
+        partial=False,
+        substations=[],
+    )
+    monkeypatch.setattr("bessible.cli.get_snapshot", lambda: old_snap)
+    warned = check_snapshot_age_warning(today=date(2026, 9, 1))
+    captured = capsys.readouterr()
+    assert warned is True
+    assert "Warning: UKPN snapshot" in captured.err
+    assert "> 6 months" in captured.err
+
+    # 2 months old -> no warning
+    fresh_snap = Snapshot(
+        fetched_at=date(2026, 7, 1),
+        partial=False,
+        substations=[],
+    )
+    monkeypatch.setattr("bessible.cli.get_snapshot", lambda: fresh_snap)
+    warned = check_snapshot_age_warning(today=date(2026, 9, 1))
+    captured = capsys.readouterr()
+    assert warned is False
+    assert captured.err == ""
