@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { Zap, AlertTriangle, Check, X, Sliders, Info } from 'lucide-react';
+import { Zap, AlertTriangle, Check, X, Sliders, Info, Box, Layers } from 'lucide-react';
 
 interface SiteControlsProps {
   capacity: CapacityOutput;
@@ -42,33 +42,38 @@ export default function SiteControls({
 
   // Reserved acreage calculation
   const acreage = calculateAcres(selectedCapacityMw, 4);
+  const estContainers = Math.ceil(acreage.energyMWh / 2.8); // ~2.8 MWh per standardized battery enclosure
 
   return (
-    <Card className="border-border bg-card shadow-sm">
-      <CardHeader className="pb-4 border-b border-border/60">
+    <Card className="border-border bg-card shadow-md rounded-2xl overflow-hidden">
+      <CardHeader className="p-5 border-b border-border/80 bg-muted/20">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <div className="text-xs uppercase tracking-wider font-semibold text-emerald-600 dark:text-emerald-400">
-              Grid Connection Review
+            <div className="text-[11px] uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Human-in-the-Loop Confirmation
             </div>
-            <CardTitle className="text-lg font-bold flex items-center gap-2 mt-1">
+            <CardTitle className="text-xl font-bold flex items-center gap-2.5 mt-1 tracking-tight">
               <span>{capacity.serving_substation || 'Primary Substation'}</span>
               {capacity.voltage_kv && (
-                <Badge variant="secondary" className="font-mono text-xs">
-                  {capacity.voltage_kv} kV
+                <Badge variant="outline" className="font-mono text-xs font-semibold bg-blue-500/10 text-blue-600 border-blue-500/30">
+                  {capacity.voltage_kv} kV Busbar
                 </Badge>
               )}
             </CardTitle>
           </div>
 
           {/* Flexible Toggle with shadcn Switch */}
-          <div className="flex items-center gap-2.5 bg-muted/50 px-3 py-1.5 rounded-lg border border-border">
-            <label
-              htmlFor="flexible-toggle"
-              className="text-xs font-medium text-foreground cursor-pointer select-none"
-            >
-              Flexible Connection
-            </label>
+          <div className="flex items-center gap-3 bg-card px-3.5 py-2 rounded-xl border border-border shadow-xs">
+            <div className="text-right">
+              <label
+                htmlFor="flexible-toggle"
+                className="text-xs font-semibold text-foreground block cursor-pointer select-none"
+              >
+                Flexible Connection
+              </label>
+              <span className="text-[10px] text-muted-foreground">Unlocks ceiling capacity</span>
+            </div>
             <Switch
               id="flexible-toggle"
               checked={flexibleConnection}
@@ -78,21 +83,21 @@ export default function SiteControls({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-5 pt-5">
+      <CardContent className="space-y-5 p-5">
         {/* Prompts for below-floor or non-viable */}
         {isBelowFloorFirm && !flexibleConnection && (
-          <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-3">
+          <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <div className="text-xs text-amber-900 dark:text-amber-200 space-y-1">
-              <p className="font-semibold">Firm headroom below 5 MW floor ({firmMw} MW firm)</p>
+            <div className="text-xs text-amber-950 dark:text-amber-200 space-y-1">
+              <p className="font-bold">Firm Headroom Below 5 MW Floor ({firmMw} MW firm)</p>
               <p>
-                This site has {ceilingMw} MW ceiling capacity. Enable{' '}
+                This substation provides {ceilingMw} MW flexible ceiling. Enable{' '}
                 <button
                   type="button"
                   onClick={() => onFlexibleToggle(true)}
-                  className="underline font-bold hover:opacity-80"
+                  className="underline font-bold hover:opacity-80 cursor-pointer"
                 >
-                  flexible connection
+                  flexible connection mode
                 </button>{' '}
                 to unlock capacity above 5 MW.
               </p>
@@ -101,22 +106,42 @@ export default function SiteControls({
         )}
 
         {/* Capacity Slider & Acreage Metrics */}
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-semibold">
+            <div className="flex items-center gap-2">
               <Sliders className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>Target Capacity:</span>
-              <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+              <span className="text-sm font-semibold text-foreground">Target Export Capacity:</span>
+              <span className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
                 {selectedCapacityMw} MW
               </span>
             </div>
 
-            <Badge variant="outline" className="text-xs text-muted-foreground">
-              Allowed: {minFloorMw} MW – {maxAllowedMw} MW
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onCapacityChange(Math.min(firmMw, maxAllowedMw))}
+                disabled={firmMw < minFloorMw}
+                className="text-[11px] h-6 px-2 font-mono"
+              >
+                Firm ({firmMw} MW)
+              </Button>
+              {flexibleConnection && ceilingMw > firmMw && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onCapacityChange(ceilingMw)}
+                  className="text-[11px] h-6 px-2 font-mono text-amber-600 dark:text-amber-400 border-amber-500/30"
+                >
+                  Ceiling ({ceilingMw} MW)
+                </Button>
+              )}
+            </div>
           </div>
 
-          {/* shadcn Slider Component */}
+          {/* Slider Component */}
           <div className="pt-2 pb-1">
             <Slider
               min={minFloorMw}
@@ -136,63 +161,91 @@ export default function SiteControls({
             />
           </div>
 
-          {/* Headroom Marks */}
-          <div className="flex justify-between text-[11px] text-muted-foreground font-mono">
-            <span>{minFloorMw} MW (Min Floor)</span>
-            <span>Firm: {firmMw} MW</span>
-            <span>Ceiling: {ceilingMw} MW</span>
+          {/* Headroom Zone Markers */}
+          <div className="flex justify-between items-center text-[11px] text-muted-foreground font-mono">
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-zinc-400"></span>
+              Floor: {minFloorMw} MW
+            </span>
+            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              Firm: {firmMw} MW
+            </span>
+            <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
+              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+              Ceiling: {ceilingMw} MW
+            </span>
           </div>
 
           {/* Curtailment Alert if applicable */}
           {isCurtailed && (
-            <div className="p-2.5 bg-blue-500/10 border border-blue-500/30 rounded-lg flex items-center gap-2 text-xs text-blue-900 dark:text-blue-200">
-              <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center gap-2 text-xs text-amber-900 dark:text-amber-200">
+              <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
               <span>
-                Operating above {firmMw} MW firm capacity under flexible agreement. Curtailment risk applies.
+                Operating in flexible tier above {firmMw} MW firm headroom. Up to ~4.5% estimated annual curtailment factored into DCF.
               </span>
             </div>
           )}
 
-          {/* Calculated Footprint Box */}
-          <div className="grid grid-cols-3 gap-3 p-3 bg-muted/40 rounded-lg border border-border">
-            <div>
-              <div className="text-[11px] text-muted-foreground font-medium">Energy Storage</div>
-              <div className="text-sm font-semibold text-foreground">
+          {/* Calculated Footprint Stat Tiles */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+            <div className="p-3 bg-muted/30 rounded-xl border border-border">
+              <div className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+                <Zap className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Energy Capacity</span>
+              </div>
+              <div className="text-base font-bold font-mono text-foreground mt-1">
                 {acreage.energyMWh} MWh
               </div>
-              <div className="text-[10px] text-muted-foreground">4-hour duration</div>
+              <div className="text-[10px] text-muted-foreground">4-Hour System Duration</div>
             </div>
-            <div>
-              <div className="text-[11px] text-muted-foreground font-medium">Reserved Area</div>
-              <div className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                {acreage.midAcres} acres
+
+            <div className="p-3 bg-muted/30 rounded-xl border border-border">
+              <div className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+                <Box className="w-3.5 h-3.5 text-blue-600" />
+                <span>BESS Enclosures</span>
+              </div>
+              <div className="text-base font-bold font-mono text-foreground mt-1">
+                ~{estContainers} Units
+              </div>
+              <div className="text-[10px] text-muted-foreground">Modular BESS Enclosures</div>
+            </div>
+
+            <div className="p-3 bg-muted/30 rounded-xl border border-border">
+              <div className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+                <Layers className="w-3.5 h-3.5 text-amber-600" />
+                <span>Reserved Compound</span>
+              </div>
+              <div className="text-base font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">
+                {acreage.midAcres} Acres
               </div>
               <div className="text-[10px] text-muted-foreground">
-                ({acreage.minAcres} – {acreage.maxAcres} range)
+                {(acreage.midAcres * 0.404686).toFixed(2)} Hectares footprint
               </div>
             </div>
-            <div>
-              <div className="text-[11px] text-muted-foreground font-medium">Binding Direction</div>
-              <div className="text-sm font-semibold capitalize text-foreground">
-                {capacity.binding_direction || 'Import'}
+
+            <div className="p-3 bg-muted/30 rounded-xl border border-border">
+              <div className="text-[11px] text-muted-foreground font-medium">Consenting Route</div>
+              <div className="text-base font-bold text-foreground mt-1 truncate">
+                {selectedCapacityMw >= 50 ? 'NSIP (DCO)' : 'TCPA (Local)'}
               </div>
               <div className="text-[10px] text-muted-foreground">
-                Season: {capacity.binding_season || 'Summer'}
+                {selectedCapacityMw >= 50 ? 'Nationally Significant' : 'Town & Country Planning'}
               </div>
             </div>
           </div>
         </div>
       </CardContent>
 
-      <CardFooter className="pt-2 flex items-center gap-3">
+      <CardFooter className="p-5 pt-0 flex items-center gap-3">
         <Button
           type="button"
           onClick={onConfirm}
           disabled={submitting || selectedCapacityMw < minFloorMw || selectedCapacityMw > maxAllowedMw}
-          className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium gap-2 text-sm shadow-sm"
+          className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold gap-2 text-sm h-11 rounded-xl shadow-md cursor-pointer transition active:scale-[0.99]"
         >
-          <Check className="w-4 h-4" />
-          <span>Confirm Site & Sizing</span>
+          <Check className="w-4 h-4 stroke-[3]" />
+          <span>{submitting ? 'Running Feasibility & Valuation...' : 'Confirm Site & Run Feasibility'}</span>
         </Button>
 
         <Button
@@ -200,7 +253,7 @@ export default function SiteControls({
           variant="outline"
           onClick={onReject}
           disabled={submitting}
-          className="gap-2 text-sm"
+          className="gap-2 text-sm h-11 px-4 rounded-xl border-border hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 cursor-pointer"
         >
           <X className="w-4 h-4" />
           <span>Reject</span>

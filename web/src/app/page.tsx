@@ -83,7 +83,11 @@ export default function Home() {
   const initializedRef = useRef(false);
 
   // Interactive local simulation for UI verification when backend is starting
-  const activateFallbackFlow = (targetPostcode: string, centerCoords: [number, number]) => {
+  const activateFallbackFlow = (
+    targetPostcode: string,
+    centerCoords: [number, number],
+    immediate: boolean = false
+  ) => {
     const isOutOfArea = targetPostcode.toUpperCase().startsWith('M1');
     const isFlexibleNeeded = targetPostcode.toUpperCase().startsWith('CB');
 
@@ -107,7 +111,7 @@ export default function Home() {
           status: 'not_viable',
           message: 'The requested postcode is located in Manchester (Electricity North West area). Bessible screening currently covers UKPN license regions (London, South East, Eastern England).',
         });
-      }, 1000);
+      }, immediate ? 0 : 1000);
       return;
     }
 
@@ -157,7 +161,7 @@ export default function Home() {
       alternates: mockSubstations,
     };
 
-    setTimeout(() => {
+    const applyReady = () => {
       setEvents((prev) => [
         ...prev,
         { id: 3, t: new Date().toISOString(), stage: 'capacity', msg: `Identified serving substation: Southwark Central (${firmMw} MW firm, ${ceilingMw} MW ceiling)` },
@@ -173,7 +177,13 @@ export default function Home() {
         capacity: mockCapacity,
         position: centerCoords,
       });
-    }, 1500);
+    };
+
+    if (immediate) {
+      applyReady();
+    } else {
+      setTimeout(applyReady, 1200);
+    }
   };
 
   // Check URL parameters for direct state preview (e.g. ?state=confirm or ?state=report)
@@ -183,7 +193,7 @@ export default function Home() {
     const params = new URLSearchParams(window.location.search);
     const stateParam = params.get('state');
     if (stateParam === 'confirm' || stateParam === 'demo') {
-      activateFallbackFlow('SE1 7PB', [-0.1132, 51.5014]);
+      activateFallbackFlow('SE1 7PB', [-0.1132, 51.5014], true);
     } else if (stateParam === 'report') {
       const mockResult: AssessmentResult = {
         run_id: 'run_demo_report',
@@ -525,54 +535,73 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
       {/* Top Header */}
-      <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between shadow-xs">
+      <header className="bg-card/90 backdrop-blur-md border-b border-border/80 px-6 py-3.5 flex items-center justify-between shadow-xs sticky top-0 z-30">
         <div className="flex items-center gap-3">
-          <div className="bg-emerald-600 text-white p-2 rounded-xl shadow-xs">
-            <BatteryCharging className="w-6 h-6" />
+          <div className="bg-emerald-600 text-white p-2.5 rounded-xl shadow-xs">
+            <BatteryCharging className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
-              <span>Bessible</span>
-              <Badge variant="outline" className="text-[11px] font-semibold uppercase bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30">
-                BESS Site Assessor
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold tracking-tight">Bessible</span>
+              <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30">
+                BESS Screening Terminal
               </Badge>
-            </h1>
-            <p className="text-xs text-muted-foreground">
+            </div>
+            <p className="text-[11px] text-muted-foreground hidden sm:block">
               Autonomous grid screening, footprint sizing & explainable investment feasibility
             </p>
           </div>
         </div>
 
-        {runId && (
-          <div className="flex items-center gap-3 text-xs">
-            <span className="text-muted-foreground font-mono hidden sm:inline">{runId}</span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleReset}
-              className="gap-1.5 text-xs"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>New Run</span>
-            </Button>
+        <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2 text-[11px] font-mono text-muted-foreground border-r border-border pr-3">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              UKPN Live API
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-700 dark:text-blue-300 font-semibold border border-blue-500/20">
+              Temporal Engine
+            </span>
           </div>
-        )}
+
+          {runId && (
+            <div className="flex items-center gap-2.5 text-xs">
+              <span className="text-muted-foreground font-mono text-[11px] hidden sm:inline bg-muted/50 px-2 py-1 rounded-md border border-border">
+                {runId}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReset}
+                className="gap-1.5 text-xs h-8 px-3 rounded-xl border-border"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset Run</span>
+              </Button>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
-        {/* Postcode Search & Preset Bar using shadcn Card and Input */}
-        <Card className="border-border bg-card shadow-xs">
-          <CardContent className="p-5 space-y-4">
+        {/* Postcode Search & Preset Bar */}
+        <Card className="border-border bg-card shadow-xs rounded-2xl overflow-hidden">
+          <CardContent className="p-4 sm:p-5 space-y-3.5">
             <div className="flex flex-col md:flex-row gap-3">
               <div className="relative flex-1">
-                <MapPin className="absolute left-3.5 top-2.5 w-4 h-4 text-muted-foreground" />
+                <MapPin className="absolute left-3.5 top-3 w-4 h-4 text-emerald-600" />
                 <Input
                   type="text"
                   placeholder="Enter UK Postcode (e.g. SE1 7PB) or Property URL"
                   value={postcode}
                   onChange={(e) => setPostcode(e.target.value)}
-                  className="pl-10 h-10 font-medium"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && postcode.trim() && !loading) {
+                      handleStartRun();
+                    }
+                  }}
+                  className="pl-10 h-11 font-medium rounded-xl text-sm"
                 />
               </div>
 
@@ -580,32 +609,34 @@ export default function Home() {
                 type="button"
                 onClick={() => handleStartRun()}
                 disabled={loading || !postcode.trim()}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-6 h-10 gap-2 shadow-xs"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 h-11 rounded-xl gap-2 shadow-xs cursor-pointer text-sm"
               >
-                <Search className="w-4 h-4" />
-                <span>{loading ? 'Screening Site...' : 'Assess Site'}</span>
+                <Search className="w-4 h-4 stroke-[2.5]" />
+                <span>{loading ? 'Screening Grid...' : 'Screen Location'}</span>
               </Button>
             </div>
 
-            {/* Quick Demo Buttons */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
-              <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+            {/* Quick Demo Preset Pills */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/70 text-xs">
+              <span className="font-semibold text-muted-foreground flex items-center gap-1.5 mr-1 text-[11px] uppercase tracking-wider">
                 <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Demo Sites:
               </span>
               {DEMO_PRESETS.map((demo) => (
-                <Button
+                <button
                   key={demo.postcode}
                   type="button"
-                  variant="secondary"
-                  size="sm"
                   onClick={() => {
                     setPostcode(demo.postcode);
                     handleStartRun(demo.postcode, demo.coords);
                   }}
-                  className="text-xs h-7 px-2.5 font-normal"
+                  className={`text-xs px-3 py-1.5 rounded-lg border transition text-left cursor-pointer ${
+                    postcode === demo.postcode
+                      ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-semibold'
+                      : 'bg-muted/30 border-border/80 text-foreground hover:bg-muted/60'
+                  }`}
                 >
-                  {demo.label}
-                </Button>
+                  <span className="font-medium">{demo.label}</span>
+                </button>
               ))}
             </div>
           </CardContent>
