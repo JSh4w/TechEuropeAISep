@@ -648,13 +648,21 @@ export default function Home() {
           /* Active Workflow Layout: Map + Controls + Live Trace */
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left 2 Cols: Interactive Map & Decision Controls */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-4">
+              {substationChangeNotice && (
+                <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg text-xs text-blue-900 dark:text-blue-200 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                  <span>{substationChangeNotice}</span>
+                </div>
+              )}
+
               <SiteMap
                 initialCenter={initialCenter}
                 currentPosition={currentPosition}
                 onPositionChange={handlePositionChange}
                 capacityMw={selectedCapacityMw}
                 substations={capacityProposal?.alternates || []}
+                inspireGeoJson={inspireGeoJson}
               />
 
               {runStatus?.status === 'awaiting_confirmation' && capacityProposal && (
