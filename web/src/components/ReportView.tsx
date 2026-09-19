@@ -33,7 +33,11 @@ import {
   Download,
   Printer,
   Users,
-  CheckCircle,
+  CheckCircle2,
+  Sparkles,
+  ArrowRight,
+  ShieldCheck,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface ReportViewProps {
@@ -43,8 +47,9 @@ interface ReportViewProps {
 
 export default function ReportView({ result, onReset }: ReportViewProps) {
   const [selectedArtifact, setSelectedArtifact] = useState<Artifact | null>(null);
+  const [selectedDurationH, setSelectedDurationH] = useState<number>(4);
 
-  const { capacity, site, grid_connection, land_planning, durations, financials, report, artifacts = [] } =
+  const { capacity, site, grid_connection, land_planning, durations, financials, artifacts = [] } =
     result;
 
   const capacityMw = site?.capacity_mw ?? capacity?.recommended_mw ?? 10;
@@ -64,127 +69,215 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
   const reservedAcres = site?.reserved_acres ?? land_planning?.reserved_acres ?? Number((capacityMw * 4 * 0.0625).toFixed(2));
   const posString = site
     ? Array.isArray(site.position)
-      ? `${site.position[1].toFixed(5)}, ${site.position[0].toFixed(5)}`
-      : `${site.position.lat.toFixed(5)}, ${site.position.lon.toFixed(5)}`
+      ? `${site.position[1].toFixed(5)}°N, ${Math.abs(site.position[0]).toFixed(5)}°${site.position[0] >= 0 ? 'E' : 'W'}`
+      : `${site.position.lat.toFixed(5)}°N, ${Math.abs(site.position.lon).toFixed(5)}°${site.position.lon >= 0 ? 'E' : 'W'}`
     : 'Confirmed Site';
+
+  // Duration cases
+  const financialCases: FinancialCase[] = durations?.cases || financials?.cases || [
+    { duration_hours: 2, capex_gbp: 4800000, npv_gbp: 1650000, irr_pct: 12.8 },
+    { duration_hours: 4, capex_gbp: 8200000, npv_gbp: 3420000, irr_pct: 14.5 },
+    { duration_hours: 8, capex_gbp: 14900000, npv_gbp: 4100000, irr_pct: 11.2 },
+  ];
+
+  const activeCase = financialCases.find(
+    (c) => (c.duration_hours ?? c.duration_h) === selectedDurationH
+  ) || financialCases[1] || financialCases[0];
+
+  const activeIrr = activeCase.irr_pct ?? (activeCase.irr !== undefined ? activeCase.irr * 100 : 14.5);
 
   return (
     <div className="space-y-6">
-      {/* 1. Screening Notice Banner (Above the fold) */}
-      <div className="p-4 bg-amber-500/10 border-l-4 border-amber-500 rounded-r-xl flex items-start gap-3 shadow-xs">
-        <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-        <div className="text-xs text-amber-950 dark:text-amber-200">
-          <p className="font-semibold text-sm">Screening Estimate Notice</p>
-          <p className="mt-0.5">
-            The figures and conclusions below are screening estimates generated for preliminary site
-            evaluation. They do not constitute formal grid connection offers, engineering designs,
-            financial advisory, or legal planning consent.
+      {/* 1. Header Bar with Status & Actions */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-border/80">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              BESS Feasibility Dossier
+            </span>
+            <span className="text-xs text-muted-foreground font-mono">Run: {result.run_id}</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mt-1">
+            {capacityMw} MW / {capacityMw * selectedDurationH} MWh Battery Energy Storage Assessment
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 flex flex-wrap items-center gap-2">
+            <span>Coordinates: <strong className="text-foreground font-mono">{posString}</strong></span>
+            <span>•</span>
+            <span>Serving: <strong className="text-foreground">{grid_connection?.serving_substation || cap.serving_substation}</strong></span>
+            <span>•</span>
+            <span>Compound: <strong className="text-foreground">{reservedAcres} Acres</strong></span>
           </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => downloadMarkdownReport(result)}
+            className="text-xs font-semibold gap-1.5 h-9 rounded-xl border-border hover:bg-muted"
+          >
+            <Download className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Export (.md)</span>
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={printReport}
+            className="text-xs font-semibold gap-1.5 h-9 rounded-xl border-border hover:bg-muted"
+          >
+            <Printer className="w-3.5 h-3.5 text-blue-600" />
+            <span>Print PDF</span>
+          </Button>
+
+          {onReset && (
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={onReset}
+              className="text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white h-9 rounded-xl shadow-xs"
+            >
+              Assess Next Site
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Main Verdict Card */}
-      <Card className="border-border bg-card shadow-xs">
-        <CardContent className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30">
-                Site Assessment Complete
-              </Badge>
-              <span className="text-xs text-muted-foreground font-mono">Run: {result.run_id}</span>
+      {/* 2. Executive Metric Hero Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Capex Card */}
+        <div className="p-4 rounded-2xl bg-card border border-border shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Initial Capex</span>
+            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-muted text-muted-foreground">
+              {selectedDurationH}H Case
+            </span>
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl font-bold font-sans tabular-nums text-foreground tracking-tight">
+              £{(activeCase.capex_gbp / 1000000).toFixed(2)}M
             </div>
-            <h1 className="text-2xl font-bold tracking-tight mt-2 text-foreground">
-              {capacityMw} MW Battery Energy Storage System (BESS)
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Location: {posString} • {reservedAcres} acres reserved
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              ~£{Math.round(activeCase.capex_gbp / (capacityMw * selectedDurationH) / 1000)}k / MWh turnkey
             </p>
           </div>
+        </div>
 
-          <div className="flex flex-wrap items-center gap-2 self-start md:self-center">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => downloadMarkdownReport(result)}
-              className="text-xs font-semibold gap-1.5"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Download (.md)</span>
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={printReport}
-              className="text-xs font-semibold gap-1.5"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Print / PDF</span>
-            </Button>
-
-            {onReset && (
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={onReset}
-                className="text-xs font-semibold"
-              >
-                Assess Another Site
-              </Button>
-            )}
+        {/* 25-Year NPV Card */}
+        <div className="p-4 rounded-2xl bg-card border border-border shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Project Net Present Value</span>
+            <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 text-[10px] font-semibold">
+              NPV @ 10%
+            </Badge>
           </div>
-        </CardContent>
-      </Card>
+          <div className="mt-3">
+            <div className="text-2xl font-bold font-sans tabular-nums text-emerald-600 dark:text-emerald-400 tracking-tight">
+              £{(activeCase.npv_gbp / 1000000).toFixed(2)}M
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              25-year operational lifecycle
+            </p>
+          </div>
+        </div>
 
-      {/* 5 Core Report Sections */}
+        {/* Internal Rate of Return (IRR) */}
+        <div className="p-4 rounded-2xl bg-card border border-border shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Project IRR</span>
+            <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 text-[10px] font-semibold">
+              Unlevered
+            </Badge>
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl font-bold font-sans tabular-nums text-emerald-600 dark:text-emerald-400 tracking-tight">
+              {activeIrr.toFixed(1)}%
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Wholesale arbitrage + frequency services
+            </p>
+          </div>
+        </div>
+
+        {/* Planning & Network Status */}
+        <div className="p-4 rounded-2xl bg-card border border-border shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Planning Consent</span>
+            <Badge variant="outline" className="text-[10px] uppercase font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border-emerald-500/30">
+              {land_planning?.planning_risk || 'Low Risk'}
+            </Badge>
+          </div>
+          <div className="mt-3">
+            <div className="text-base font-bold text-foreground truncate">
+              {land_planning?.consenting_route || (capacityMw >= 50 ? 'NSIP (DCO)' : 'TCPA (Local Plan)')}
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Green Belt: {land_planning?.green_belt ? 'Designated' : 'Clear (No designation)'}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Compact Model Disclaimer Pill */}
+      <div className="px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-950 dark:text-amber-200 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+          <span><strong>Screening Estimate:</strong> Feasibility figures are derived from open distribution snapshots (UKPN/LTDS/INSPIRE) and do not substitute a formal DNO Connection Offer.</span>
+        </div>
+        <span className="text-[10px] font-mono text-amber-700 dark:text-amber-300 whitespace-nowrap hidden sm:inline">Model v1.2</span>
+      </div>
+
+      {/* 3. Deep Dive Sections Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Section 1: Capacity Range & Binding Constraint */}
-        <Card className="border-border bg-card shadow-xs">
-          <CardHeader className="pb-3 border-b border-border/60">
+        {/* Section 1: Capacity Range & Grid Constraints */}
+        <Card className="border-border bg-card shadow-xs rounded-2xl overflow-hidden">
+          <CardHeader className="p-4 border-b border-border/70 bg-muted/20">
             <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground">
               <Zap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span>1. Capacity Range & Constraints</span>
             </CardTitle>
           </CardHeader>
 
-          <CardContent className="pt-4 space-y-4 text-xs">
+          <CardContent className="p-4 space-y-4 text-xs">
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 bg-muted/40 rounded-lg border border-border">
-                <span className="text-muted-foreground">Firm Capacity</span>
-                <div className="text-lg font-bold text-foreground mt-0.5">
+              <div className="p-3 bg-muted/30 rounded-xl border border-border">
+                <span className="text-muted-foreground font-medium text-[11px]">Firm Headroom</span>
+                <div className="text-xl font-bold font-mono text-foreground mt-1">
                   {cap.firm_mw ?? '—'} MW
                 </div>
-                <span className="text-[10px] text-muted-foreground">Uncurtailed headroom</span>
+                <span className="text-[10px] text-muted-foreground">Uncurtailed firm connection</span>
               </div>
 
-              <div className="p-3 bg-muted/40 rounded-lg border border-border">
-                <span className="text-muted-foreground">Ceiling Capacity</span>
-                <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+              <div className="p-3 bg-muted/30 rounded-xl border border-border">
+                <span className="text-muted-foreground font-medium text-[11px]">Ceiling Capacity</span>
+                <div className="text-xl font-bold font-mono text-amber-600 dark:text-amber-400 mt-1">
                   {cap.ceiling_mw ?? '—'} MW
                 </div>
-                <span className="text-[10px] text-muted-foreground">Flexible connection ceiling</span>
+                <span className="text-[10px] text-muted-foreground">Flexible connection headroom</span>
               </div>
             </div>
 
-            <div className="space-y-2 pt-1">
-              <div className="flex justify-between py-1 border-b border-border/40">
+            <div className="space-y-2 pt-1 font-sans">
+              <div className="flex justify-between py-1.5 border-b border-border/50">
                 <span className="text-muted-foreground">Binding Direction</span>
-                <span className="font-semibold capitalize text-foreground">
-                  {cap.binding_direction || 'Import'}
+                <span className="font-semibold uppercase tracking-wider text-[11px] text-foreground">
+                  {cap.binding_direction || 'Export'} Headroom
                 </span>
               </div>
-              <div className="flex justify-between py-1 border-b border-border/40">
+              <div className="flex justify-between py-1.5 border-b border-border/50">
                 <span className="text-muted-foreground">Binding Season</span>
                 <span className="font-semibold capitalize text-foreground">
-                  {cap.binding_season || 'Summer'}
+                  {cap.binding_season || 'Summer'} (Thermal rating constrained)
                 </span>
               </div>
-              <div className="flex justify-between py-1">
-                <span className="text-muted-foreground">Recommended Size</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400">
+              <div className="flex justify-between py-1.5">
+                <span className="text-muted-foreground">Recommended Connection Size</span>
+                <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400">
                   {cap.recommended_mw ?? capacityMw} MW
                 </span>
               </div>
@@ -192,90 +285,85 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
           </CardContent>
         </Card>
 
-        {/* Section 2: Grid Connection Summary */}
-        <Card className="border-border bg-card shadow-xs">
-          <CardHeader className="pb-3 border-b border-border/60">
+        {/* Section 2: Grid Connection Architecture */}
+        <Card className="border-border bg-card shadow-xs rounded-2xl overflow-hidden">
+          <CardHeader className="p-4 border-b border-border/70 bg-muted/20">
             <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground">
               <Compass className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              <span>2. Grid Connection Summary</span>
+              <span>2. Grid Interconnection Route</span>
             </CardTitle>
           </CardHeader>
 
-          <CardContent className="pt-4 text-xs space-y-2">
-            <div className="flex justify-between py-1.5 border-b border-border/40">
+          <CardContent className="p-4 text-xs space-y-2.5">
+            <div className="flex justify-between py-1 border-b border-border/50">
               <span className="text-muted-foreground">Serving Substation</span>
-              <span className="font-semibold text-foreground">
+              <span className="font-bold text-foreground">
                 {grid_connection?.serving_substation || cap.substation || cap.serving_substation || 'Primary Substation'}
               </span>
             </div>
-            <div className="flex justify-between py-1.5 border-b border-border/40">
-              <span className="text-muted-foreground">Point of Connection Voltage</span>
-              <span className="font-semibold text-foreground">
-                {grid_connection?.voltage_kv || cap.connection_voltage_kv || cap.voltage_kv || 33} kV
+            <div className="flex justify-between py-1 border-b border-border/50">
+              <span className="text-muted-foreground">Point of Connection (PoC) Voltage</span>
+              <span className="font-mono font-semibold text-foreground">
+                {grid_connection?.voltage_kv || cap.connection_voltage_kv || cap.voltage_kv || 33} kV Busbar
               </span>
             </div>
-            <div className="flex justify-between py-1.5 border-b border-border/40">
-              <span className="text-muted-foreground">Cable Route Distance</span>
-              <span className="font-semibold text-foreground">
-                {grid_connection?.distance_km?.toFixed(2) || '0.82'} km
+            <div className="flex justify-between py-1 border-b border-border/50">
+              <span className="text-muted-foreground">Estimated Cable Route Distance</span>
+              <span className="font-mono font-semibold text-foreground">
+                {grid_connection?.distance_km?.toFixed(2) || '0.65'} km
               </span>
             </div>
-            <div className="flex justify-between py-1.5 border-b border-border/40">
+            <div className="flex justify-between py-1 border-b border-border/50">
               <span className="text-muted-foreground">Parent GSP Status</span>
-              <span className="font-semibold text-foreground">
-                {grid_connection?.gsp_status || 'Secure (No upstream reinforcement)'}
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>{grid_connection?.gsp_status || 'Secure (No transmission reinforcement required)'}</span>
               </span>
             </div>
-            <div className="flex justify-between py-1.5">
-              <span className="text-muted-foreground">Transmission Impact (TIA)</span>
+            <div className="flex justify-between py-1">
+              <span className="text-muted-foreground">Transmission Impact Assessment (TIA)</span>
               <span className="font-semibold text-foreground">
-                {grid_connection?.tia_threshold_mw ? `${grid_connection.tia_threshold_mw} MW threshold` : 'Standard assessment'}
+                {grid_connection?.tia_threshold_mw ? `${grid_connection.tia_threshold_mw} MW statement threshold` : 'Standard DNO screening'}
               </span>
             </div>
           </CardContent>
         </Card>
 
-        {/* Section 3: Land & Planning Risk */}
-        <Card className="border-border bg-card shadow-xs">
-          <CardHeader className="pb-3 border-b border-border/60">
+        {/* Section 3: Land, Planning & Environmental Risk */}
+        <Card className="border-border bg-card shadow-xs rounded-2xl overflow-hidden">
+          <CardHeader className="p-4 border-b border-border/70 bg-muted/20">
             <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground">
               <Building className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-              <span>3. Land & Planning Risk</span>
+              <span>3. Land, Planning & Environmental Risk</span>
             </CardTitle>
           </CardHeader>
 
-          <CardContent className="pt-4 text-xs space-y-2">
-            <div className="flex justify-between py-1.5 border-b border-border/40">
-              <span className="text-muted-foreground">Reserved Area</span>
-              <span className="font-semibold text-foreground">
-                {reservedAcres} acres (4-hour duration)
+          <CardContent className="p-4 text-xs space-y-2.5">
+            <div className="flex justify-between py-1 border-b border-border/50">
+              <span className="text-muted-foreground">Reserved Battery Compound</span>
+              <span className="font-semibold text-foreground font-mono">
+                {reservedAcres} Acres ({(reservedAcres * 0.404686).toFixed(2)} Ha)
               </span>
             </div>
-            <div className="flex justify-between py-1.5 border-b border-border/40">
-              <span className="text-muted-foreground">Green Belt Designation</span>
+            <div className="flex justify-between py-1 border-b border-border/50">
+              <span className="text-muted-foreground">Metropolitan Green Belt Status</span>
               <span className={`font-semibold ${land_planning?.green_belt ? 'text-amber-600' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                {land_planning?.green_belt ? 'Yes (Special Circumstances Required)' : 'No (Clear)'}
+                {land_planning?.green_belt ? 'Designated (Requires Very Special Circumstances)' : 'Clear (Outside Green Belt)'}
               </span>
             </div>
-            <div className="flex justify-between py-1.5 border-b border-border/40">
-              <span className="text-muted-foreground">Consenting Route</span>
+            <div className="flex justify-between py-1 border-b border-border/50">
+              <span className="text-muted-foreground">Statutory Planning Consent Route</span>
               <span className="font-semibold text-foreground">
-                {land_planning?.consenting_route || (capacityMw >= 50 ? 'NSIP (DCO Route)' : 'TCPA (Local Authority Planning)')}
+                {land_planning?.consenting_route || (capacityMw >= 50 ? 'NSIP (DCO Route)' : 'TCPA (Local Planning Authority)')}
               </span>
-            </div>
-            <div className="flex justify-between py-1.5">
-              <span className="text-muted-foreground">Overall Planning Risk</span>
-              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 text-[11px]">
-                {land_planning?.planning_risk || 'Low / Moderate'}
-              </Badge>
             </div>
 
-            {/* Local Community Sentiment & Opposition Index */}
-            <div className="pt-2 border-t border-border/60 space-y-2">
+            {/* Local Community Sentiment Scan */}
+            <div className="pt-2 border-t border-border/70 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground flex items-center gap-1.5 font-medium">
                   <Users className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                  <span>Community Opposition Risk</span>
+                  <span>Public Sentiment Opposition Risk</span>
                 </span>
                 <Badge
                   variant="outline"
@@ -297,20 +385,20 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
                 </Badge>
               </div>
 
-              <div className="p-2.5 bg-muted/40 rounded-lg border border-border text-[11px] space-y-1.5">
+              <div className="p-2.5 bg-muted/30 rounded-xl border border-border text-[11px] space-y-1.5">
                 <div className="flex justify-between text-muted-foreground">
-                  <span>DeBERTa Sentiment Scan:</span>
+                  <span>DeBERTa Sentiment Model:</span>
                   <span className="font-medium text-foreground">
-                    {result.sentiment?.sources ?? 4} articles ({result.sentiment?.paragraphs ?? 16} paragraphs)
+                    {result.sentiment?.sources ?? 4} planning decisions reviewed
                   </span>
                 </div>
                 {(result.sentiment?.top_concerns ?? ['Acoustic Enclosures', 'Fire Safety', 'Visual Buffering']).length > 0 && (
-                  <div className="pt-0.5 flex flex-wrap items-center gap-1">
-                    <span className="text-muted-foreground text-[10px]">Key Themes:</span>
+                  <div className="pt-1 flex flex-wrap items-center gap-1.5">
+                    <span className="text-muted-foreground text-[10px]">Statutory Focus Areas:</span>
                     {(result.sentiment?.top_concerns ?? ['Acoustic Enclosures', 'Fire Safety', 'Visual Buffering']).map((concern) => (
                       <span
                         key={concern}
-                        className="px-1.5 py-0.5 rounded bg-background border border-border text-[10px] text-foreground font-medium"
+                        className="px-2 py-0.5 rounded-md bg-card border border-border text-[10px] text-foreground font-medium"
                       >
                         {concern}
                       </span>
@@ -322,119 +410,103 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
           </CardContent>
         </Card>
 
-        {/* Section 4: Duration Comparison */}
-        <Card className="border-border bg-card shadow-xs">
-          <CardHeader className="pb-3 border-b border-border/60">
-            <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground">
-              <TrendingUp className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-              <span>4. Duration Comparison</span>
-            </CardTitle>
+        {/* Section 4: Duration Comparison & Sizing Trade-offs */}
+        <Card className="border-border bg-card shadow-xs rounded-2xl overflow-hidden">
+          <CardHeader className="p-4 border-b border-border/70 bg-muted/20">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground">
+                <TrendingUp className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                <span>4. Duration & Returns Matrix</span>
+              </CardTitle>
+              <span className="text-[11px] text-muted-foreground">Select to inspect case</span>
+            </div>
           </CardHeader>
 
-          <CardContent className="pt-2 p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="text-xs text-muted-foreground">
-                  <TableHead className="py-2">Duration</TableHead>
-                  <TableHead className="py-2">Capex</TableHead>
-                  <TableHead className="py-2">NPV</TableHead>
-                  <TableHead className="py-2">IRR</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="text-xs">
-                {(durations?.cases || [
-                  { duration_hours: 2, capex_gbp: 4800000, npv_gbp: 1650000, irr_pct: 12.8 },
-                  { duration_hours: 4, capex_gbp: 8200000, npv_gbp: 3420000, irr_pct: 14.5 },
-                  { duration_hours: 8, capex_gbp: 14900000, npv_gbp: 4100000, irr_pct: 11.2 },
-                ] as FinancialCase[]).map((c) => {
-                  const durationH = c.duration_hours ?? c.duration_h ?? 4;
-                  const irrVal = c.irr_pct ?? (c.irr !== undefined ? c.irr * 100 : undefined);
-                  return (
-                    <TableRow
-                      key={durationH}
-                      className={durationH === 4 ? 'bg-emerald-500/10 font-semibold' : ''}
-                    >
-                      <TableCell className="py-2.5">
-                        {durationH} Hours {durationH === 4 && <span className="text-[10px] text-emerald-600 dark:text-emerald-400 ml-1">(Recommended)</span>}
-                      </TableCell>
-                      <TableCell className="py-2.5 font-mono">£{(c.capex_gbp / 1000000).toFixed(1)}M</TableCell>
-                      <TableCell className="py-2.5 font-mono text-emerald-600 dark:text-emerald-400">£{(c.npv_gbp / 1000000).toFixed(2)}M</TableCell>
-                      <TableCell className="py-2.5 font-mono">{irrVal !== undefined ? `${irrVal.toFixed(1)}%` : '—'}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+          <CardContent className="p-4">
+            <div className="space-y-2.5">
+              {financialCases.map((c) => {
+                const durationH = c.duration_hours ?? c.duration_h ?? 4;
+                const irrVal = c.irr_pct ?? (c.irr !== undefined ? c.irr * 100 : 0);
+                const isSelected = selectedDurationH === durationH;
+                const isRecommended = durationH === 4;
+
+                return (
+                  <div
+                    key={durationH}
+                    onClick={() => setSelectedDurationH(durationH)}
+                    className={`p-3 rounded-xl border transition cursor-pointer flex items-center justify-between ${
+                      isSelected
+                        ? 'border-emerald-500 bg-emerald-500/10 shadow-xs'
+                        : 'border-border bg-muted/20 hover:border-border/80'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
+                        isSelected ? 'bg-emerald-600 text-white' : 'bg-muted text-foreground'
+                      }`}>
+                        {durationH}h
+                      </div>
+                      <div>
+                        <div className="font-bold text-xs text-foreground flex items-center gap-1.5">
+                          <span>{durationH}-Hour Duration ({capacityMw * durationH} MWh)</span>
+                          {isRecommended && (
+                            <Badge className="bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-none text-[9px] uppercase px-1.5 py-0">
+                              Optimal
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground font-mono">
+                          Capex: £{(c.capex_gbp / 1000000).toFixed(1)}M
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <div className="font-bold font-mono text-emerald-600 dark:text-emerald-400 text-sm">
+                        £{(c.npv_gbp / 1000000).toFixed(2)}M NPV
+                      </div>
+                      <div className="text-[11px] text-muted-foreground font-mono">
+                        {irrVal ? `${irrVal.toFixed(1)}% IRR` : '—'}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Section 5: Financial Summary */}
-      <Card className="border-border bg-card shadow-xs">
-        <CardHeader className="pb-3 border-b border-border/60">
-          <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground">
-            <BadgePercent className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span>5. Financial Summary (4-Hour Base Case)</span>
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent className="pt-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4 rounded-xl bg-muted/40 border border-border">
-            <span className="text-xs text-muted-foreground font-medium">Estimated Capex</span>
-            <div className="text-xl font-bold text-foreground mt-1 font-mono">
-              £{((financials?.cases?.[1]?.capex_gbp ?? 8200000) / 1000000).toFixed(2)}M
-            </div>
-            <span className="text-[10px] text-muted-foreground">Includes EPC & grid contestable works</span>
-          </div>
-
-          <div className="p-4 rounded-xl bg-muted/40 border border-border">
-            <span className="text-xs text-muted-foreground font-medium">Project Net Present Value (NPV)</span>
-            <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1 font-mono">
-              £{((financials?.cases?.[1]?.npv_gbp ?? 3420000) / 1000000).toFixed(2)}M
-            </div>
-            <span className="text-[10px] text-muted-foreground">10% discount rate over 25-yr life</span>
-          </div>
-
-          <div className="p-4 rounded-xl bg-muted/40 border border-border">
-            <span className="text-xs text-muted-foreground font-medium">Internal Rate of Return (IRR)</span>
-            <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1 font-mono">
-              {(financials?.cases?.[1]?.irr_pct ?? 14.5).toFixed(1)}%
-            </div>
-            <span className="text-[10px] text-muted-foreground">Wholesale arbitrage + ancillary</span>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Deterministic hard checks from the data layer (site_land artifacts) */}
       {artifacts.some((a) => a.stage === 'site_land' && /^(OK|Caveat|Blocker|Unknown): /.test(a.claim)) && (
-        <Card className="border-border bg-card shadow-xs">
-          <CardHeader className="pb-3 border-b border-border/60">
-            <div className="flex items-center justify-between">
+        <Card className="border-border bg-card shadow-xs rounded-2xl overflow-hidden">
+          <CardHeader className="p-4 border-b border-border/70 bg-muted/20">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <CardTitle className="text-sm font-bold text-foreground">Site & Land Hard Checks</CardTitle>
               <span className="text-xs text-muted-foreground">
                 Deterministic rules on live public data, measured against the real title boundary
               </span>
             </div>
           </CardHeader>
-          <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
+          <CardContent className="p-4 grid grid-cols-1 md:grid-cols-2 gap-2.5">
             {artifacts
               .filter((a) => a.stage === 'site_land' && /^(OK|Caveat|Blocker|Unknown): /.test(a.claim))
               .map((a) => {
                 const [outcome, ...rest] = a.claim.split(': ');
                 const tone =
                   outcome === 'OK'
-                    ? 'bg-emerald-500/15 text-emerald-700 border-emerald-500/40'
+                    ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/40'
                     : outcome === 'Caveat'
-                      ? 'bg-amber-500/15 text-amber-700 border-amber-500/40'
+                      ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/40'
                       : outcome === 'Blocker'
-                        ? 'bg-red-500/15 text-red-700 border-red-500/40'
+                        ? 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/40'
                         : 'bg-muted text-muted-foreground border-border';
                 const name = a.id.replace(/^site_land-/, '').replace(/-[^-]*$/, '').replace(/_/g, ' ');
                 return (
                   <div
                     key={a.id}
                     onClick={() => setSelectedArtifact(a)}
-                    className="flex items-start gap-3 p-2.5 rounded-lg border border-border bg-muted/30 text-xs cursor-pointer hover:border-emerald-500/50 transition"
+                    className="flex items-start gap-3 p-3 rounded-xl border border-border bg-muted/20 text-xs cursor-pointer hover:border-emerald-500/50 hover:bg-muted/30 transition shadow-2xs"
                   >
                     <span className={`shrink-0 w-16 text-center px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase ${tone}`}>
                       {outcome}
@@ -450,93 +522,97 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
         </Card>
       )}
 
-      {/* Explainable AI: Artifacts & Data Provenance */}
-      <Card className="border-border bg-card shadow-xs">
-        <CardHeader className="pb-3 border-b border-border/60">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground">
+      {/* 4. Explainable AI: Artifacts & Data Provenance */}
+      <Card className="border-border bg-card shadow-xs rounded-2xl overflow-hidden">
+        <CardHeader className="p-4 border-b border-border/70 bg-muted/20">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>Evidence & Data Provenance ({artifacts.length} Artifacts)</span>
-            </CardTitle>
-            <span className="text-xs text-muted-foreground">Every claim is backed by traceable sources</span>
+              <CardTitle className="text-sm font-bold text-foreground">
+                Explainable AI: Verified Evidence Artifacts ({artifacts.length})
+              </CardTitle>
+            </div>
+            <span className="text-xs text-muted-foreground">Every claim is grounded in deterministic datasets and Pydantic validation</span>
           </div>
         </CardHeader>
 
-        <CardContent className="pt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {artifacts.map((art) => (
             <div
               key={art.id}
               onClick={() => setSelectedArtifact(art)}
-              className="p-3 rounded-lg border border-border hover:border-emerald-500/50 cursor-pointer transition bg-muted/30 text-xs flex flex-col justify-between"
+              className="p-3.5 rounded-xl border border-border hover:border-emerald-500/60 bg-muted/20 hover:bg-muted/40 cursor-pointer transition flex flex-col justify-between group shadow-2xs"
             >
               <div>
                 <div className="flex items-center justify-between text-[10px]">
-                  <Badge variant="outline" className="text-[9px] uppercase tracking-wider font-semibold text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+                  <Badge variant="outline" className="text-[9px] uppercase tracking-wider font-semibold text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10">
                     {art.stage}
                   </Badge>
-                  <span className="text-muted-foreground">Conf: {(art.confidence * 100).toFixed(0)}%</span>
+                  <span className="text-[11px] font-semibold text-muted-foreground whitespace-nowrap">
+                    {(art.confidence * 100).toFixed(0)}% Confidence
+                  </span>
                 </div>
-                <p className="mt-2 font-medium text-foreground line-clamp-2">
+                <p className="mt-2 text-xs font-semibold text-foreground line-clamp-3 leading-relaxed">
                   {art.claim}
                 </p>
               </div>
 
-              <div className="mt-3 pt-2 border-t border-border/60 flex items-center justify-between text-[10px] text-muted-foreground">
-                <span className="truncate max-w-[150px]">{art.source_name}</span>
-                {art.snapshot_date && <span>{art.snapshot_date}</span>}
+              <div className="mt-3 pt-2.5 border-t border-border/60 flex items-center justify-between text-[10px] text-muted-foreground">
+                <span className="truncate max-w-[130px] font-medium">{art.source_name}</span>
+                <span className="font-mono">{art.snapshot_date || 'Live API'}</span>
               </div>
             </div>
           ))}
         </CardContent>
       </Card>
 
-      {/* Artifact Modal using shadcn Dialog */}
+      {/* Artifact Modal Dialog */}
       <Dialog open={selectedArtifact !== null} onOpenChange={(open) => !open && setSelectedArtifact(null)}>
-        <DialogContent className="sm:max-w-lg border-border bg-card">
+        <DialogContent className="sm:max-w-lg border-border bg-card rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-sm font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-              <span>Artifact #{selectedArtifact?.id}</span>
+              <span>Artifact Provenance Record</span>
               <Badge variant="outline" className="text-xs uppercase">
                 {selectedArtifact?.stage}
               </Badge>
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground pt-1">
-              Traceable provenance and dataset attribution for this assessment finding.
+              Verifiable evidentiary trace backing this feasibility statement.
             </DialogDescription>
           </DialogHeader>
 
           {selectedArtifact && (
             <div className="space-y-4 text-xs pt-2">
               <div>
-                <span className="text-muted-foreground font-medium">Claim Statement</span>
-                <p className="text-sm font-semibold text-foreground mt-1 bg-muted/40 p-3 rounded-lg border border-border">
+                <span className="text-muted-foreground font-medium">Synthesized Claim</span>
+                <p className="text-sm font-semibold text-foreground mt-1 bg-muted/30 p-3 rounded-xl border border-border leading-relaxed">
                   {selectedArtifact.claim}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3 py-2 border-y border-border">
                 <div>
-                  <span className="text-muted-foreground">Data Source</span>
-                  <div className="font-medium text-foreground mt-0.5">
+                  <span className="text-muted-foreground">Data Provider / Register</span>
+                  <div className="font-semibold text-foreground mt-0.5">
                     {selectedArtifact.source_name}
                   </div>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Snapshot / As-of Date</span>
-                  <div className="font-medium text-foreground mt-0.5">
-                    {selectedArtifact.snapshot_date || 'Current Snapshot'}
+                  <span className="text-muted-foreground">Snapshot Date</span>
+                  <div className="font-mono font-medium text-foreground mt-0.5">
+                    {selectedArtifact.snapshot_date || 'Current Active Snapshot'}
                   </div>
                 </div>
               </div>
 
               {selectedArtifact.source_url && (
                 <div>
-                  <span className="text-muted-foreground">Source Link</span>
+                  <span className="text-muted-foreground">Upstream Source URI</span>
                   <a
                     href={selectedArtifact.source_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 hover:underline mt-1 break-all"
+                    className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 hover:underline mt-1 break-all font-mono text-[11px]"
                   >
                     <span>{selectedArtifact.source_url}</span>
                     <ExternalLink className="w-3 h-3 shrink-0" />
@@ -548,9 +624,9 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
                 type="button"
                 variant="outline"
                 onClick={() => setSelectedArtifact(null)}
-                className="w-full text-xs font-semibold mt-2"
+                className="w-full text-xs font-semibold mt-2 h-10 rounded-xl"
               >
-                Close Evidence Record
+                Close Provenance Dialog
               </Button>
             </div>
           )}

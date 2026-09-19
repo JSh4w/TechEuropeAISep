@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Map, Marker, NavigationControl, Popup, StyleSpecification, GeoJSONSource } from 'maplibre-gl';
 import { SubstationOption } from '../lib/types';
 import { generateFootprintPolygon, distanceKm, clampPositionWithinDistance } from '../lib/footprint';
-import { MapPin, Zap, AlertTriangle, Layers } from 'lucide-react';
+import { MapPin, Zap, Layers, Navigation, Info } from 'lucide-react';
 
 interface SiteMapProps {
   initialCenter?: [number, number]; // [lng, lat]
@@ -19,22 +19,47 @@ interface SiteMapProps {
   maxDistanceKm?: number;
 }
 
-// Fallback raster OSM style that requires no API keys and works reliably anywhere
-const DEFAULT_MAP_STYLE: StyleSpecification = {
+// Clean, modern Esri World Street Map raster style (no API key required, reliable, no watermark)
+const STREETS_MAP_STYLE: StyleSpecification = {
   version: 8,
   sources: {
-    osm: {
+    esri_streets: {
       type: 'raster',
-      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+      tiles: [
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+      ],
       tileSize: 256,
-      attribution: '&copy; OpenStreetMap contributors',
+      attribution: '&copy; Esri &copy; OpenStreetMap contributors',
     },
   },
   layers: [
     {
-      id: 'osm-tiles',
+      id: 'esri-street-tiles',
       type: 'raster',
-      source: 'osm',
+      source: 'esri_streets',
+      minzoom: 0,
+      maxzoom: 19,
+    },
+  ],
+};
+
+const SATELLITE_MAP_STYLE: StyleSpecification = {
+  version: 8,
+  sources: {
+    esri: {
+      type: 'raster',
+      tiles: [
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      ],
+      tileSize: 256,
+      attribution: '&copy; Esri, Maxar, Earthstar Geographics',
+    },
+  },
+  layers: [
+    {
+      id: 'esri-tiles',
+      type: 'raster',
+      source: 'esri',
       minzoom: 0,
       maxzoom: 19,
     },
@@ -42,7 +67,7 @@ const DEFAULT_MAP_STYLE: StyleSpecification = {
 };
 
 export default function SiteMap({
-  initialCenter = [0.1218, 51.5387], // Default London area
+  initialCenter = [-0.1132, 51.5014],
   currentPosition,
   onPositionChange,
   capacityMw,
@@ -60,6 +85,7 @@ export default function SiteMap({
   const siteDataMarkersRef = useRef<Marker[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [distanceFromOrigin, setDistanceFromOrigin] = useState<number>(0);
+  const [mapMode, setMapMode] = useState<'streets' | 'satellite'>('streets');
 
   // Latest props for the marker's dragend handler, which is bound once
   const latestRef = useRef({ initialCenter, maxDistanceKm, onPositionChange });
@@ -71,9 +97,10 @@ export default function SiteMap({
 
     const map = new Map({
       container: mapContainer.current,
-      style: DEFAULT_MAP_STYLE,
+      style: STREETS_MAP_STYLE,
       center: currentPosition,
-      zoom: 14,
+      zoom: 14.5,
+      pitch: 15,
     });
 
     map.addControl(new NavigationControl({ showCompass: true }), 'top-right');
@@ -90,27 +117,44 @@ export default function SiteMap({
     };
   }, []);
 
+  // Handle map style switch (Streets vs Satellite)
+  const handleToggleMapMode = () => {
+    if (!mapRef.current) return;
+    const nextMode = mapMode === 'streets' ? 'satellite' : 'streets';
+    setMapMode(nextMode);
+    mapRef.current.setStyle(nextMode === 'streets' ? STREETS_MAP_STYLE : SATELLITE_MAP_STYLE);
+    // Reload state triggers layer re-addition
+    setMapLoaded(false);
+    mapRef.current.once('style.load', () => {
+      setMapLoaded(true);
+    });
+  };
+
   // Update center when initialCenter changes
   useEffect(() => {
     if (mapRef.current && mapLoaded) {
-      mapRef.current.easeTo({ center: currentPosition, zoom: 14 });
+      mapRef.current.easeTo({ center: currentPosition, zoom: 14.5 });
     }
   }, [initialCenter]);
 
-  // Setup draggable site marker and footprint polygon layer
+  // Setup draggable site marker
   useEffect(() => {
     if (!mapRef.current || !mapLoaded) return;
     const map = mapRef.current;
 
-    // Draggable site marker
     if (!pinMarkerRef.current) {
       const el = document.createElement('div');
-      el.className = 'site-marker flex items-center justify-center cursor-grab active:cursor-grabbing';
+      el.className = 'site-marker flex items-center justify-center cursor-grab active:cursor-grabbing group';
       el.innerHTML = `
         <div class="relative flex items-center justify-center">
-          <div class="absolute w-8 h-8 bg-emerald-500/30 rounded-full animate-ping"></div>
-          <div class="relative bg-emerald-600 text-white p-2 rounded-full shadow-lg border-2 border-white">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          <div class="absolute -inset-3 bg-emerald-500/20 rounded-full animate-ping pointer-events-none"></div>
+          <div class="relative bg-emerald-600 text-white p-2.5 rounded-full shadow-xl border-2 border-white ring-2 ring-emerald-500/40 transition-transform transform group-hover:scale-110">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+          </div>
+          <div class="absolute -bottom-8 bg-zinc-950 text-white font-mono text-[10px] font-semibold px-2 py-0.5 rounded shadow-lg whitespace-nowrap border border-zinc-800 pointer-events-none">
+            BESS Point
           </div>
         </div>
       `;
@@ -127,7 +171,6 @@ export default function SiteMap({
         const rawPos: [number, number] = [lngLat.lng, lngLat.lat];
         const latest = latestRef.current;
         const clamped = clampPositionWithinDistance(latest.initialCenter, rawPos, latest.maxDistanceKm);
-
         marker.setLngLat(clamped);
         const dist = distanceKm(latest.initialCenter, clamped);
         setDistanceFromOrigin(dist);
@@ -170,7 +213,7 @@ export default function SiteMap({
         source: sourceId,
         paint: {
           'fill-color': '#10b981',
-          'fill-opacity': 0.35,
+          'fill-opacity': 0.28,
         },
       });
 
@@ -181,7 +224,7 @@ export default function SiteMap({
         paint: {
           'line-color': '#059669',
           'line-width': 2.5,
-          'line-dasharray': [2, 1],
+          'line-dasharray': [3, 1.5],
         },
       });
     }
@@ -192,7 +235,6 @@ export default function SiteMap({
     if (!mapRef.current || !mapLoaded) return;
     const map = mapRef.current;
 
-    // Approximate 2km radius circle as 64-vertex polygon
     const points = 64;
     const coords: [number, number][] = [];
     const [centerLng, centerLat] = initialCenter;
@@ -207,7 +249,7 @@ export default function SiteMap({
 
     const circleGeoJson: GeoJSON.Feature<GeoJSON.Polygon> = {
       type: 'Feature',
-      properties: { label: `${maxDistanceKm} km Pin Radius` },
+      properties: { label: `${maxDistanceKm} km Screening Radius` },
       geometry: {
         type: 'Polygon',
         coordinates: [coords],
@@ -230,30 +272,30 @@ export default function SiteMap({
         type: 'line',
         source: sourceId,
         paint: {
-          'line-color': '#3b82f6',
+          'line-color': '#0284c7',
           'line-width': 1.5,
-          'line-dasharray': [4, 4],
+          'line-dasharray': [3, 3],
           'line-opacity': 0.6,
         },
       });
     }
   }, [mapLoaded, initialCenter, maxDistanceKm]);
 
-  // Render Substation Markers with Headroom and Marginal flag
+  // Render Substation Markers & Cable Vector Ray
   useEffect(() => {
     if (!mapRef.current || !mapLoaded) return;
     const map = mapRef.current;
 
-    // Clear old substation markers
+    // Clear old markers
     substationMarkersRef.current.forEach((m) => m.remove());
     substationMarkersRef.current = [];
 
     if (siteData) return; // real substations (true coordinates) are drawn from LocationData below
 
-    // For demonstration, if no coordinates in SubstationOption, place around center
+    const calculatedSubstations: Array<{ coords: [number, number]; sub: SubstationOption }> = [];
+
     substations.forEach((sub, idx) => {
-      // Mock offset if substation does not carry explicit coordinates
-      const angle = (idx * 2 * Math.PI) / Math.max(substations.length, 1);
+      const angle = (idx * 2 * Math.PI) / Math.max(substations.length, 1) + 0.35;
       const distOffset = (sub.distance_km || 0.8) * 1000;
       const latOffset = (distOffset * Math.cos(angle)) / 111139;
       const lngOffset =
@@ -264,31 +306,42 @@ export default function SiteMap({
         initialCenter[1] + latOffset,
       ];
 
+      calculatedSubstations.push({ coords: subCoords, sub });
+
       const el = document.createElement('div');
-      el.className = 'substation-marker';
+      el.className = 'substation-marker group cursor-pointer';
       el.innerHTML = `
-        <div class="group relative flex flex-col items-center">
-          <div class="flex items-center gap-1 px-2 py-1 rounded-md shadow-md text-xs font-semibold ${
+        <div class="relative flex flex-col items-center">
+          <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg shadow-md text-xs font-semibold ${
             sub.is_marginal
-              ? 'bg-amber-100 text-amber-900 border border-amber-300'
-              : 'bg-blue-600 text-white'
+              ? 'bg-amber-50 text-amber-900 border border-amber-300 dark:bg-amber-950 dark:text-amber-100'
+              : 'bg-blue-600 text-white border border-blue-500 shadow-blue-500/20'
           }">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            <span>${sub.name}</span>
-            <span class="ml-1 opacity-90">(${sub.effective_headroom_mw} MW)</span>
-            ${sub.is_marginal ? '<span class="bg-amber-300 text-amber-900 text-[10px] px-1 rounded">Marginal</span>' : ''}
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span class="tracking-tight">${sub.name}</span>
+            <span class="ml-0.5 opacity-90 font-mono text-[11px]">${sub.effective_headroom_mw}MW</span>
+            ${sub.is_marginal ? '<span class="bg-amber-200 text-amber-950 text-[9px] px-1 rounded font-bold uppercase">Marginal</span>' : ''}
           </div>
-          <div class="w-2 h-2 bg-blue-600 rotate-45 -mt-1 ${sub.is_marginal ? 'bg-amber-300' : ''}"></div>
+          <div class="w-2 h-2 rotate-45 -mt-1 ${sub.is_marginal ? 'bg-amber-300' : 'bg-blue-600'}"></div>
         </div>
       `;
 
-      const popup = new Popup({ offset: 15 }).setHTML(`
-        <div class="p-2 text-xs">
-          <div class="font-bold text-sm text-zinc-900">${sub.name}</div>
-          <div class="text-zinc-600">Distance: ${sub.distance_km.toFixed(2)} km</div>
-          <div class="text-zinc-600">Voltage: ${sub.voltage_kv} kV</div>
-          <div class="text-emerald-700 font-semibold mt-1">Headroom: ${sub.effective_headroom_mw} MW (Import: ${sub.import_headroom_mw} MW, Export: ${sub.export_headroom_mw} MW)</div>
-          ${sub.is_marginal ? '<div class="text-amber-700 font-medium mt-1">⚠️ Marginal: over 1 km connection run</div>' : ''}
+      const popup = new Popup({ offset: 15, closeButton: false }).setHTML(`
+        <div class="p-2.5 text-xs font-sans space-y-1">
+          <div class="font-bold text-sm text-foreground">${sub.name}</div>
+          <div class="text-muted-foreground flex justify-between gap-3">
+            <span>Route Distance:</span>
+            <span class="font-mono font-medium text-foreground">${sub.distance_km.toFixed(2)} km</span>
+          </div>
+          <div class="text-muted-foreground flex justify-between gap-3">
+            <span>Primary Voltage:</span>
+            <span class="font-mono font-medium text-foreground">${sub.voltage_kv} kV</span>
+          </div>
+          <div class="text-emerald-600 dark:text-emerald-400 font-semibold pt-1 border-t border-border flex justify-between">
+            <span>Available Headroom:</span>
+            <span class="font-mono">${sub.effective_headroom_mw} MW</span>
+          </div>
+          ${sub.is_marginal ? '<div class="text-amber-600 font-medium text-[11px] pt-0.5">Note: Distance > 1km introduces higher contestable cabling capex.</div>' : ''}
         </div>
       `);
 
@@ -299,7 +352,43 @@ export default function SiteMap({
 
       substationMarkersRef.current.push(marker);
     });
-  }, [mapLoaded, substations, initialCenter, siteData]);
+
+    // Draw Cable Vector Ray to the primary serving substation
+    if (calculatedSubstations.length > 0) {
+      const primary = calculatedSubstations[0];
+      const rayGeoJson: GeoJSON.Feature<GeoJSON.LineString> = {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'LineString',
+          coordinates: [currentPosition, primary.coords],
+        },
+      };
+
+      const sourceId = 'cable-ray-source';
+      const source = map.getSource(sourceId) as GeoJSONSource;
+      if (source) {
+        source.setData(rayGeoJson);
+      } else {
+        map.addSource(sourceId, {
+          type: 'geojson',
+          data: rayGeoJson,
+        });
+
+        map.addLayer({
+          id: 'cable-ray-line',
+          type: 'line',
+          source: sourceId,
+          paint: {
+            'line-color': '#0ea5e9',
+            'line-width': 2.5,
+            'line-dasharray': [4, 2],
+            'line-opacity': 0.85,
+          },
+        });
+      }
+    }
+  }, [mapLoaded, substations, initialCenter, currentPosition, siteData]);
 
   // Real data layer from LocationData: title boundary, overhead lines, substations, generation / storage projects
   useEffect(() => {
@@ -425,46 +514,7 @@ export default function SiteMap({
     });
   }, [mapLoaded, siteData]);
 
-  // Render Distribution Areas GeoJSON outline if provided
-  useEffect(() => {
-    if (!mapRef.current || !mapLoaded || !areasGeoJson) return;
-    const map = mapRef.current;
-    const sourceId = 'distribution-areas-source';
-
-    const source = map.getSource(sourceId) as GeoJSONSource;
-    if (source) {
-      source.setData(areasGeoJson);
-    } else {
-      map.addSource(sourceId, {
-        type: 'geojson',
-        data: areasGeoJson,
-      });
-
-      map.addLayer({
-        id: 'distribution-areas-fill',
-        type: 'fill',
-        source: sourceId,
-        paint: {
-          'fill-color': '#6366f1',
-          'fill-opacity': 0.05,
-        },
-      });
-
-      map.addLayer({
-        id: 'distribution-areas-line',
-        type: 'line',
-        source: sourceId,
-        paint: {
-          'line-color': '#4f46e5',
-          'line-width': 2,
-          'line-dasharray': [3, 2],
-          'line-opacity': 0.7,
-        },
-      });
-    }
-  }, [mapLoaded, areasGeoJson]);
-
-  // Render INSPIRE polygons overlay if provided
+  // Render INSPIRE Land Registry Parcels if present
   useEffect(() => {
     if (!mapRef.current || !mapLoaded || !inspireGeoJson) return;
     const map = mapRef.current;
@@ -496,69 +546,109 @@ export default function SiteMap({
         source: sourceId,
         paint: {
           'fill-color': '#f43f5e',
-          'fill-opacity': 0.1,
+          'fill-opacity': 0.08,
         },
       });
     }
   }, [mapLoaded, inspireGeoJson]);
 
   return (
-    <div className="relative w-full h-[72vh] min-h-[560px] rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm">
-      <div ref={mapContainer} className="w-full h-[72vh] min-h-[560px]" />
+    <div className="relative w-full h-[72vh] min-h-[560px] rounded-2xl overflow-hidden border border-border shadow-md bg-muted">
+      <div ref={mapContainer} className="w-full h-full" />
 
-      {/* Map Overlay Badges */}
-      <div className="absolute top-3 left-3 flex flex-col gap-2 pointer-events-none z-10">
-        <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur px-3 py-1.5 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 text-xs font-medium flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-emerald-600" />
-          <span>
-            Pin: {currentPosition[1].toFixed(5)}, {currentPosition[0].toFixed(5)}
+      {/* Top Left: Location & Pin Coordinate Telemetry */}
+      <div className="absolute top-3.5 left-3.5 flex flex-col gap-2 pointer-events-none z-10">
+        <div className="bg-card/90 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-sm border border-border/80 text-xs font-medium flex items-center gap-2.5">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+          <span className="font-mono text-foreground font-semibold">
+            {currentPosition[1].toFixed(5)}°N, {Math.abs(currentPosition[0]).toFixed(5)}°{currentPosition[0] >= 0 ? 'E' : 'W'}
           </span>
-          <span className="text-zinc-500">
-            ({distanceFromOrigin.toFixed(2)} km from origin)
+          <span className="text-muted-foreground text-[11px] font-mono border-l border-border pl-2">
+            +{distanceFromOrigin.toFixed(2)} km offset
           </span>
         </div>
 
         {substations.length > 0 && (
-          <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur px-3 py-1.5 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 text-xs text-zinc-600 dark:text-zinc-300 flex items-center gap-2">
-            <Zap className="w-3.5 h-3.5 text-blue-600" />
-            <span>{substations.length} Substations mapped</span>
+          <div className="bg-card/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl shadow-sm border border-border/80 text-xs text-foreground/90 flex items-center gap-2">
+            <Zap className="w-3.5 h-3.5 text-blue-500" />
+            <span>{substations.length} Substation Nodes Polled</span>
           </div>
         )}
       </div>
 
-      <div className="absolute bottom-3 left-3 bg-white/95 dark:bg-zinc-900/95 backdrop-blur px-3 py-1.5 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 text-xs text-zinc-500 pointer-events-none z-10 flex items-center gap-2">
-        <span className="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500 opacity-60"></span>
-        <span>Generated Footprint (drag pin to position)</span>
-        {siteData && (
-          <>
-            <span className="inline-block w-2.5 h-2.5 rounded-sm border-2 border-orange-700 bg-orange-300 ml-2"></span>
-            <span>
-              Title {siteData.title ? `${siteData.title.area_ha.toFixed(2)} ha` : 'not registered'}
+      {/* Top Right: Layer Switcher & Controls */}
+      <div className="absolute top-3.5 right-14 z-10 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={handleToggleMapMode}
+          className="bg-card/90 hover:bg-card text-foreground backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm border border-border text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+        >
+          <Layers className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          <span>{mapMode === 'streets' ? 'Satellite View' : 'Street Map'}</span>
+        </button>
+      </div>
+
+      {/* Bottom Floating Legend Bar */}
+      <div className="absolute bottom-3.5 left-3.5 right-3.5 flex flex-wrap items-center justify-between gap-2 pointer-events-none z-10">
+        <div className="bg-card/90 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-sm border border-border/80 text-[11px] text-muted-foreground flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500 opacity-80"></span>
+            <span className="font-medium text-foreground">BESS Footprint ({capacityMw} MW)</span>
+          </div>
+          <div className="flex items-center gap-1.5 border-l border-border pl-3">
+            <span className="inline-block w-4 h-0.5 border-t border-dashed border-sky-500"></span>
+            <span>Cable Connection Run</span>
+          </div>
+          {siteData && (
+            <>
+              <div className="flex items-center gap-1.5 border-l border-border pl-3">
+                <span className="inline-block w-2.5 h-2.5 rounded-sm border-2 border-orange-700 bg-orange-300"></span>
+                <span>Title {siteData.title ? `${siteData.title.area_ha.toFixed(2)} ha` : 'not registered'}</span>
+                {siteData.title && (
+                  <button
+                    type="button"
+                    className="pointer-events-auto underline text-orange-600 dark:text-orange-400 font-semibold cursor-pointer ml-1"
+                    onClick={() => {
+                      const [minLon, minLat, maxLon, maxLat] = siteData.title.bbox;
+                      mapRef.current?.fitBounds(
+                        [
+                          [minLon, minLat],
+                          [maxLon, maxLat],
+                        ],
+                        { padding: 120, maxZoom: 18 }
+                      );
+                    }}
+                  >
+                    zoom to title
+                  </button>
+                )}
+              </div>
+              <div className="hidden lg:flex items-center gap-2 border-l border-border pl-3 text-[10px]">
+                <span>⚡ substations</span>
+                <span>🔋 storage</span>
+                <span>☀️ solar</span>
+                <span>┄ lines</span>
+              </div>
+            </>
+          )}
+          {inspireGeoJson && !siteData && (
+            <div className="flex items-center gap-1.5 border-l border-border pl-3">
+              <span className="inline-block w-2.5 h-2.5 rounded-sm bg-rose-500 opacity-70"></span>
+              <span>Cadastral Boundary</span>
+            </div>
+          )}
+          {siteDataLoading && (
+            <span className="ml-1 text-emerald-600 dark:text-emerald-400 font-semibold animate-pulse border-l border-border pl-3">
+              Loading live site data…
             </span>
-            {siteData.title && (
-              <button
-                type="button"
-                className="pointer-events-auto underline text-orange-700 font-semibold"
-                onClick={() => {
-                  const [minLon, minLat, maxLon, maxLat] = siteData.title.bbox;
-                  mapRef.current?.fitBounds(
-                    [
-                      [minLon, minLat],
-                      [maxLon, maxLat],
-                    ],
-                    { padding: 120, maxZoom: 18 }
-                  );
-                }}
-              >
-                zoom to title
-              </button>
-            )}
-            <span className="ml-2">⚡ substations · 🔋 storage · ☀️ solar · ⚙️ other · ┄ overhead lines</span>
-          </>
-        )}
-        {siteDataLoading && <span className="ml-2 text-emerald-600 animate-pulse">Loading live site data…</span>}
+          )}
+        </div>
+
+        <div className="hidden sm:flex bg-card/90 backdrop-blur-md px-2.5 py-1 rounded-lg shadow-sm border border-border/80 text-[10px] text-muted-foreground items-center gap-1">
+          <Info className="w-3 h-3 text-emerald-600" />
+          <span>Drag marker to adjust location within 2 km</span>
+        </div>
       </div>
     </div>
   );
 }
-
