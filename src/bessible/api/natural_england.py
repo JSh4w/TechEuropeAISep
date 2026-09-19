@@ -607,6 +607,12 @@ class LayerSpec[PropsT: ApiResponse](NamedTuple):
         """Build a query for this layer's features at (or within `distance_m` of) a WGS84 point."""
         return query_at_point(self.service, lat, lon, distance_m, layer=self.layer)
 
+    def in_bbox(
+        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float, distance_m: float | None = None
+    ) -> ArcGisQueryRequest:
+        """Build a query for this layer's features touching (or within `distance_m` of) a WGS84 box."""
+        return query_in_bbox(self.service, min_lat, min_lon, max_lat, max_lon, distance_m, layer=self.layer)
+
     def parse(self, body: dict[str, Any]) -> ArcGisGeoJsonResponse[PropsT]:
         """Validate a geojson query body with features typed by this layer's props model."""
         return self.response.model_validate(body)
@@ -641,6 +647,31 @@ def query_at_point(
         layer=layer,
         geometry=f"{lon},{lat}",
         geometry_type="esriGeometryPoint",
+        in_sr=4326,
+        spatial_rel="esriSpatialRelIntersects",
+        distance=distance_m,
+        units="esriSRUnit_Meter" if distance_m is not None else None,
+        out_fields="*",
+        return_geometry=True,
+        out_sr=4326,
+    )
+
+
+def query_in_bbox(  # ruff: ignore[too-many-arguments, too-many-positional-arguments] - a box is four numbers
+    service: str,
+    min_lat: float,
+    min_lon: float,
+    max_lat: float,
+    max_lon: float,
+    distance_m: float | None = None,
+    layer: int = 0,
+) -> ArcGisQueryRequest:
+    """Request the features touching a WGS84 box (or within `distance_m` metres of it), e.g. a site's extent."""
+    return ArcGisQueryRequest(
+        service=service,
+        layer=layer,
+        geometry=f"{min_lon},{min_lat},{max_lon},{max_lat}",
+        geometry_type="esriGeometryEnvelope",
         in_sr=4326,
         spatial_rel="esriSpatialRelIntersects",
         distance=distance_m,

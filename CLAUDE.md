@@ -47,6 +47,11 @@ model used); the report is built only from artifacts. CLI first; a web UI is opt
 - `src/bessible/config.py` — `settings` (pydantic-settings, reads `.env`; empty values count as unset).
 - `src/bessible/llm.py` — `gemini_model()`, `modal_model()` (gateway route), `setup_logfire()`. Keys are passed from
   `settings` explicitly because `.env` is not loaded into `os.environ`.
+- `src/bessible/api/` — Pydantic models of every external data API, exactly as the wire speaks (one module per source).
+- `src/bessible/location/` — the tidy layer on top: `await collate(Coordinates(lat, lon)) -> LocationData`. `title` is
+  the title boundary everything is measured against; `deterministic` holds facts to compute on (locality, terrain,
+  flood, land, designations, grid), `agentic` holds documents / notes / search terms for agents; `sources` lists every
+  upstream call (URLs double as artifact sources). `uv run python -m bessible.location <lat> <lon>` dumps it as JSON.
 
 - `sandbox/map_session/` — tracked prototype, the base for the final build (the rest of `sandbox/` is gitignored).
   `workflow.py`: `AssessWorkflow` (task queue `bessible-web`): AI suggests area → human edits on the map (`submit_area`
