@@ -1,0 +1,64 @@
+# Git and GitHub
+.git
+.github
+.gitignore
+
+# Python virtual environments & bytecode
+.venv
+venv
+ENV
+env
+env.bak
+venv.bak
+__pycache__
+*.py[codz]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing & Linting caches
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+.coverage.*
+htmlcov/
+
+# Local run outputs & experiments
+out/
+sandbox/
+site_report_*.html
+
+# Tests and docs (not needed in production runtime image)
+tests/
+docs/
+openspec/
+
+# Web frontend (built via its own Dockerfile)
+web/
+
+# Sensitive files
+.env
+.env.*
+!.env.example
+.context
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+[Dd]esktop.ini
+Thumbs.db

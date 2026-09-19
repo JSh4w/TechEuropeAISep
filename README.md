@@ -227,3 +227,91 @@ async def synthesise(inp: SynthesisInput) -> ReportOutput: ...
 ./scripts/setup.sh    # Installs uv, Temporal CLI, Node, Python deps, creates .env, logs in to Modal
 ./scripts/dev.sh      # Starts Temporal + worker + web UI in one command
 ```
+
+---
+
+## Containerisation & Deployment (GHCR & Docker)
+
+Bessible is fully containerised and configured for automated continuous deployment to the **GitHub Container Registry (GHCR)** (`ghcr.io`).
+
+### 1. Docker Compose (Run Everything in Containers)
+
+You can launch the complete stack—Temporal Server, FastAPI Backend, Background Worker, and Next.js Frontend—with a single command:
+
+```bash
+# Ensure your API keys are in .env
+cp .env.example .env
+
+# Build and start all services
+docker compose up --build
+```
+
+Services started:
+* **Web UI:** [http://localhost:3000](http://localhost:3000)
+* **FastAPI Backend:** [http://localhost:8000](http://localhost:8000) (Health check: `/health`)
+* **Temporal Web UI:** [http://localhost:8233](http://localhost:8233)
+* **Temporal Server:** `localhost:7233`
+* **Temporal Worker:** Background worker listening on queue `bessible`
+
+To stop the containers:
+```bash
+docker compose down
+```
+
+### 2. Building Images Locally
+
+Build individual images using Docker:
+
+```bash
+# Build the Python backend image (FastAPI server + Temporal worker)
+docker build -t bessible-backend -f Dockerfile .
+
+# Build the Next.js web frontend image
+docker build -t bessible-web -f web/Dockerfile ./web
+```
+
+Run individual containers:
+
+```bash
+# Run FastAPI server
+docker run -p 8000:8000 --env-file .env bessible-backend
+
+# Run worker (connects to Temporal on host or network)
+docker run --env-file .env bessible-backend python -m bessible.worker
+
+# Run Next.js frontend
+docker run -p 3000:3000 -e BACKEND_URL="http://localhost:8000" bessible-web
+```
+
+### 3. GitHub Container Registry (GHCR) CI/CD
+
+The repository includes a GitHub Actions workflow (`.github/workflows/docker-publish.yml`) that automatically builds and publishes OCI container images to GHCR whenever changes are pushed to `main` or version tags (`v*`) are created:
+
+* **Backend Image (API & Worker):** `ghcr.io/<owner>/bessible-backend:latest` (aliased as `ghcr.io/<owner>/bessible:latest`)
+* **Web Frontend Image:** `ghcr.io/<owner>/bessible-web:latest`
+
+#### Pulling and Running from GHCR
+
+Authenticate with GHCR using your GitHub Personal Access Token (with `read:packages` scope):
+
+```bash
+echo $GITHUB_TOKEN | docker login ghcr.io -u <YOUR_GITHUB_USERNAME> --password-stdin
+```
+
+Pull and run the pre-built images:
+
+```bash
+# Pull images
+docker pull ghcr.io/<owner>/bessible-backend:latest
+docker pull ghcr.io/<owner>/bessible-web:latest
+
+# Run API server
+docker run -d -p 8000:8000 --env-file .env ghcr.io/<owner>/bessible-backend:latest
+
+# Run Worker
+docker run -d --env-file .env ghcr.io/<owner>/bessible-backend:latest python -m bessible.worker
+
+# Run Frontend
+docker run -d -p 3000:3000 -e BACKEND_URL="http://<api-host>:8000" ghcr.io/<owner>/bessible-web:latest
+```
+
