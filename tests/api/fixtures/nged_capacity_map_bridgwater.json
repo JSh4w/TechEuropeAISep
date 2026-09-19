@@ -1,0 +1,433 @@
+{
+ "help": "https://connecteddata.nationalgrid.co.uk/api/3/action/help_show?name=datastore_search",
+ "success": true,
+ "result": {
+  "filters": {
+   "type": [
+    "Primary",
+    "BSP"
+   ]
+  },
+  "include_total": true,
+  "limit": 32000,
+  "records_format": "objects",
+  "resource_id": "d1895bd3-d9d2-4886-a0a3-b7eadd9ab6c2",
+  "total_estimation_threshold": null,
+  "records": [
+   {
+    "_id": 33,
+    "substationID": 127,
+    "heatmapDatasetID": "",
+    "type": "BSP",
+    "area": "South West",
+    "name": "Bridgwater Grid Bsp",
+    "substationNumber": 210444,
+    "description": "Bulk Supply Point",
+    "voltages": "",
+    "longitude": -2.965805,
+    "latitude": 51.118484,
+    "primary": "",
+    "BSP": "",
+    "GSP": "Bridgwater  S.G.P.",
+    "demandTotalCapacity": "",
+    "demandConnectedHeadroomMW": 36.9,
+    "demandContractedHeadroomMW": 0,
+    "demandQuotedCapacity": "",
+    "demandAvailableCapacity": "",
+    "demandMaximum": "",
+    "demandMinimum": "",
+    "demand99Percentile": "",
+    "demand75Percentile": "",
+    "demand50Percentile": "",
+    "demand25Percentile": "",
+    "demandConnectedRAG": "green",
+    "demandContractedRAG": "red",
+    "demandConstraintLimitingFactor": "",
+    "generationTotalCapacity": "",
+    "generationConnectedHeadroomMW": 17.4,
+    "generationContractedHeadroomMW": 0,
+    "generationQuotedCapacity": null,
+    "generationAvailableCapacity": "",
+    "generationConnectedRAG": "green",
+    "generationContractedRAG": "red",
+    "generationConstraintLimitingFactor": "",
+    "breakerRatedCurrent": "",
+    "breakerBreakingCapacity": "",
+    "breakerMakingCapacity": "",
+    "breakerAvailableCapacity": "",
+    "breakerShortCircuitCurrent": "",
+    "breakerShortCircuitDuration": "",
+    "reversePowerFlowTotalCapacity": "",
+    "reversePowerFlowAvailableCapacity": ""
+   },
+   {
+    "_id": 129,
+    "substationID": 15108,
+    "heatmapDatasetID": "",
+    "type": "Primary",
+    "area": "South West",
+    "name": "Bridgwater Local",
+    "substationNumber": 210060,
+    "description": "Primary Substation",
+    "voltages": "",
+    "longitude": -3.007552,
+    "latitude": 51.129692,
+    "primary": "",
+    "BSP": "Bridgwater Grid Bsp",
+    "GSP": "Bridgwater  S.G.P.",
+    "demandTotalCapacity": "",
+    "demandConnectedHeadroomMW": 3.9,
+    "demandContractedHeadroomMW": 2,
+    "demandQuotedCapacity": "",
+    "demandAvailableCapacity": "",
+    "demandMaximum": "",
+    "demandMinimum": "",
+    "demand99Percentile": "",
+    "demand75Percentile": "",
+    "demand50Percentile": "",
+    "demand25Percentile": "",
+    "demandConnectedRAG": "amber",
+    "demandContractedRAG": "amber",
+    "demandConstraintLimitingFactor": "",
+    "generationTotalCapacity": "",
+    "generationConnectedHeadroomMW": 6.2,
+    "generationContractedHeadroomMW": 4.5,
+    "generationQuotedCapacity": null,
+    "generationAvailableCapacity": "",
+    "generationConnectedRAG": "green",
+    "generationContractedRAG": "amber",
+    "generationConstraintLimitingFactor": "",
+    "breakerRatedCurrent": "",
+    "breakerBreakingCapacity": "",
+    "breakerMakingCapacity": "",
+    "breakerAvailableCapacity": "",
+    "breakerShortCircuitCurrent": "",
+    "breakerShortCircuitDuration": "",
+    "reversePowerFlowTotalCapacity": "",
+    "reversePowerFlowAvailableCapacity": ""
+   },
+   {
+    "_id": 134,
+    "substationID": 15114,
+    "heatmapDatasetID": "",
+    "type": "Primary",
+    "area": "South West",
+    "name": "Colley Lane",
+    "substationNumber": 210120,
+    "description": "Primary Substation",
+    "voltages": "",
+    "longitude": -2.988471,
+    "latitude": 51.11954,
+    "primary": "",
+    "BSP": "Bridgwater Grid Bsp",
+    "GSP": "Bridgwater  S.G.P.",
+    "demandTotalCapacity": "",
+    "demandConnectedHeadroomMW": 0,
+    "demandContractedHeadroomMW": 0,
+    "demandQuotedCapacity": "",
+    "demandAvailableCapacity": "",
+    "demandMaximum": "",
+    "demandMinimum": "",
+    "demand99Percentile": "",
+    "demand75Percentile": "",
+    "demand50Percentile": "",
+    "demand25Percentile": "",
+    "demandConnectedRAG": "red",
+    "demandContractedRAG": "red",
+    "demandConstraintLimitingFactor": "",
+    "generationTotalCapacity": "",
+    "generationConnectedHeadroomMW": 4.1,
+    "generationContractedHeadroomMW": 4.1,
+    "generationQuotedCapacity": null,
+    "generationAvailableCapacity": "",
+    "generationConnectedRAG": "amber",
+    "generationContractedRAG": "amber",
+    "generationConstraintLimitingFactor": "",
+    "breakerRatedCurrent": "",
+    "breakerBreakingCapacity": "",
+    "breakerMakingCapacity": "",
+    "breakerAvailableCapacity": "",
+    "breakerShortCircuitCurrent": "",
+    "breakerShortCircuitDuration": "",
+    "reversePowerFlowTotalCapacity": "",
+    "reversePowerFlowAvailableCapacity": ""
+   },
+   {
+    "_id": 137,
+    "substationID": 15118,
+    "heatmapDatasetID": "",
+    "type": "Primary",
+    "area": "South West",
+    "name": "Bath Road Primary",
+    "substationNumber": 210160,
+    "description": "Primary Substation",
+    "voltages": "",
+    "longitude": -2.981488,
+    "latitude": 51.141999,
+    "primary": "",
+    "BSP": "Bridgwater Grid Bsp",
+    "GSP": "Bridgwater  S.G.P.",
+    "demandTotalCapacity": "",
+    "demandConnectedHeadroomMW": 3.9,
+    "demandContractedHeadroomMW": 0,
+    "demandQuotedCapacity": "",
+    "demandAvailableCapacity": "",
+    "demandMaximum": "",
+    "demandMinimum": "",
+    "demand99Percentile": "",
+    "demand75Percentile": "",
+    "demand50Percentile": "",
+    "demand25Percentile": "",
+    "demandConnectedRAG": "amber",
+    "demandContractedRAG": "red",
+    "demandConstraintLimitingFactor": "",
+    "generationTotalCapacity": "",
+    "generationConnectedHeadroomMW": 8.6,
+    "generationContractedHeadroomMW": 6.1,
+    "generationQuotedCapacity": null,
+    "generationAvailableCapacity": "",
+    "generationConnectedRAG": "green",
+    "generationContractedRAG": "green",
+    "generationConstraintLimitingFactor": "",
+    "breakerRatedCurrent": "",
+    "breakerBreakingCapacity": "",
+    "breakerMakingCapacity": "",
+    "breakerAvailableCapacity": "",
+    "breakerShortCircuitCurrent": "",
+    "breakerShortCircuitDuration": "",
+    "reversePowerFlowTotalCapacity": "",
+    "reversePowerFlowAvailableCapacity": ""
+   },
+   {
+    "_id": 652,
+    "substationID": 15115,
+    "heatmapDatasetID": "",
+    "type": "Primary",
+    "area": "South West",
+    "name": "Nether Stowey",
+    "substationNumber": 210130,
+    "description": "Primary Substation",
+    "voltages": "",
+    "longitude": -3.125267,
+    "latitude": 51.148464,
+    "primary": "",
+    "BSP": "Bridgwater Grid Bsp",
+    "GSP": "Bridgwater  S.G.P.",
+    "demandTotalCapacity": "",
+    "demandConnectedHeadroomMW": 7.3,
+    "demandContractedHeadroomMW": 7.2,
+    "demandQuotedCapacity": "",
+    "demandAvailableCapacity": "",
+    "demandMaximum": "",
+    "demandMinimum": "",
+    "demand99Percentile": "",
+    "demand75Percentile": "",
+    "demand50Percentile": "",
+    "demand25Percentile": "",
+    "demandConnectedRAG": "green",
+    "demandContractedRAG": "green",
+    "demandConstraintLimitingFactor": "",
+    "generationTotalCapacity": "",
+    "generationConnectedHeadroomMW": 1.4,
+    "generationContractedHeadroomMW": 1.4,
+    "generationQuotedCapacity": null,
+    "generationAvailableCapacity": "",
+    "generationConnectedRAG": "amber",
+    "generationContractedRAG": "amber",
+    "generationConstraintLimitingFactor": "",
+    "breakerRatedCurrent": "",
+    "breakerBreakingCapacity": "",
+    "breakerMakingCapacity": "",
+    "breakerAvailableCapacity": "",
+    "breakerShortCircuitCurrent": "",
+    "breakerShortCircuitDuration": "",
+    "reversePowerFlowTotalCapacity": "",
+    "reversePowerFlowAvailableCapacity": ""
+   }
+  ],
+  "fields": [
+   {
+    "id": "_id",
+    "type": "int"
+   },
+   {
+    "id": "substationID",
+    "type": "numeric"
+   },
+   {
+    "id": "heatmapDatasetID",
+    "type": "text"
+   },
+   {
+    "id": "type",
+    "type": "text"
+   },
+   {
+    "id": "area",
+    "type": "text"
+   },
+   {
+    "id": "name",
+    "type": "text"
+   },
+   {
+    "id": "substationNumber",
+    "type": "numeric"
+   },
+   {
+    "id": "description",
+    "type": "text"
+   },
+   {
+    "id": "voltages",
+    "type": "text"
+   },
+   {
+    "id": "longitude",
+    "type": "numeric"
+   },
+   {
+    "id": "latitude",
+    "type": "numeric"
+   },
+   {
+    "id": "primary",
+    "type": "text"
+   },
+   {
+    "id": "BSP",
+    "type": "text"
+   },
+   {
+    "id": "GSP",
+    "type": "text"
+   },
+   {
+    "id": "demandTotalCapacity",
+    "type": "text"
+   },
+   {
+    "id": "demandConnectedHeadroomMW",
+    "type": "numeric"
+   },
+   {
+    "id": "demandContractedHeadroomMW",
+    "type": "numeric"
+   },
+   {
+    "id": "demandQuotedCapacity",
+    "type": "text"
+   },
+   {
+    "id": "demandAvailableCapacity",
+    "type": "text"
+   },
+   {
+    "id": "demandMaximum",
+    "type": "text"
+   },
+   {
+    "id": "demandMinimum",
+    "type": "text"
+   },
+   {
+    "id": "demand99Percentile",
+    "type": "text"
+   },
+   {
+    "id": "demand75Percentile",
+    "type": "text"
+   },
+   {
+    "id": "demand50Percentile",
+    "type": "text"
+   },
+   {
+    "id": "demand25Percentile",
+    "type": "text"
+   },
+   {
+    "id": "demandConnectedRAG",
+    "type": "text"
+   },
+   {
+    "id": "demandContractedRAG",
+    "type": "text"
+   },
+   {
+    "id": "demandConstraintLimitingFactor",
+    "type": "text"
+   },
+   {
+    "id": "generationTotalCapacity",
+    "type": "text"
+   },
+   {
+    "id": "generationConnectedHeadroomMW",
+    "type": "numeric"
+   },
+   {
+    "id": "generationContractedHeadroomMW",
+    "type": "numeric"
+   },
+   {
+    "id": "generationQuotedCapacity",
+    "type": "numeric"
+   },
+   {
+    "id": "generationAvailableCapacity",
+    "type": "text"
+   },
+   {
+    "id": "generationConnectedRAG",
+    "type": "text"
+   },
+   {
+    "id": "generationContractedRAG",
+    "type": "text"
+   },
+   {
+    "id": "generationConstraintLimitingFactor",
+    "type": "text"
+   },
+   {
+    "id": "breakerRatedCurrent",
+    "type": "text"
+   },
+   {
+    "id": "breakerBreakingCapacity",
+    "type": "text"
+   },
+   {
+    "id": "breakerMakingCapacity",
+    "type": "text"
+   },
+   {
+    "id": "breakerAvailableCapacity",
+    "type": "text"
+   },
+   {
+    "id": "breakerShortCircuitCurrent",
+    "type": "text"
+   },
+   {
+    "id": "breakerShortCircuitDuration",
+    "type": "text"
+   },
+   {
+    "id": "reversePowerFlowTotalCapacity",
+    "type": "text"
+   },
+   {
+    "id": "reversePowerFlowAvailableCapacity",
+    "type": "text"
+   }
+  ],
+  "_links": {
+   "start": "/api/3/action/datastore_search?resource_id=d1895bd3-d9d2-4886-a0a3-b7eadd9ab6c2&filters=%7B%22type%22%3A+%5B%22Primary%22%2C+%22BSP%22%5D%7D&limit=32000",
+   "next": "/api/3/action/datastore_search?resource_id=d1895bd3-d9d2-4886-a0a3-b7eadd9ab6c2&filters=%7B%22type%22%3A+%5B%22Primary%22%2C+%22BSP%22%5D%7D&limit=32000&offset=32000"
+  },
+  "total": 1182,
+  "total_was_estimated": false
+ }
+}

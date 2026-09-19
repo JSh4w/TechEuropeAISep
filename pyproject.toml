@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "BESS site assessment agent"
 requires-python = ">=3.13,<3.15"
 dependencies = [
+    "httpx>=0.28.1",
     "modal>=1.5.5",
     "pydantic-ai-slim[anthropic,google,logfire,openai,temporal,typesafe]>=2.46.0",
     "pydantic-settings>=2.15.0",
@@ -54,14 +55,33 @@ ignore = [
     "PLC",
     "PLR",
     "S",
+    "ASYNC",
+    "line-too-long",
+    "float-equality-comparison",
     "complex-structure",
     "implicit-namespace-package",
     "raise-vanilla-args",
     "raw-string-in-exception",
     ]
+"tests/*" = [
+    "ANN",
+    "D",
+    "PLC",
+    "PLR",
+    "S",
+    "ASYNC",
+    "line-too-long",
+    "float-equality-comparison",
+    "complex-structure",
+    "implicit-namespace-package",
+    "raise-vanilla-args",
+    "raw-string-in-exception",
+    ]
+"src/bessible/activities.py" = ["TC"]
+"src/bessible/workflow.py" = ["TC"]
 
 [tool.ruff.lint.flake8-type-checking]
-runtime-evaluated-base-classes = ["pydantic.BaseModel"]
+runtime-evaluated-base-classes = ["pydantic.BaseModel", "pydantic_settings.BaseSettings"]
 
 [tool.ruff.lint.isort]
 required-imports = ["from __future__ import annotations"]

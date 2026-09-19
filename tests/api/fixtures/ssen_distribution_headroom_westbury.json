@@ -1,0 +1,536 @@
+{
+ "help": "https://data-api.ssen.co.uk/api/3/action/help_show?name=datastore_search",
+ "success": true,
+ "result": {
+  "include_total": true,
+  "limit": 32000,
+  "records_format": "objects",
+  "resource_id": "52e9a305-ad90-4c81-9175-20a40ef57894",
+  "total_estimation_threshold": null,
+  "records": [
+   {
+    "_id": 1,
+    "AssetID": "E - AMEM - 01",
+    "gsp_grouping___default_order": "E - AMEM - 01",
+    "map___license_area": "England / SEPD",
+    "Substation": "Amersham GSP",
+    "Upstream GSP": "N/A",
+    "Upstream BSP": "N/A",
+    "Substation Type": "GSP",
+    "voltage__kv_": "400 / 132",
+    "Location Latitude": 51.665161,
+    "Location Longitude": -0.65571955,
+    "Grid Reference": "SU 93070 97120",
+    "Substation Comment": "Any available capacity at Amersham GSP is shared with another DNO - UKPN\nMaximum and minimum demand figures listed account only for SSEN's network",
+    "LTDS CIM Nodes": "10410, 10411",
+    "Transformer Nameplate Ratings": "2 X 240MVA (Shared with UKPN)",
+    "Single Transformer Site": "No",
+    "maximum_observed_gross_demand__mva_": 52.49,
+    "minimum_observed_gross_demand__mva_": 14.2,
+    "contracted_demand_excl_bess__mva_": 15.51,
+    "contracted_bess_demand__mva_": 0.0,
+    "estimated_demand_headroom__mva_": "N/A",
+    "Substation Demand RAG Status": "Red",
+    "Demand Constraint": "Substation Thermal Capacity",
+    "TIA Threshold": "5MW",
+    "connected_generation__mw_": 41.33,
+    "contracted_generation__mw_": 1.0,
+    "Technical Limits Agreed at GSP": "No",
+    "estimated_generation_headroom__mw_": "N/A",
+    "unsafe_3_phase_break_fault_rating__ka_": "40.00",
+    "unsafe_3_phase_break_fault_level__ka_": "9.06",
+    "Substation Generation RAG Status": "Red",
+    "Generation Constraint": "Substation Thermal Capacity",
+    "Upstream Reinforcement Works": "Transmission works:\nAdd a 3rd 240MVA transformer",
+    "Upstream Reinforcement Completion Date": "Sep-26",
+    "Substation Reinforcement Works": null,
+    "Substation Reinforcement Completion Date": null
+   },
+   {
+    "_id": 419,
+    "AssetID": "E - MELK - 04",
+    "gsp_grouping___default_order": "E - MELK - 04",
+    "map___license_area": "England / SEPD",
+    "Substation": "Frome BSP",
+    "Upstream GSP": "Melksham GSP",
+    "Upstream BSP": "N/A",
+    "Substation Type": "BSP",
+    "voltage__kv_": "132 / 33",
+    "Location Latitude": 51.23096,
+    "Location Longitude": -2.3049659,
+    "Grid Reference": "ST 78803 48019",
+    "Substation Comment": null,
+    "LTDS CIM Nodes": "14538, 14539, 14540",
+    "Transformer Nameplate Ratings": "2 x 45 / 90MVA",
+    "Single Transformer Site": "No",
+    "maximum_observed_gross_demand__mva_": 81.35,
+    "minimum_observed_gross_demand__mva_": 18.73,
+    "contracted_demand_excl_bess__mva_": 28.09,
+    "contracted_bess_demand__mva_": 0.0,
+    "estimated_demand_headroom__mva_": "19.00",
+    "Substation Demand RAG Status": "Green",
+    "Demand Constraint": null,
+    "TIA Threshold": "1MW",
+    "connected_generation__mw_": 11.5,
+    "contracted_generation__mw_": 9.0,
+    "Technical Limits Agreed at GSP": "Yes",
+    "estimated_generation_headroom__mw_": "0.00",
+    "unsafe_3_phase_break_fault_rating__ka_": "17.50",
+    "unsafe_3_phase_break_fault_level__ka_": "15.46",
+    "Substation Generation RAG Status": "Red",
+    "Generation Constraint": "Upstream Thermal Capacity",
+    "Upstream Reinforcement Works": null,
+    "Upstream Reinforcement Completion Date": null,
+    "Substation Reinforcement Works": "Replace the 33kV board with 31.5kA break / 78.8kA make switchgear (Sep-27)\n\nAdd a 3rd 90MVA transformer",
+    "Substation Reinforcement Completion Date": "Mar-30"
+   },
+   {
+    "_id": 442,
+    "AssetID": "E - MELK - 27",
+    "gsp_grouping___default_order": "E - MELK - 27",
+    "map___license_area": "England / SEPD",
+    "Substation": "Crockerton Primary",
+    "Upstream GSP": "Melksham GSP",
+    "Upstream BSP": "Frome BSP",
+    "Substation Type": "Primary",
+    "voltage__kv_": "33 / 11",
+    "Location Latitude": 51.189429,
+    "Location Longitude": -2.1768679,
+    "Grid Reference": "ST 87736 43371",
+    "Substation Comment": null,
+    "LTDS CIM Nodes": "85217",
+    "Transformer Nameplate Ratings": "2 x 10 / 14MVA",
+    "Single Transformer Site": "No",
+    "maximum_observed_gross_demand__mva_": 12.94,
+    "minimum_observed_gross_demand__mva_": 2.65,
+    "contracted_demand_excl_bess__mva_": 1.58,
+    "contracted_bess_demand__mva_": 0.0,
+    "estimated_demand_headroom__mva_": "0.00",
+    "Substation Demand RAG Status": "Red",
+    "Demand Constraint": "Substation Thermal Capacity",
+    "TIA Threshold": "1MW",
+    "connected_generation__mw_": 1.9,
+    "contracted_generation__mw_": 0.0,
+    "Technical Limits Agreed at GSP": "Yes",
+    "estimated_generation_headroom__mw_": "0.00",
+    "unsafe_3_phase_break_fault_rating__ka_": "25.00",
+    "unsafe_3_phase_break_fault_level__ka_": "8.63",
+    "Substation Generation RAG Status": "Red",
+    "Generation Constraint": "Upstream Thermal Capacity",
+    "Upstream Reinforcement Works": null,
+    "Upstream Reinforcement Completion Date": null,
+    "Substation Reinforcement Works": null,
+    "Substation Reinforcement Completion Date": null
+   },
+   {
+    "_id": 443,
+    "AssetID": "E - MELK - 28",
+    "gsp_grouping___default_order": "E - MELK - 28",
+    "map___license_area": "England / SEPD",
+    "Substation": "Frome Primary",
+    "Upstream GSP": "Melksham GSP",
+    "Upstream BSP": "Frome BSP",
+    "Substation Type": "Primary",
+    "voltage__kv_": "33 / 11",
+    "Location Latitude": 51.231249,
+    "Location Longitude": -2.3042947,
+    "Grid Reference": "ST 78850 48051",
+    "Substation Comment": null,
+    "LTDS CIM Nodes": "85226, 85218",
+    "Transformer Nameplate Ratings": "3 x 15 / 30MVA",
+    "Single Transformer Site": "No",
+    "maximum_observed_gross_demand__mva_": 26.41,
+    "minimum_observed_gross_demand__mva_": 5.73,
+    "contracted_demand_excl_bess__mva_": 9.95,
+    "contracted_bess_demand__mva_": 0.0,
+    "estimated_demand_headroom__mva_": "12.71",
+    "Substation Demand RAG Status": "Green",
+    "Demand Constraint": null,
+    "TIA Threshold": "1MW",
+    "connected_generation__mw_": 2.41,
+    "contracted_generation__mw_": 0.0,
+    "Technical Limits Agreed at GSP": "Yes",
+    "estimated_generation_headroom__mw_": "0.00",
+    "unsafe_3_phase_break_fault_rating__ka_": "13.10",
+    "unsafe_3_phase_break_fault_level__ka_": "14.48",
+    "Substation Generation RAG Status": "Red",
+    "Generation Constraint": "Upstream Thermal Capacity & Substation Fault Level",
+    "Upstream Reinforcement Works": null,
+    "Upstream Reinforcement Completion Date": null,
+    "Substation Reinforcement Works": null,
+    "Substation Reinforcement Completion Date": null
+   },
+   {
+    "_id": 444,
+    "AssetID": "E - MELK - 29",
+    "gsp_grouping___default_order": "E - MELK - 29",
+    "map___license_area": "England / SEPD",
+    "Substation": "Hawkeridge Primary",
+    "Upstream GSP": "Melksham GSP",
+    "Upstream BSP": "Frome BSP",
+    "Substation Type": "Primary",
+    "voltage__kv_": "33 / 11",
+    "Location Latitude": 51.276215,
+    "Location Longitude": -2.196039,
+    "Grid Reference": "ST 86422 53026",
+    "Substation Comment": null,
+    "LTDS CIM Nodes": "85223",
+    "Transformer Nameplate Ratings": "1 x 7.5 / 15MVA + 1 x 15 / 30MVA",
+    "Single Transformer Site": "No",
+    "maximum_observed_gross_demand__mva_": 12.53,
+    "minimum_observed_gross_demand__mva_": 1.81,
+    "contracted_demand_excl_bess__mva_": 0.1,
+    "contracted_bess_demand__mva_": 0.0,
+    "estimated_demand_headroom__mva_": "3.31",
+    "Substation Demand RAG Status": "Green",
+    "Demand Constraint": null,
+    "TIA Threshold": "1MW",
+    "connected_generation__mw_": 0.0,
+    "contracted_generation__mw_": 7.6,
+    "Technical Limits Agreed at GSP": "Yes",
+    "estimated_generation_headroom__mw_": "0.00",
+    "unsafe_3_phase_break_fault_rating__ka_": "25.00",
+    "unsafe_3_phase_break_fault_level__ka_": "13.03",
+    "Substation Generation RAG Status": "Red",
+    "Generation Constraint": "Upstream Thermal Capacity",
+    "Upstream Reinforcement Works": null,
+    "Upstream Reinforcement Completion Date": null,
+    "Substation Reinforcement Works": null,
+    "Substation Reinforcement Completion Date": null
+   },
+   {
+    "_id": 446,
+    "AssetID": "E - MELK - 31",
+    "gsp_grouping___default_order": "E - MELK - 31",
+    "map___license_area": "England / SEPD",
+    "Substation": "Warminster Primary",
+    "Upstream GSP": "Melksham GSP",
+    "Upstream BSP": "Frome BSP",
+    "Substation Type": "Primary",
+    "voltage__kv_": "33 / 11",
+    "Location Latitude": 51.199972,
+    "Location Longitude": -2.216983,
+    "Grid Reference": "ST 84936 44551",
+    "Substation Comment": null,
+    "LTDS CIM Nodes": "85220",
+    "Transformer Nameplate Ratings": "2 x 7.5 / 15MVA",
+    "Single Transformer Site": "No",
+    "maximum_observed_gross_demand__mva_": 8.16,
+    "minimum_observed_gross_demand__mva_": 1.27,
+    "contracted_demand_excl_bess__mva_": 6.16,
+    "contracted_bess_demand__mva_": 0.0,
+    "estimated_demand_headroom__mva_": "7.05",
+    "Substation Demand RAG Status": "Green",
+    "Demand Constraint": null,
+    "TIA Threshold": "1MW",
+    "connected_generation__mw_": 0.0,
+    "contracted_generation__mw_": 0.0,
+    "Technical Limits Agreed at GSP": "Yes",
+    "estimated_generation_headroom__mw_": "0.00",
+    "unsafe_3_phase_break_fault_rating__ka_": "16.00",
+    "unsafe_3_phase_break_fault_level__ka_": "8.24",
+    "Substation Generation RAG Status": "Red",
+    "Generation Constraint": "Upstream Thermal Capacity",
+    "Upstream Reinforcement Works": null,
+    "Upstream Reinforcement Completion Date": null,
+    "Substation Reinforcement Works": null,
+    "Substation Reinforcement Completion Date": null
+   },
+   {
+    "_id": 447,
+    "AssetID": "E - MELK - 32",
+    "gsp_grouping___default_order": "E - MELK - 32",
+    "map___license_area": "England / SEPD",
+    "Substation": "Westbury Primary",
+    "Upstream GSP": "Melksham GSP",
+    "Upstream BSP": "Frome BSP",
+    "Substation Type": "Primary",
+    "voltage__kv_": "33 / 11",
+    "Location Latitude": 51.262792,
+    "Location Longitude": -2.178325,
+    "Grid Reference": "ST 87654 51530",
+    "Substation Comment": null,
+    "LTDS CIM Nodes": "85221",
+    "Transformer Nameplate Ratings": "2 x 15 / 30MVA",
+    "Single Transformer Site": "No",
+    "maximum_observed_gross_demand__mva_": 13.7,
+    "minimum_observed_gross_demand__mva_": 2.65,
+    "contracted_demand_excl_bess__mva_": 3.05,
+    "contracted_bess_demand__mva_": 0.0,
+    "estimated_demand_headroom__mva_": "10.38",
+    "Substation Demand RAG Status": "Green",
+    "Demand Constraint": null,
+    "TIA Threshold": "1MW",
+    "connected_generation__mw_": 2.57,
+    "contracted_generation__mw_": 0.0,
+    "Technical Limits Agreed at GSP": "Yes",
+    "estimated_generation_headroom__mw_": "0.00",
+    "unsafe_3_phase_break_fault_rating__ka_": "13.10",
+    "unsafe_3_phase_break_fault_level__ka_": "10.18",
+    "Substation Generation RAG Status": "Red",
+    "Generation Constraint": "Upstream Thermal Capacity",
+    "Upstream Reinforcement Works": null,
+    "Upstream Reinforcement Completion Date": null,
+    "Substation Reinforcement Works": null,
+    "Substation Reinforcement Completion Date": null
+   }
+  ],
+  "fields": [
+   {
+    "id": "_id",
+    "type": "int"
+   },
+   {
+    "id": "AssetID",
+    "type": "text",
+    "info": {
+     "label": "AssetID"
+    }
+   },
+   {
+    "id": "gsp_grouping___default_order",
+    "type": "text",
+    "info": {
+     "label": "GSP Grouping / Default Order"
+    }
+   },
+   {
+    "id": "map___license_area",
+    "type": "text",
+    "info": {
+     "label": "Map / License Area"
+    }
+   },
+   {
+    "id": "Substation",
+    "type": "text",
+    "info": {
+     "label": "Substation"
+    }
+   },
+   {
+    "id": "Upstream GSP",
+    "type": "text",
+    "info": {
+     "label": "Upstream GSP"
+    }
+   },
+   {
+    "id": "Upstream BSP",
+    "type": "text",
+    "info": {
+     "label": "Upstream BSP"
+    }
+   },
+   {
+    "id": "Substation Type",
+    "type": "text",
+    "info": {
+     "label": "Substation Type"
+    }
+   },
+   {
+    "id": "voltage__kv_",
+    "type": "text",
+    "info": {
+     "label": "Voltage (kV)"
+    }
+   },
+   {
+    "id": "Location Latitude",
+    "type": "numeric",
+    "info": {
+     "label": "Location Latitude"
+    }
+   },
+   {
+    "id": "Location Longitude",
+    "type": "numeric",
+    "info": {
+     "label": "Location Longitude"
+    }
+   },
+   {
+    "id": "Grid Reference",
+    "type": "text",
+    "info": {
+     "label": "Grid Reference"
+    }
+   },
+   {
+    "id": "Substation Comment",
+    "type": "text",
+    "info": {
+     "label": "Substation Comment"
+    }
+   },
+   {
+    "id": "LTDS CIM Nodes",
+    "type": "text",
+    "info": {
+     "label": "LTDS CIM Nodes"
+    }
+   },
+   {
+    "id": "Transformer Nameplate Ratings",
+    "type": "text",
+    "info": {
+     "label": "Transformer Nameplate Ratings"
+    }
+   },
+   {
+    "id": "Single Transformer Site",
+    "type": "text",
+    "info": {
+     "label": "Single Transformer Site"
+    }
+   },
+   {
+    "id": "maximum_observed_gross_demand__mva_",
+    "type": "numeric",
+    "info": {
+     "label": "Maximum Observed Gross Demand (MVA)"
+    }
+   },
+   {
+    "id": "minimum_observed_gross_demand__mva_",
+    "type": "numeric",
+    "info": {
+     "label": "Minimum Observed Gross Demand (MVA)"
+    }
+   },
+   {
+    "id": "contracted_demand_excl_bess__mva_",
+    "type": "numeric",
+    "info": {
+     "label": "Contracted Demand Excl BESS (MVA)"
+    }
+   },
+   {
+    "id": "contracted_bess_demand__mva_",
+    "type": "numeric",
+    "info": {
+     "label": "Contracted BESS Demand (MVA)"
+    }
+   },
+   {
+    "id": "estimated_demand_headroom__mva_",
+    "type": "text",
+    "info": {
+     "label": "Estimated Demand Headroom (MVA)"
+    }
+   },
+   {
+    "id": "Substation Demand RAG Status",
+    "type": "text",
+    "info": {
+     "label": "Substation Demand RAG Status"
+    }
+   },
+   {
+    "id": "Demand Constraint",
+    "type": "text",
+    "info": {
+     "label": "Demand Constraint"
+    }
+   },
+   {
+    "id": "TIA Threshold",
+    "type": "text",
+    "info": {
+     "label": "TIA Threshold"
+    }
+   },
+   {
+    "id": "connected_generation__mw_",
+    "type": "numeric",
+    "info": {
+     "label": "Connected Generation (MW)"
+    }
+   },
+   {
+    "id": "contracted_generation__mw_",
+    "type": "numeric",
+    "info": {
+     "label": "Contracted Generation (MW)"
+    }
+   },
+   {
+    "id": "Technical Limits Agreed at GSP",
+    "type": "text",
+    "info": {
+     "label": "Technical Limits Agreed at GSP"
+    }
+   },
+   {
+    "id": "estimated_generation_headroom__mw_",
+    "type": "text",
+    "info": {
+     "label": "Estimated Generation Headroom (MW)"
+    }
+   },
+   {
+    "id": "unsafe_3_phase_break_fault_rating__ka_",
+    "type": "text",
+    "info": {
+     "label": "3-Phase Break Fault Rating (kA)"
+    }
+   },
+   {
+    "id": "unsafe_3_phase_break_fault_level__ka_",
+    "type": "text",
+    "info": {
+     "label": "3-Phase Break Fault Level (kA)"
+    }
+   },
+   {
+    "id": "Substation Generation RAG Status",
+    "type": "text",
+    "info": {
+     "label": "Substation Generation RAG Status"
+    }
+   },
+   {
+    "id": "Generation Constraint",
+    "type": "text",
+    "info": {
+     "label": "Generation Constraint"
+    }
+   },
+   {
+    "id": "Upstream Reinforcement Works",
+    "type": "text",
+    "info": {
+     "label": "Upstream Reinforcement Works"
+    }
+   },
+   {
+    "id": "Upstream Reinforcement Completion Date",
+    "type": "text",
+    "info": {
+     "label": "Upstream Reinforcement Completion Date"
+    }
+   },
+   {
+    "id": "Substation Reinforcement Works",
+    "type": "text",
+    "info": {
+     "label": "Substation Reinforcement Works"
+    }
+   },
+   {
+    "id": "Substation Reinforcement Completion Date",
+    "type": "text",
+    "info": {
+     "label": "Substation Reinforcement Completion Date"
+    }
+   }
+  ],
+  "_links": {
+   "start": "/api/3/action/datastore_search?resource_id=52e9a305-ad90-4c81-9175-20a40ef57894&limit=32000",
+   "next": "/api/3/action/datastore_search?resource_id=52e9a305-ad90-4c81-9175-20a40ef57894&limit=32000&offset=32000"
+  },
+  "total": 998,
+  "total_was_estimated": false
+ }
+}

@@ -1,0 +1,9 @@
+{
+  "stream": "balancing_ancillary",
+  "source": "Balancing mechanism and ancillary services (NESO), fixture",
+  "source_url": "https://www.neso.energy/",
+  "as_of": "2026-09-19",
+  "status": "placeholder",
+  "note": "PLACEHOLDER figures, not agreed and not from a live or paid feed. Ancillary revenue saturates as duration rises.",
+  "gbp_per_mw_year_by_duration": {"2": 30000, "4": 25000, "8": 15000}
+}

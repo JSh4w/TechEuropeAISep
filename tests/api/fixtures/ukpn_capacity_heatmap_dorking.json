@@ -1,0 +1,161 @@
+{
+ "total_count": 7,
+ "results": [
+  {
+   "name": "Dorking Town 11kV",
+   "mrid": "c7e5e995-5e4b-5aae-8e57-a7e909bfb5ce",
+   "description": "Transmission Impact assessment threshold (TIA) for generation at this site = 1  MW.",
+   "type": "Primary",
+   "area": "SPN",
+   "bsp": "Leatherhead 132kV",
+   "gsp": "West Weybridge",
+   "latitude": 51.23362991074961,
+   "longitude": -0.3385015987376072,
+   "voltages": 11.0,
+   "demandavailablecapacity": 14.7,
+   "demandconstraint": "GREEN",
+   "demandconstraintlimitingfactor": "Thermal",
+   "demandfirmcapacity": 34.3,
+   "demandmaximum": 19.2,
+   "demandminimum": 2.1,
+   "generationavailablecapacity": 30.9,
+   "generationbudgetestimatesprovidedcapacity": null,
+   "generationbudgetestimatesprovidedcount": null,
+   "generationconnectionoffersacceptedcapacity": null,
+   "generationconnectionoffersacceptedcount": null,
+   "generationconnectionoffersmadecapacity": null,
+   "generationconnectionoffersmadecount": null,
+   "generationconstraint": "GREEN",
+   "generationconstraintlimitingfactor": "Thermal",
+   "generationfirmcapacity": 49.5,
+   "loadbudgetestimatesprovidedcapacity": null,
+   "loadbudgetestimatesprovidedcount": null,
+   "loadconnectionoffersacceptedcapacity": null,
+   "loadconnectionoffersacceptedcount": null,
+   "loadconnectionoffersmadecapacity": 2.6,
+   "loadconnectionoffersmadecount": 2,
+   "voltage": 11.0,
+   "reversepowerflowavailablecapacity": 34.3,
+   "reversepowerflowtotalcapacity": 34.3,
+   "geometry_wkt_epsg4326": {
+    "type": "Feature",
+    "geometry": {
+     "coordinates": [
+      -0.338501598737607,
+      51.23362991074961
+     ],
+     "type": "Point"
+    },
+    "properties": {}
+   },
+   "geo_point_2d": {
+    "lon": -0.338501598737607,
+    "lat": 51.23362991074961
+   }
+  },
+  {
+   "name": "Betchworth 11kV",
+   "mrid": "b6acb51b-f423-571a-8c92-058a33495149",
+   "description": "Transmission Impact assessment threshold (TIA) for generation at this site = 1  MW.",
+   "type": "Primary",
+   "area": "SPN",
+   "bsp": "Leatherhead 132kV",
+   "gsp": "Bolney",
+   "latitude": 51.24712046743657,
+   "longitude": -0.2667762324332021,
+   "voltages": 11.0,
+   "demandavailablecapacity": 2.2,
+   "demandconstraint": "GREEN",
+   "demandconstraintlimitingfactor": "Thermal",
+   "demandfirmcapacity": 9.8,
+   "demandmaximum": 7.1,
+   "demandminimum": 3.3,
+   "generationavailablecapacity": 9.4,
+   "generationbudgetestimatesprovidedcapacity": null,
+   "generationbudgetestimatesprovidedcount": null,
+   "generationconnectionoffersacceptedcapacity": null,
+   "generationconnectionoffersacceptedcount": null,
+   "generationconnectionoffersmadecapacity": null,
+   "generationconnectionoffersmadecount": null,
+   "generationconstraint": "GREEN",
+   "generationconstraintlimitingfactor": "Thermal",
+   "generationfirmcapacity": 12.7,
+   "loadbudgetestimatesprovidedcapacity": null,
+   "loadbudgetestimatesprovidedcount": null,
+   "loadconnectionoffersacceptedcapacity": null,
+   "loadconnectionoffersacceptedcount": null,
+   "loadconnectionoffersmadecapacity": null,
+   "loadconnectionoffersmadecount": null,
+   "voltage": null,
+   "reversepowerflowavailablecapacity": 5.0,
+   "reversepowerflowtotalcapacity": 5.0,
+   "geometry_wkt_epsg4326": {
+    "type": "Feature",
+    "geometry": {
+     "coordinates": [
+      -0.266776232433202,
+      51.24712046743657
+     ],
+     "type": "Point"
+    },
+    "properties": {}
+   },
+   "geo_point_2d": {
+    "lon": -0.266776232433202,
+    "lat": 51.24712046743657
+   }
+  },
+  {
+   "name": "Effingham 11kV",
+   "mrid": "c13fbf1a-2b32-5ca6-b5b2-07b99fab8b64",
+   "description": "Transmission Impact assessment threshold (TIA) for generation at this site = 1  MW.",
+   "type": "Primary",
+   "area": "SPN",
+   "bsp": "Leatherhead 132kV",
+   "gsp": "West Weybridge",
+   "latitude": 51.27264535335249,
+   "longitude": -0.4024381016379965,
+   "voltages": 11.0,
+   "demandavailablecapacity": 7.7,
+   "demandconstraint": "GREEN",
+   "demandconstraintlimitingfactor": "Thermal",
+   "demandfirmcapacity": 23.0,
+   "demandmaximum": 15.3,
+   "demandminimum": 4.2,
+   "generationavailablecapacity": 24.0,
+   "generationbudgetestimatesprovidedcapacity": null,
+   "generationbudgetestimatesprovidedcount": null,
+   "generationconnectionoffersacceptedcapacity": null,
+   "generationconnectionoffersacceptedcount": null,
+   "generationconnectionoffersmadecapacity": null,
+   "generationconnectionoffersmadecount": null,
+   "generationconstraint": "GREEN",
+   "generationconstraintlimitingfactor": "Thermal",
+   "generationfirmcapacity": 28.9,
+   "loadbudgetestimatesprovidedcapacity": null,
+   "loadbudgetestimatesprovidedcount": null,
+   "loadconnectionoffersacceptedcapacity": null,
+   "loadconnectionoffersacceptedcount": null,
+   "loadconnectionoffersmadecapacity": null,
+   "loadconnectionoffersmadecount": null,
+   "voltage": null,
+   "reversepowerflowavailablecapacity": 23.0,
+   "reversepowerflowtotalcapacity": 23.0,
+   "geometry_wkt_epsg4326": {
+    "type": "Feature",
+    "geometry": {
+     "coordinates": [
+      -0.402438101637996,
+      51.27264535335249
+     ],
+     "type": "Point"
+    },
+    "properties": {}
+   },
+   "geo_point_2d": {
+    "lon": -0.402438101637996,
+    "lat": 51.27264535335249
+   }
+  }
+ ]
+}

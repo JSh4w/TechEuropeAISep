@@ -1,0 +1,4 @@
+{
+ "error_code": "ODSQLError",
+ "message": "ODSQL query is malformed: Unknown field: nope. Clause(s) containing the error(s): where."
+}

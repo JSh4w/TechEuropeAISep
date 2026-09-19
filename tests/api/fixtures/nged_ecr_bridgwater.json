@@ -1,0 +1,203 @@
+{
+ "help": "https://connecteddata.nationalgrid.co.uk/api/3/action/help_show?name=datastore_search",
+ "success": true,
+ "result": {
+  "fields": [
+   {
+    "id": "_id",
+    "type": "int"
+   },
+   {
+    "id": "customer_site",
+    "type": "text"
+   },
+   {
+    "id": "grid_supply_point",
+    "type": "text"
+   },
+   {
+    "id": "bulk_supply_point",
+    "type": "text"
+   },
+   {
+    "id": "primary",
+    "type": "text"
+   },
+   {
+    "id": "energy_source_1",
+    "type": "text"
+   },
+   {
+    "id": "Energy Conversion Technology 1",
+    "type": "text"
+   },
+   {
+    "id": "storage_capacity_1(mwh)",
+    "type": "text"
+   },
+   {
+    "id": "energy_source_&_conversion_tech_1_reg_capacity_mw",
+    "type": "numeric"
+   },
+   {
+    "id": "connection_status",
+    "type": "text"
+   },
+   {
+    "id": "already_connected_registered_capacity(mw)",
+    "type": "numeric"
+   },
+   {
+    "id": "accepted_to_connect_registered_capacity(mw)",
+    "type": "text"
+   },
+   {
+    "id": "date_connected",
+    "type": "timestamp"
+   },
+   {
+    "id": "target_energisation_date",
+    "type": "text"
+   },
+   {
+    "id": "lon",
+    "type": "numeric"
+   },
+   {
+    "id": "lat",
+    "type": "numeric"
+   },
+   {
+    "id": "local_authority",
+    "type": "text"
+   }
+  ],
+  "include_total": true,
+  "limit": 32000,
+  "records_format": "objects",
+  "resource_id": "82a4ae83-77a3-4e7b-9060-8072ed96de9d",
+  "total_estimation_threshold": null,
+  "records": [
+   {
+    "_id": 4135,
+    "customer_site": "Bridgwater chilton trinity stw import/export site",
+    "grid_supply_point": "Bridgwater  Sgp",
+    "bulk_supply_point": "Bridgwater Grid Bsp",
+    "primary": "Bath Road Primary",
+    "energy_source_1": "Fossil - Oil",
+    "Energy Conversion Technology 1": "Engine (combustion / reciprocating)",
+    "storage_capacity_1(mwh)": "data not available",
+    "energy_source_&_conversion_tech_1_reg_capacity_mw": 1.25,
+    "connection_status": "Connected",
+    "already_connected_registered_capacity(mw)": 1.25,
+    "accepted_to_connect_registered_capacity(mw)": "",
+    "date_connected": "2001-01-04T00:00:00",
+    "target_energisation_date": "",
+    "lon": -3.00036816,
+    "lat": 51.13950034,
+    "local_authority": "Somerset"
+   },
+   {
+    "_id": 4697,
+    "customer_site": "Bridgwater cobbs cross solar farm",
+    "grid_supply_point": "Bridgwater  Sgp",
+    "bulk_supply_point": "Bridgwater Grid Bsp",
+    "primary": "data not available",
+    "energy_source_1": "Solar",
+    "Energy Conversion Technology 1": "Photovoltaic",
+    "storage_capacity_1(mwh)": "data not available",
+    "energy_source_&_conversion_tech_1_reg_capacity_mw": 5,
+    "connection_status": "Connected",
+    "already_connected_registered_capacity(mw)": 5,
+    "accepted_to_connect_registered_capacity(mw)": "",
+    "date_connected": "2013-03-21T00:00:00",
+    "target_energisation_date": "",
+    "lon": -3.0389,
+    "lat": 51.1251,
+    "local_authority": "Somerset"
+   },
+   {
+    "_id": 5056,
+    "customer_site": "Bridgwater, gfe generating station, the drove",
+    "grid_supply_point": "Bridgwater  Sgp",
+    "bulk_supply_point": "Bridgwater Grid Bsp",
+    "primary": "Bath Road Primary",
+    "energy_source_1": "Fossil - Gas",
+    "Energy Conversion Technology 1": "Gas turbine (OCGT)",
+    "storage_capacity_1(mwh)": "data not available",
+    "energy_source_&_conversion_tech_1_reg_capacity_mw": 6.354,
+    "connection_status": "Connected",
+    "already_connected_registered_capacity(mw)": 6.354,
+    "accepted_to_connect_registered_capacity(mw)": "",
+    "date_connected": "2015-10-23T00:00:00",
+    "target_energisation_date": "",
+    "lon": -2.99760189,
+    "lat": 51.13583714,
+    "local_authority": "Somerset"
+   },
+   {
+    "_id": 5179,
+    "customer_site": "Bridgwater showground road",
+    "grid_supply_point": "Bridgwater  Sgp",
+    "bulk_supply_point": "Bridgwater Grid Bsp",
+    "primary": "Colley Lane",
+    "energy_source_1": "Waste",
+    "Energy Conversion Technology 1": "Steam turbine (thermal power plant)",
+    "storage_capacity_1(mwh)": "data not available",
+    "energy_source_&_conversion_tech_1_reg_capacity_mw": 10,
+    "connection_status": "Connected",
+    "already_connected_registered_capacity(mw)": 10,
+    "accepted_to_connect_registered_capacity(mw)": "",
+    "date_connected": "2021-01-10T00:00:00",
+    "target_energisation_date": "",
+    "lon": -2.98711673,
+    "lat": 51.11000835,
+    "local_authority": "Somerset"
+   },
+   {
+    "_id": 5224,
+    "customer_site": "Land of axe road",
+    "grid_supply_point": "Bridgwater  Sgp",
+    "bulk_supply_point": "Bridgwater Grid Bsp",
+    "primary": "Colley Lane",
+    "energy_source_1": "Fossil - Gas",
+    "Energy Conversion Technology 1": "Gas turbine (OCGT)",
+    "storage_capacity_1(mwh)": "data not available",
+    "energy_source_&_conversion_tech_1_reg_capacity_mw": 7.605,
+    "connection_status": "Connected",
+    "already_connected_registered_capacity(mw)": 7.605,
+    "accepted_to_connect_registered_capacity(mw)": "",
+    "date_connected": "2023-05-31T00:00:00",
+    "target_energisation_date": "",
+    "lon": -2.98928563,
+    "lat": 51.11856056,
+    "local_authority": "Somerset"
+   },
+   {
+    "_id": 5963,
+    "customer_site": "data not available",
+    "grid_supply_point": "Bridgwater  Sgp",
+    "bulk_supply_point": "Bridgwater Grid Bsp",
+    "primary": "Bath Road Primary",
+    "energy_source_1": "Solar",
+    "Energy Conversion Technology 1": "Photovoltaic",
+    "storage_capacity_1(mwh)": "data not available",
+    "energy_source_&_conversion_tech_1_reg_capacity_mw": 2.7,
+    "connection_status": "Accepted to connect",
+    "already_connected_registered_capacity(mw)": null,
+    "accepted_to_connect_registered_capacity(mw)": "2.7",
+    "date_connected": null,
+    "target_energisation_date": "01/12/2026",
+    "lon": -2.9977,
+    "lat": 51.1412,
+    "local_authority": "Somerset"
+   }
+  ],
+  "_links": {
+   "start": "/api/3/action/datastore_search?resource_id=82a4ae83-77a3-4e7b-9060-8072ed96de9d&limit=32000&fields=_id%2Ccustomer_site%2Cgrid_supply_point%2Cbulk_supply_point%2Cprimary%2Cenergy_source_1%2CEnergy+Conversion+Technology+1%2Cstorage_capacity_1%28mwh%29%2Cenergy_source_%26_conversion_tech_1_reg_capacity_mw%2Cconnection_status%2Calready_connected_registered_capacity%28mw%29%2Caccepted_to_connect_registered_capacity%28mw%29%2Cdate_connected%2Ctarget_energisation_date%2Clon%2Clat%2Clocal_authority",
+   "next": "/api/3/action/datastore_search?resource_id=82a4ae83-77a3-4e7b-9060-8072ed96de9d&limit=32000&fields=_id%2Ccustomer_site%2Cgrid_supply_point%2Cbulk_supply_point%2Cprimary%2Cenergy_source_1%2CEnergy+Conversion+Technology+1%2Cstorage_capacity_1%28mwh%29%2Cenergy_source_%26_conversion_tech_1_reg_capacity_mw%2Cconnection_status%2Calready_connected_registered_capacity%28mw%29%2Caccepted_to_connect_registered_capacity%28mw%29%2Cdate_connected%2Ctarget_energisation_date%2Clon%2Clat%2Clocal_authority&offset=32000"
+  },
+  "total": 7211,
+  "total_was_estimated": false
+ }
+}

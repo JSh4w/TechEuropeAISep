@@ -1,0 +1,275 @@
+{
+ "help": "https://api.neso.energy/api/3/action/help_show?name=datastore_search_sql",
+ "success": true,
+ "result": {
+  "records": [
+   {
+    "MW Connected": "0.0",
+    "Project Number": "PRO-000467",
+    "Plant Type": "Wind Offshore",
+    "Project Name": "Rampion Extension Offshore Wind Farm",
+    "Agreement Type": "Direct Connection",
+    "Project Status": "Scoping",
+    "Connection Site": "Bolney 400kV Substation",
+    "Customer Name": "RAMPION EXTENSION DEVELOPMENT LIMITED",
+    "Gate": null,
+    "MW Effective From": "2029-12-31",
+    "Cumulative Total Capacity (MW)": "1200.0",
+    "MW Increase / Decrease": "1200.0",
+    "Project ID": "a0l4L0000005io1QAA",
+    "HOST TO": "NGET",
+    "Stage": null
+   },
+   {
+    "MW Connected": "460.0",
+    "Project Number": "PRO-000192",
+    "Plant Type": "CCGT (Combined Cycle Gas Turbine)",
+    "Project Name": "Shoreham",
+    "Agreement Type": "Embedded",
+    "Project Status": "Built",
+    "Connection Site": "Bolney 400kV Substation",
+    "Customer Name": "VPI Power Limited",
+    "Gate": null,
+    "MW Effective From": null,
+    "Cumulative Total Capacity (MW)": "460.0",
+    "MW Increase / Decrease": "0.0",
+    "Project ID": "a0l4L0000005iVfQAI",
+    "HOST TO": "NGET",
+    "Stage": null
+   },
+   {
+    "MW Connected": "0.0",
+    "Project Number": "PRO-002308",
+    "Plant Type": "Energy Storage System",
+    "Project Name": "Hookers Farm BESS",
+    "Agreement Type": "Embedded",
+    "Project Status": "Consents Approved",
+    "Connection Site": "Bolney 132kV Substation",
+    "Customer Name": "Ancleggan Limited",
+    "Gate": null,
+    "MW Effective From": "2031-10-31",
+    "Cumulative Total Capacity (MW)": "250.0",
+    "MW Increase / Decrease": "250.0",
+    "Project ID": "a0l4L0000005iXEQAY",
+    "HOST TO": "NGET",
+    "Stage": null
+   },
+   {
+    "MW Connected": "0.0",
+    "Project Number": "PRO-002674",
+    "Plant Type": "Energy Storage System;PV Array (Photo Voltaic/solar)",
+    "Project Name": "Bolney Farm",
+    "Agreement Type": "Direct Connection",
+    "Project Status": "Scoping",
+    "Connection Site": "Bolney 400kV Substation",
+    "Customer Name": "Dragon Green 2 Renewables Ltd",
+    "Gate": "1",
+    "MW Effective From": "2037-10-30",
+    "Cumulative Total Capacity (MW)": "200.0",
+    "MW Increase / Decrease": "200.0",
+    "Project ID": "a0l8e0000010wYEAAY",
+    "HOST TO": "NGET",
+    "Stage": null
+   },
+   {
+    "MW Connected": "0.0",
+    "Project Number": "PRO-000552-2",
+    "Plant Type": "Energy Storage System;PV Array (Photo Voltaic/solar)",
+    "Project Name": "West Weybridge (Tertiary)",
+    "Agreement Type": "Direct Connection",
+    "Project Status": "Scoping",
+    "Connection Site": "West Weybridge 275kV Substation",
+    "Customer Name": "EL (WEST WEYBRIDGE) LIMITED",
+    "Gate": null,
+    "MW Effective From": "2027-10-31",
+    "Cumulative Total Capacity (MW)": "57.0",
+    "MW Increase / Decrease": "7.1",
+    "Project ID": "a0l4L0000005ipoQAA",
+    "HOST TO": "NGET",
+    "Stage": "2"
+   },
+   {
+    "MW Connected": "0.0",
+    "Project Number": "PRO-000380",
+    "Plant Type": "Energy Storage System;PV Array (Photo Voltaic/solar)",
+    "Project Name": "Bolney (tertiary)",
+    "Agreement Type": "Direct Connection",
+    "Project Status": "Scoping",
+    "Connection Site": "Bolney 400kV Substation",
+    "Customer Name": "BOLNEY GREEN LIMITED",
+    "Gate": "1",
+    "MW Effective From": "2028-05-29",
+    "Cumulative Total Capacity (MW)": "57.0",
+    "MW Increase / Decrease": "57.0",
+    "Project ID": "a0l4L0000005ilrQAA",
+    "HOST TO": "NGET",
+    "Stage": null
+   },
+   {
+    "MW Connected": "0.0",
+    "Project Number": "PRO-004324",
+    "Plant Type": "Energy Storage System",
+    "Project Name": "West Weybridge",
+    "Agreement Type": "Direct Connection",
+    "Project Status": "Consents Approved",
+    "Connection Site": "West Weybridge 275kV Substation",
+    "Customer Name": "EL (WEST WEYBRIDGE) LIMITED",
+    "Gate": null,
+    "MW Effective From": "2027-10-31",
+    "Cumulative Total Capacity (MW)": "57.0",
+    "MW Increase / Decrease": "57.0",
+    "Project ID": "a0l8e000001Hy5YAAS",
+    "HOST TO": "NGET",
+    "Stage": null
+   },
+   {
+    "MW Connected": "0.0",
+    "Project Number": "PRO-004710",
+    "Plant Type": "Energy Storage System;PV Array (Photo Voltaic/solar)",
+    "Project Name": "Kingsfold",
+    "Agreement Type": "Embedded",
+    "Project Status": "Scoping",
+    "Connection Site": "Bolney GSP",
+    "Customer Name": "GREENTECH PROJECTS HOLDING UK LIMITED",
+    "Gate": null,
+    "MW Effective From": "2037-10-30",
+    "Cumulative Total Capacity (MW)": "49.9",
+    "MW Increase / Decrease": "49.9",
+    "Project ID": "a0l8e0000012kcTAAQ",
+    "HOST TO": "NGET",
+    "Stage": null
+   },
+   {
+    "MW Connected": "0.0",
+    "Project Number": "PRO-000552-1",
+    "Plant Type": "Energy Storage System;PV Array (Photo Voltaic/solar)",
+    "Project Name": "West Weybridge (Tertiary)",
+    "Agreement Type": "Direct Connection",
+    "Project Status": "Scoping",
+    "Connection Site": "West Weybridge 275kV Substation",
+    "Customer Name": "EL (WEST WEYBRIDGE) LIMITED",
+    "Gate": null,
+    "MW Effective From": "2025-10-31",
+    "Cumulative Total Capacity (MW)": "49.9",
+    "MW Increase / Decrease": "49.9",
+    "Project ID": "a0l4L0000005ipoQAA",
+    "HOST TO": "NGET",
+    "Stage": "1"
+   },
+   {
+    "MW Connected": "0.0",
+    "Project Number": "PRO-001031",
+    "Plant Type": "Energy Storage System;PV Array (Photo Voltaic/solar)",
+    "Project Name": "Bolney",
+    "Agreement Type": "Direct Connection",
+    "Project Status": "Scoping",
+    "Connection Site": "Bolney 400kV Substation",
+    "Customer Name": "PIVOTED POWER LLP",
+    "Gate": null,
+    "MW Effective From": "2031-01-31",
+    "Cumulative Total Capacity (MW)": "47.5",
+    "MW Increase / Decrease": "47.5",
+    "Project ID": "a0l4L0000005iaRQAQ",
+    "HOST TO": "NGET",
+    "Stage": null
+   },
+   {
+    "MW Connected": "35.8",
+    "Project Number": "PRO-001591",
+    "Plant Type": "Energy Storage System",
+    "Project Name": "CONTEGO  Battery Storage Project",
+    "Agreement Type": "Embedded",
+    "Project Status": "Built",
+    "Connection Site": "Bolney 132kV Substation",
+    "Customer Name": "Harmony CS Ltd",
+    "Gate": null,
+    "MW Effective From": null,
+    "Cumulative Total Capacity (MW)": "35.8",
+    "MW Increase / Decrease": "0.0",
+    "Project ID": "a0l4L0000005iUNQAY",
+    "HOST TO": "NGET",
+    "Stage": null
+   },
+   {
+    "MW Connected": "0.0",
+    "Project Number": "PRO-003966",
+    "Plant Type": "Reactive Compensation",
+    "Project Name": "Bolney Grid Stability Services",
+    "Agreement Type": "Direct Connection",
+    "Project Status": "Scoping",
+    "Connection Site": "Bolney 400kV Substation",
+    "Customer Name": "WP GRID SERVICES 13 LIMITED",
+    "Gate": null,
+    "MW Effective From": "2031-10-31",
+    "Cumulative Total Capacity (MW)": "0.0",
+    "MW Increase / Decrease": "0.0",
+    "Project ID": "a0l8e000000f6ALAAY",
+    "HOST TO": "NGET",
+    "Stage": null
+   }
+  ],
+  "fields": [
+   {
+    "type": "text",
+    "id": "Project Name"
+   },
+   {
+    "type": "text",
+    "id": "Customer Name"
+   },
+   {
+    "type": "text",
+    "id": "Connection Site"
+   },
+   {
+    "type": "numeric",
+    "id": "Stage"
+   },
+   {
+    "type": "numeric",
+    "id": "MW Connected"
+   },
+   {
+    "type": "numeric",
+    "id": "MW Increase / Decrease"
+   },
+   {
+    "type": "numeric",
+    "id": "Cumulative Total Capacity (MW)"
+   },
+   {
+    "type": "date",
+    "id": "MW Effective From"
+   },
+   {
+    "type": "text",
+    "id": "Project Status"
+   },
+   {
+    "type": "text",
+    "id": "Agreement Type"
+   },
+   {
+    "type": "text",
+    "id": "HOST TO"
+   },
+   {
+    "type": "text",
+    "id": "Plant Type"
+   },
+   {
+    "type": "text",
+    "id": "Project ID"
+   },
+   {
+    "type": "text",
+    "id": "Project Number"
+   },
+   {
+    "type": "numeric",
+    "id": "Gate"
+   }
+  ],
+  "sql": "SELECT \"Project Name\", \"Customer Name\", \"Connection Site\", \"Stage\", \"MW Connected\", \"MW Increase / Decrease\", \"Cumulative Total Capacity (MW)\", \"MW Effective From\", \"Project Status\", \"Agreement Type\", \"HOST TO\", \"Plant Type\", \"Project ID\", \"Project Number\", \"Gate\" FROM \"17becbab-e3e8-473f-b303-3806f43a6a10\" WHERE (\"Connection Site\" ILIKE '%West Weybridge%' OR \"Connection Site\" ILIKE '%Bolney%') ORDER BY \"Cumulative Total Capacity (MW)\" DESC LIMIT 200"
+ }
+}
