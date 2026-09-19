@@ -2,16 +2,24 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 from pydantic import HttpUrl
 
+from bessible.config import settings
 from bessible.models import Artifact, PlanningInput, PlanningOutput
+from bessible.planning.evidence import load_policy, summarise
+from bessible.planning.ingest_repd import get_repd_snapshot, nearby_batteries
 from bessible.planning.route import consenting_route, lookup_lpa
 from bessible.planning.tia import tia_statement
 
 if TYPE_CHECKING:
+    from pydantic_ai.models import Model
+
     from bessible.models import SiteLandOutput
+
+log = logging.getLogger(__name__)
 
 DEFAULT_RISKS = [
     "Landscape and visual impact mitigation required for adjacent countryside",
@@ -54,8 +62,12 @@ def derive_planning_risks(site_land: SiteLandOutput, planning_art_id: str) -> li
     return risks
 
 
-async def regulatory_planning(inp: PlanningInput) -> PlanningOutput:
-    """Assess planning jurisdiction, consenting pathways, and statutory risk factors."""
+async def regulatory_planning(
+    inp: PlanningInput,
+    *,
+    summary_model: Model | str | None = None,
+) -> PlanningOutput:
+    """Assess planning jurisdiction, consenting pathways, statutory risk factors, and nearby planning evidence."""
     lpa = await lookup_lpa(inp.site.position)
     statement = consenting_route(lpa, mw=inp.site.capacity_mw)
 
@@ -99,9 +111,66 @@ async def regulatory_planning(inp: PlanningInput) -> PlanningOutput:
         model_used="none (deterministic rule)",
     )
 
+    # F3: REPD planning evidence and summary
+    try:
+        snap = get_repd_snapshot()
+        nearby = nearby_batteries(inp.site.position, snap=snap)
+        snap_date_str = snap.fetched_at.isoformat()
+        repd_url = snap.dataset_url
+    except Exception:
+        log.warning("Could not load REPD snapshot", exc_info=True)
+        nearby = []
+        snap_date_str = "unknown"
+        repd_url = HttpUrl(
+            "https://www.gov.uk/government/publications/renewable-energy-planning-database-monthly-extract"
+        )
+
+    if nearby:
+        repd_claim = (
+            f"Found {len(nearby)} battery storage project(s) within 5 km from DESNZ REPD snapshot (dated {snap_date_str}): "
+            + "; ".join(f"{p.name} ({p.mw:g} MW, {p.status}, {p.distance_km:g} km)" for p in nearby)
+        )
+    else:
+        repd_claim = (
+            f"No battery storage projects found within 5 km from DESNZ REPD snapshot (dated {snap_date_str})."
+        )
+
+    repd_art = Artifact(
+        id=f"planning-repd-{inp.run_id[:8]}",
+        stage="planning",
+        claim=repd_claim,
+        source_url=repd_url,
+        confidence=0.95,
+        model_used="none (DESNZ REPD snapshot)",
+    )
+
+    artifacts = [planning_art, tia_art, repd_art]
+
+    # Summarise with Gemini if key is available or explicit model passed
+    policy = load_policy()
+    summary = None
+    if settings.google_api_key or summary_model is not None:
+        try:
+            summary = await summarise(nearby, policy, model=summary_model)
+        except Exception:
+            log.warning("Planning summary generation failed", exc_info=True)
+
+    if summary and summary.statements:
+        summary_claim = " ".join(s.text for s in summary.statements)
+        summary_art = Artifact(
+            id=f"planning-summary-{inp.run_id[:8]}",
+            stage="planning",
+            claim=summary_claim,
+            source_url=repd_url,
+            confidence=0.9,
+            model_used=summary.model_used or settings.gemini_model,
+        )
+        artifacts.append(summary_art)
+
     return PlanningOutput(
         consenting_route=route_display,
         risks=risks,
-        artifacts=[planning_art, tia_art],
+        artifacts=artifacts,
         tia=tia,
+        nearby=nearby,
     )

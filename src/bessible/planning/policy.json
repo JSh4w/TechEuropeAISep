@@ -1,0 +1,32 @@
+[
+  {
+    "id": "policy-nsip-carveout",
+    "title": "NSIP Regime Carve-Out (2020)",
+    "statement": "Standalone battery storage of any capacity in England was removed from the Nationally Significant Infrastructure regime in 2020 via The Infrastructure Planning (Electricity Storage Facilities) Order 2020. Local planning authorities retain jurisdiction regardless of megawatt capacity.",
+    "source_url": "https://www.legislation.gov.uk/uksi/2020/1218/contents/made"
+  },
+  {
+    "id": "policy-nppf-14",
+    "title": "NPPF Chapter 14: Meeting the challenge of climate change",
+    "statement": "National Planning Policy Framework Chapter 14 directs local authorities to support renewable energy and low carbon infrastructure critical to net zero transition and energy security.",
+    "source_url": "https://www.gov.uk/guidance/national-planning-policy-framework/14-meeting-the-challenge-of-climate-change-flooding-and-coastal-change"
+  },
+  {
+    "id": "policy-nps-en1",
+    "title": "Overarching National Policy Statement for Energy (EN-1)",
+    "statement": "EN-1 establishes national need for electricity storage as an essential flexibility component for grid resilience, decarbonisation, and balancing variable renewables.",
+    "source_url": "https://www.gov.uk/government/publications/national-policy-statements-for-energy-infrastructure"
+  },
+  {
+    "id": "policy-nfcc-safety",
+    "title": "NFCC Grid Scale Battery Energy Storage Guidance",
+    "statement": "National Fire Chiefs Council guidance requires developers to submit Battery Safety Management Plans (BSMP) detailing thermal runaway mitigation, separation distances, and emergency service access.",
+    "source_url": "https://www.ukfrs.com/guidance/grid-scale-battery-energy-storage-systems-bess"
+  },
+  {
+    "id": "policy-ppg-renewables",
+    "title": "Planning Practice Guidance: Renewable and Low Carbon Energy",
+    "statement": "PPG encourages energy storage development alongside existing grid infrastructure, requiring appropriate landscape mitigation, acoustic fencing, and environmental screening.",
+    "source_url": "https://www.gov.uk/guidance/renewable-and-low-carbon-energy"
+  }
+]

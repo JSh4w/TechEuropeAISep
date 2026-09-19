@@ -37,6 +37,7 @@ with workflow.unsafe.imports_passed_through():
         TitleInput,
         TitleOutput,
     )
+    from bessible.planning.evidence import temporal_summary_agent
     from bessible.suitability.analyst import temporal_analyst_agent
     from bessible.suitability.research import temporal_research_agent
 
@@ -62,7 +63,7 @@ AGENT_OPTS = {
 class AssessmentWorkflow:
     """Orchestrates an end-to-end BESS site assessment."""
 
-    __pydantic_ai_agents__ = [temporal_research_agent, temporal_analyst_agent]
+    __pydantic_ai_agents__ = [temporal_research_agent, temporal_analyst_agent, temporal_summary_agent]
 
     def __init__(self) -> None:
         """Initialize workflow state."""

@@ -343,6 +343,17 @@ class TiaStatement(BaseModel):
     snapshot_date: date | None = None
 
 
+class NearbyProject(BaseModel):
+    """Battery storage project from REPD within search radius."""
+
+    id: str
+    name: str
+    mw: float
+    status: str
+    status_date: date
+    distance_km: float
+
+
 class PlanningOutput(BaseModel):
     """Consenting pathway and regulatory risk assessment."""
 
@@ -350,6 +361,7 @@ class PlanningOutput(BaseModel):
     risks: list[str] = Field(default_factory=list)
     artifacts: list[Artifact] = Field(default_factory=list)
     tia: TiaStatement | None = None
+    nearby: list[NearbyProject] = Field(default_factory=list)
 
 
 class Finding(BaseModel):

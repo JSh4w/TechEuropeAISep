@@ -1,0 +1,9 @@
+{
+  "fetched_at": "2026-09-19",
+  "dataset": "desnz-repd",
+  "dataset_url": "https://www.gov.uk/government/publications/renewable-energy-planning-database-monthly-extract",
+  "records_count": 6,
+  "file": "repd.json",
+  "partial": true,
+  "note": "REPD battery storage projects snapshot for testing and demo."
+}
