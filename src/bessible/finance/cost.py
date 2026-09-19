@@ -38,13 +38,25 @@ def _otcf_state(oversubscription_pct: float, on_above: float, off_below: float) 
     return False, f"inactive (oversubscription {oversubscription_pct:g}% is between {off_below:g}% and {on_above:g}%)"
 
 
-def cost(duration_h: Duration, mw: float, distance_km: float, *, crossings: bool, a: AssumptionSet) -> CostBreakdown:
+VOLTAGE_132KV = 132
+
+
+def cost(  # ruff: ignore[too-many-arguments]
+    duration_h: Duration,
+    mw: float,
+    distance_km: float,
+    *,
+    crossings: bool,
+    a: AssumptionSet,
+    voltage_kv: float | None = None,
+) -> CostBreakdown:
     """Compute cost for one duration. Raises `MissingAssumption` naming any absent key."""
     battery = a.number("battery_gbp_per_mwh") * duration_h * mw
     bop = a.number("balance_of_plant_gbp_per_mw") * mw
     opex = a.number("opex_gbp_per_mw_year") * mw
 
-    cable_low, cable_high = a.pair("cable_33kv_gbp_per_km")
+    cable_key = "cable_132kv_gbp_per_km" if voltage_kv == VOLTAGE_132KV else "cable_33kv_gbp_per_km"
+    cable_low, cable_high = a.pair(cable_key)
     uplift = 1 + a.number("crossing_uplift_pct") / 100 if crossings else 1.0
     connection = (cable_low * distance_km * uplift, cable_high * distance_km * uplift)
 

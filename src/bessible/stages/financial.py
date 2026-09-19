@@ -45,8 +45,10 @@ async def financial_model(inp: FinancialInput) -> FinancialOutput:
     cost_by_duration: dict[int, CostBreakdown] = {}
     curt_by_duration: dict[int, float] = {}
 
+    voltage_kv = inp.capacity.connection_voltage_kv
+
     for d in (2, 4, 8):
-        c = cost(d, mw, distance_km, crossings=crossings, a=a)
+        c = cost(d, mw, distance_km, crossings=crossings, a=a, voltage_kv=voltage_kv)
         cost_by_duration[d] = c
         curt = curtailment_pct(mw, firm_mw, ceiling_mw, curve, d, max_mw=max_mw, min_mw=min_mw)
         curt_by_duration[d] = curt
@@ -73,13 +75,16 @@ async def financial_model(inp: FinancialInput) -> FinancialOutput:
         else "no crossing uplift applied"
     )
 
+    volt_label = f"{int(voltage_kv)} kV" if voltage_kv else "33 kV"
+    rate_str = "£1.25m-£2m/km" if voltage_kv == 132 else "£500k-£700k/km"
+
     art_cost = Artifact(
         id=f"financial-cost-{inp.run_id[:8]}",
         stage="financial",
         claim=(
             f"Financing terms: interest rate {int_rate:g}%, arrangement fee {arr_fee:g}%, "
             f"discount rate {disc_rate:g}%, debt share {debt_share:g}%, loan term {loan_term} years. "
-            f"33 kV connection (£500k-£700k/km over {distance_km:.2f} km): "
+            f"{volt_label} connection ({rate_str} over {distance_km:.2f} km): "
             f"£{c_4h.connection_gbp[0]:,.0f} - £{c_4h.connection_gbp[1]:,.0f} ({crossing_str}). "
             f"OTCF fee: {c_4h.otcf_state}."
         ),

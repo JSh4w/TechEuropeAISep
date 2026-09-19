@@ -51,6 +51,14 @@ def test_cost_scaling_and_connection():
     assert c_cross.connection_gbp == (625000.0, 875000.0)
     assert c_cross.crossing_uplift_applied is True
 
+    # 132 kV connection cost (£1.25m - £2.0m per km)
+    c132 = cost(4, 80.0, 1.0, crossings=False, a=a, voltage_kv=132)
+    assert c132.connection_gbp == (1250000.0, 2000000.0)
+
+    # 132 kV connection with crossing uplift (25%)
+    c132_cross = cost(4, 80.0, 2.0, crossings=True, a=a, voltage_kv=132)
+    assert c132_cross.connection_gbp == (1250000.0 * 2 * 1.25, 2000000.0 * 2 * 1.25)
+
 
 def test_otcf_thresholds():
     a = load_finance_assumptions()
@@ -159,3 +167,50 @@ async def test_financial_stage_end_to_end():
     # Returns artifact documents returns and flags cases over budget if applicable
     ret_art = next(a for a in out.artifacts if "returns" in a.id)
     assert "25-year returns:" in ret_art.claim
+
+
+@pytest.mark.anyio
+async def test_financial_model_132kv_rate():
+    req = AssessmentRequest(postcode="RH4 1AD", battery_mw=80.0)
+    title = TitleOutput(
+        viable=True, title_number="SY12345", boundary_polygon=[[51.23, -0.33], [51.24, -0.33]], area_m2=50000.0
+    )
+    site = ConfirmedSite(
+        name="Test 80MW Site",
+        postcode="RH4 1AD",
+        position=Position(lat=51.23, lon=-0.33),
+        capacity_mw=80.0,
+        substation="Leatherhead 132kV",
+        boundary=title,
+    )
+    cap = CapacityOutput(
+        viable=True,
+        substation="Leatherhead 132kV",
+        connection_voltage_kv=132.0,
+        firm_mw=85.0,
+        ceiling_mw=100.0,
+        recommended_mw=85.0,
+        distance_km=2.0,
+    )
+    grid = GridOutput(viable=True)
+    market = MarketOutput(
+        revenue_gbp_per_mw_year=88000.0,
+        streams={"wholesale": 45000.0, "capacity_market": 24000.0, "balancing_ancillary": 25000.0},
+    )
+
+    inp = FinancialInput(
+        run_id="run-132kv-fin",
+        request=req,
+        site=site,
+        capacity=cap,
+        grid=grid,
+        market=market,
+    )
+
+    out = await financial_model(inp)
+    cost_art = next(a for a in out.artifacts if "cost" in a.id)
+    assert "132 kV connection" in cost_art.claim
+    assert "£1.25m-£2m/km" in cost_art.claim
+    # 2 km at £1.25m - £2.0m = £2,500,000 - £4,000,000
+    assert "£2,500,000" in cost_art.claim
+    assert "£4,000,000" in cost_art.claim

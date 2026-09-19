@@ -10,16 +10,31 @@
 
 ## Decisions
 
-### Interfaces (fields to be confirmed against the chosen dataset)
+### Chosen Dataset (Task 1.1 Decision)
+
+- **Dataset Name / ID:** `grid-and-primary-sites` (UK Power Networks Grid and Primary Sites)
+- **URL:** https://ukpowernetworks.opendatasoft.com/explore/dataset/grid-and-primary-sites/
+- **Licence:** Creative Commons Attribution 4.0 International (CC BY 4.0)
+- **Access / Download:** Opendatasoft Explore API v2.1 via `bessible.api.ukpn.DATASETS["substations"]` using `UKPN_API_KEY`. In the absence of a key or network, committed offline snapshot `data/ukpn/grid_substations.json` is loaded with full provenance recorded in `manifest.json`.
+
+### Interfaces (confirmed against the chosen dataset)
 
 ```python
 class GridSubstation(BaseModel):
-    id: str; name: str; position: Position
-    voltage_kv: Literal[132]
-    headroom_import_mw: float; headroom_export_mw: float
-    # more fields follow the dataset's columns
+    id: str
+    name: str
+    position: Position
+    voltage_kv: Literal[132] = 132
+    headroom_import_mw: float
+    headroom_export_mw: float
+    site_type: str = "Grid Substation"
+    licence_area: str | None = None
+    gsp: str | None = None
+    bsp: str | None = None
+    max_demand_mva: float | None = None
+    firm_capacity_mva: float | None = None
 
-def propose(position, snapshot, *, flexible: bool, requested_mw: float | None = None) -> CapacityResult
+def propose(position: Position, snapshot: Snapshot, run_id: str, *, flexible: bool, requested_mw: float | None = None) -> CapacityOutput
 ```
 
 `propose` keeps its behaviour when `requested_mw` is `None` or within the primary cap. Above it, `propose` searches `snapshot.grid_substations` within 5 km, uses the same headroom, floor and distance rules with a 100 MW voltage cap, and labels the connection 132 kV.
@@ -30,9 +45,9 @@ def propose(position, snapshot, *, flexible: bool, requested_mw: float | None = 
 
 ## Risks / Trade-offs
 
-- [The chosen dataset is not in Opendatasoft form] → F1 task 1.2 confirms format before any design detail is fixed.
-- [Grid-level headroom means something different] → The artifact states the dataset's own definition.
+- [The chosen dataset is not in Opendatasoft form] → Resolved: `grid-and-primary-sites` is in standard UKPN Opendatasoft form, with schema aligned with `GridPrimarySite`.
+- [Grid-level headroom means something different] → Headroom is derived from transformer firm capacity minus peak demand, with export headroom reflecting the firm transformer capacity.
 
 ## Open Questions
 
-- Which dataset covers grid substations and 132 kV (task 1.1).
+None (all resolved).

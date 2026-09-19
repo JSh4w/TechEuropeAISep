@@ -13,7 +13,14 @@ from pydantic import HttpUrl
 
 from bessible.config import settings
 from bessible.models import AlternateOption, Artifact, CapacityInput, CapacityOutput, Position
-from bessible.ukpn.snapshot import DATASET_ID, DATASET_URL, Snapshot, get_snapshot
+from bessible.ukpn.snapshot import (
+    DATASET_ID,
+    DATASET_URL,
+    GRID_DATASET_ID,
+    GRID_DATASET_URL,
+    Snapshot,
+    get_snapshot,
+)
 
 if TYPE_CHECKING:
     from bessible.api.ukpn import CapacityHeatmapSite
@@ -26,6 +33,7 @@ MARGINAL_KM = 1.0
 MAX_ALTERNATES = 4
 LOW_VOLTAGE_CAP_MW = 8.0  # 22 kV and below
 HIGH_VOLTAGE_CAP_MW = 50.0  # 33 kV and 66 kV
+GRID_VOLTAGE_CAP_MW = 100.0  # 132 kV
 EARTH_RADIUS_KM = 6371.0088
 CHECK_LOG = "capacity_checks.jsonl"
 
@@ -110,12 +118,20 @@ def _viable_message(head: Headroom, *, flexible: bool) -> str | None:
     )
 
 
-def _artifact(run_id: str, suffix: str, claim: str, snapshot: Snapshot, confidence: float = CONFIDENCE) -> Artifact:
+def _artifact(
+    run_id: str,
+    suffix: str,
+    claim: str,
+    snapshot: Snapshot,
+    confidence: float = CONFIDENCE,
+    dataset_id: str = DATASET_ID,
+    dataset_url: str = DATASET_URL,
+) -> Artifact:
     return Artifact(
         id=f"capacity-{suffix}-{run_id[:8]}",
         stage="capacity",
-        claim=f"{claim} [{DATASET_ID}, snapshot {snapshot.fetched_at.isoformat()}]",
-        source_url=HttpUrl(DATASET_URL),
+        claim=f"{claim} [{dataset_id}, snapshot {snapshot.fetched_at.isoformat()}]",
+        source_url=HttpUrl(dataset_url),
         confidence=confidence,
         model_used=MODEL_USED,
     )
@@ -175,8 +191,180 @@ def _artifacts(run_id: str, snapshot: Snapshot, head: Headroom, dist: float) -> 
     ]
 
 
-def propose(position: Position, snapshot: Snapshot, run_id: str, *, flexible: bool) -> CapacityOutput:
+def _propose_grid_level(
+    position: Position,
+    snapshot: Snapshot,
+    run_id: str,
+    *,
+    flexible: bool,
+    requested_mw: float,
+) -> CapacityOutput:
+    """Proposal logic when requested size exceeds the primary voltage cap (>50 MW)."""
+    if requested_mw > GRID_VOLTAGE_CAP_MW:
+        msg = (
+            f"Requested battery size ({requested_mw:g} MW) exceeds maximum grid-level capacity ({GRID_VOLTAGE_CAP_MW:g} MW); "
+            "sites above 100 MW are out of scope"
+        )
+        return CapacityOutput(
+            viable=False,
+            message=msg,
+            out_of_area=False,
+            snapshot_date=snapshot.fetched_at,
+            artifacts=[
+                _artifact(
+                    run_id,
+                    "scope",
+                    f"Out of scope: {msg}",
+                    snapshot,
+                    confidence=1.0,
+                    dataset_id=GRID_DATASET_ID,
+                    dataset_url=GRID_DATASET_URL,
+                )
+            ],
+        )
+
+    grid_subs = [
+        g
+        for g in snapshot.grid_substations
+        if g.position is not None and g.position.lat is not None and g.position.lon is not None
+    ]
+    ranked = sorted(
+        ((haversine_km(position, g.position.lat, g.position.lon), g) for g in grid_subs),
+        key=itemgetter(0),
+    )
+    nearby = [(d, g) for d, g in ranked if d <= SEARCH_RADIUS_KM]
+    if not nearby:
+        msg = (
+            f"No UK Power Networks grid-level substation within {SEARCH_RADIUS_KM:g} km in the snapshot; "
+            "no grid-level data covers the site"
+        )
+        return CapacityOutput(
+            viable=False,
+            message=msg,
+            out_of_area=True,
+            snapshot_date=snapshot.fetched_at,
+            artifacts=[
+                _artifact(
+                    run_id,
+                    "area",
+                    f"No grid-level coverage: {msg}",
+                    snapshot,
+                    confidence=0.8,
+                    dataset_id=GRID_DATASET_ID,
+                    dataset_url=GRID_DATASET_URL,
+                )
+            ],
+        )
+
+    dist, serving = nearby[0]
+    import_mw = serving.headroom_import_mw
+    export_mw = serving.headroom_export_mw
+    binding_direction: Literal["import", "export"] = "import" if import_mw <= export_mw else "export"
+    firm_mw = min(import_mw, export_mw, GRID_VOLTAGE_CAP_MW)
+    ceiling_mw = max(firm_mw, min(import_mw, GRID_VOLTAGE_CAP_MW))
+    size_mw = ceiling_mw if flexible else firm_mw
+
+    if size_mw < FLOOR_MW:
+        if not flexible and ceiling_mw >= FLOOR_MW:
+            msg = (
+                f"Firm capacity at {serving.name} is {firm_mw:.1f} MW (below the {FLOOR_MW:g} MW floor); "
+                f"ceiling is {ceiling_mw:.1f} MW. Enable flexible connection (--flexible) to use the ceiling."
+            )
+        else:
+            msg = (
+                f"Ceiling capacity at {serving.name} is {ceiling_mw:.1f} MW, below the {FLOOR_MW:g} MW floor; "
+                f"firm capacity is {firm_mw:.1f} MW."
+            )
+        viable = False
+    else:
+        viable = True
+        msg = None
+
+    scored_alts: list[tuple[float, AlternateOption]] = []
+    for d, g in nearby[1 : MAX_ALTERNATES + 1]:
+        alt_firm = min(g.headroom_import_mw, g.headroom_export_mw, GRID_VOLTAGE_CAP_MW)
+        alt_ceiling = max(alt_firm, min(g.headroom_import_mw, GRID_VOLTAGE_CAP_MW))
+        alt_size = alt_ceiling if flexible else alt_firm
+        opt = AlternateOption(
+            substation=g.name,
+            distance_km=round(d, 2),
+            size_mw=round(alt_size, 2),
+            marginal=d > MARGINAL_KM,
+        )
+        scored_alts.append((alt_size * distance_weight(d), opt))
+    alternates = [opt for _, opt in sorted(scored_alts, key=lambda t: -t[0])]
+
+    marginal_note = f"; {dist:.1f} km away, marginal beyond {MARGINAL_KM:g} km" if dist > MARGINAL_KM else ""
+    artifacts = [
+        _artifact(
+            run_id,
+            "substation",
+            f"Predicted point of connection: {serving.name} (132 kV), "
+            f"{dist:.2f} km away{marginal_note}. "
+            "Grid-level substation connection for large request (>50 MW)",
+            snapshot,
+            dataset_id=GRID_DATASET_ID,
+            dataset_url=GRID_DATASET_URL,
+        ),
+        _artifact(
+            run_id,
+            "headroom",
+            f"Effective headroom at {serving.name}: import {import_mw:.1f} MW, export {export_mw:.1f} MW",
+            snapshot,
+            dataset_id=GRID_DATASET_ID,
+            dataset_url=GRID_DATASET_URL,
+        ),
+        _artifact(
+            run_id,
+            "range",
+            f"Firm {firm_mw:.1f} MW, ceiling {ceiling_mw:.1f} MW, limited by {binding_direction}; "
+            f"132 kV connection capped at {GRID_VOLTAGE_CAP_MW:g} MW",
+            snapshot,
+            dataset_id=GRID_DATASET_ID,
+            dataset_url=GRID_DATASET_URL,
+        ),
+        _artifact(
+            run_id,
+            "context",
+            f"Context only, not used in the verdict: licence area {serving.licence_area or 'unknown'}; "
+            f"parent GSP {serving.gsp or 'unknown'}; Bulk Supply Point {serving.bsp or 'unknown'}",
+            snapshot,
+            dataset_id=GRID_DATASET_ID,
+            dataset_url=GRID_DATASET_URL,
+        ),
+    ]
+
+    return CapacityOutput(
+        viable=viable,
+        message=msg,
+        out_of_area=False,
+        substation=serving.name,
+        connection_voltage_kv=132.0,
+        firm_mw=firm_mw,
+        ceiling_mw=ceiling_mw,
+        recommended_mw=size_mw,
+        binding_direction=binding_direction,
+        binding_season=None,
+        distance_km=round(dist, 2),
+        alternates=alternates,
+        tia_threshold_mw=None,
+        snapshot_date=snapshot.fetched_at,
+        artifacts=artifacts,
+    )
+
+
+def propose(
+    position: Position,
+    snapshot: Snapshot,
+    run_id: str,
+    *,
+    flexible: bool,
+    requested_mw: float | None = None,
+) -> CapacityOutput:
     """Deterministic capacity proposal for a position. Pure: no I/O, no clock."""
+    if requested_mw is not None and requested_mw > HIGH_VOLTAGE_CAP_MW:
+        return _propose_grid_level(position, snapshot, run_id, flexible=flexible, requested_mw=requested_mw)
+
     primaries = [
         r for r in snapshot.substations if r.type == "Primary" and r.latitude is not None and r.longitude is not None
     ]
@@ -244,6 +432,12 @@ def _append_check_log(inp: CapacityInput, out: CapacityOutput) -> None:
 async def propose_capacity(inp: CapacityInput) -> CapacityOutput:
     """Assess available grid headroom at the located position and propose capacity limits."""
     snapshot = await asyncio.to_thread(get_snapshot)
-    out = propose(inp.location.position, snapshot, inp.run_id, flexible=inp.request.flexible_connection)
+    out = propose(
+        inp.location.position,
+        snapshot,
+        inp.run_id,
+        flexible=inp.request.flexible_connection,
+        requested_mw=inp.request.battery_mw,
+    )
     await asyncio.to_thread(_append_check_log, inp, out)
     return out

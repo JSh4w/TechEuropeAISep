@@ -85,3 +85,28 @@ async def test_handle_confirmation_prompt_auto_yes():
     assert decision.capacity_mw == 10.0
     assert decision.footprint_geojson is not None
     assert decision.footprint_geojson["type"] == "Polygon"
+
+
+@pytest.mark.anyio
+async def test_cli_prompt_confirmation_132kv(capsys):
+    from unittest.mock import AsyncMock
+
+    from bessible.cli import _handle_confirmation_prompt
+    from bessible.models import CapacityOutput, RunStatus
+
+    cap = CapacityOutput(
+        viable=True,
+        substation="Leatherhead 132kV",
+        connection_voltage_kv=132.0,
+        firm_mw=85.0,
+        ceiling_mw=100.0,
+        recommended_mw=85.0,
+    )
+    st = RunStatus(status="awaiting_confirmation", capacity=cap)
+    mock_handle = AsyncMock()
+
+    await _handle_confirmation_prompt(mock_handle, st, auto_yes=True)
+    captured = capsys.readouterr()
+    assert "Substation:         Leatherhead 132kV" in captured.out
+    assert "Connection Voltage: 132 kV" in captured.out
+    mock_handle.execute_update.assert_awaited_once()
