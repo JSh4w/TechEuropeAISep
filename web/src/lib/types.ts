@@ -100,6 +100,14 @@ export interface FinancialCase {
   irr?: number;
 }
 
+export interface SentimentOutput {
+  opposition_index?: number | null; // 0-1, None = unknown
+  top_concerns?: string[];
+  sources?: number;
+  paragraphs?: number;
+  artifacts?: Artifact[];
+}
+
 export interface ReportOutput {
   verdict: 'go' | 'maybe' | 'no_go';
   findings: Array<{ text: string; artifact_ids: string[] }>;
@@ -127,6 +135,7 @@ export interface AssessmentResult {
     consenting_route: string;
     planning_risk: string;
   };
+  sentiment?: SentimentOutput;
   durations?: {
     cases: FinancialCase[];
   };

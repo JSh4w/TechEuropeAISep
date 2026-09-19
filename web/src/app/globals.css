@@ -129,3 +129,16 @@
     @apply font-sans;
   }
 }
+
+@media print {
+  header,
+  .print-hide,
+  input,
+  button:not(.print-include) {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}

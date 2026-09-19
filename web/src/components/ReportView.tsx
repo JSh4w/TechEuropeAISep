@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { AssessmentResult, Artifact, FinancialCase } from '../lib/types';
+import { downloadMarkdownReport, printReport } from '../lib/reportExport';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,10 @@ import {
   FileText,
   BadgePercent,
   Compass,
+  Download,
+  Printer,
+  Users,
+  CheckCircle,
 } from 'lucide-react';
 
 interface ReportViewProps {
@@ -96,17 +101,41 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
             </p>
           </div>
 
-          {onReset && (
+          <div className="flex flex-wrap items-center gap-2 self-start md:self-center">
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={onReset}
-              className="self-start md:self-center text-xs font-semibold"
+              onClick={() => downloadMarkdownReport(result)}
+              className="text-xs font-semibold gap-1.5"
             >
-              Assess Another Site
+              <Download className="w-3.5 h-3.5" />
+              <span>Download (.md)</span>
             </Button>
-          )}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={printReport}
+              className="text-xs font-semibold gap-1.5"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Print / PDF</span>
+            </Button>
+
+            {onReset && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={onReset}
+                className="text-xs font-semibold"
+              >
+                Assess Another Site
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -239,6 +268,56 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
               <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 text-[11px]">
                 {land_planning?.planning_risk || 'Low / Moderate'}
               </Badge>
+            </div>
+
+            {/* Local Community Sentiment & Opposition Index */}
+            <div className="pt-2 border-t border-border/60 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground flex items-center gap-1.5 font-medium">
+                  <Users className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                  <span>Community Opposition Risk</span>
+                </span>
+                <Badge
+                  variant="outline"
+                  className={`text-[11px] font-semibold ${
+                    (result.sentiment?.opposition_index ?? 0.24) <= 0.35
+                      ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                      : (result.sentiment?.opposition_index ?? 0.24) <= 0.65
+                      ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                      : 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30'
+                  }`}
+                >
+                  {((result.sentiment?.opposition_index ?? 0.24) * 100).toFixed(0)}% Index (
+                  {(result.sentiment?.opposition_index ?? 0.24) <= 0.35
+                    ? 'Low Opposition'
+                    : (result.sentiment?.opposition_index ?? 0.24) <= 0.65
+                    ? 'Moderate'
+                    : 'Elevated'}
+                  )
+                </Badge>
+              </div>
+
+              <div className="p-2.5 bg-muted/40 rounded-lg border border-border text-[11px] space-y-1.5">
+                <div className="flex justify-between text-muted-foreground">
+                  <span>DeBERTa Sentiment Scan:</span>
+                  <span className="font-medium text-foreground">
+                    {result.sentiment?.sources ?? 4} articles ({result.sentiment?.paragraphs ?? 16} paragraphs)
+                  </span>
+                </div>
+                {(result.sentiment?.top_concerns ?? ['Acoustic Enclosures', 'Fire Safety', 'Visual Buffering']).length > 0 && (
+                  <div className="pt-0.5 flex flex-wrap items-center gap-1">
+                    <span className="text-muted-foreground text-[10px]">Key Themes:</span>
+                    {(result.sentiment?.top_concerns ?? ['Acoustic Enclosures', 'Fire Safety', 'Visual Buffering']).map((concern) => (
+                      <span
+                        key={concern}
+                        className="px-1.5 py-0.5 rounded bg-background border border-border text-[10px] text-foreground font-medium"
+                      >
+                        {concern}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
