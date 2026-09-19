@@ -8,6 +8,7 @@ dependencies = [
     "modal>=1.5.5",
     "pydantic-ai-slim[anthropic,google,logfire,openai,temporal,typesafe]>=2.46.0",
     "pydantic-settings>=2.15.0",
+    "shapely>=2.1.2",
     "temporalio>=1.33.0",
 ]
 
@@ -47,6 +48,7 @@ dev = [
     "mypy>=2.3.1",
     "pytest>=9.1.1",
     "ruff>=0.16.8",
+    "types-shapely>=2.1.0.20260728",
 ]
 
 [tool.ruff]

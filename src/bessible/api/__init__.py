@@ -2,7 +2,7 @@
 
 These classes model the wire format only: every request param and every response field, nothing derived.
 Responses forbid unknown fields, so a new upstream field fails loudly (our model is stale). The refined,
-BESS-specific models that pick and transform what we need are built on top of these, elsewhere.
+BESS-specific models that pick and transform what we need are built on top of these, in `bessible.location`.
 
 Every module has the same layout:
 

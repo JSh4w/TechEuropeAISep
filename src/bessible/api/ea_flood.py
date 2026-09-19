@@ -41,6 +41,8 @@ class FloodZoneRequest(ApiRequest):
     property_name: str | None = Field(default="origin,flood_zone,flood_source", serialization_alias="propertyName")
     # ECQL. EWKT points are lon-lat order: INTERSECTS(shape,SRID=4326;POINT(lon lat))
     cql_filter: str | None = None
+    # CRS of the returned geometry; the server default is the native EPSG:27700.
+    srs_name: str | None = Field(default=None, serialization_alias="srsName")
 
 
 # ----------------------------------------- 2. Response ------------------------------------------ #
@@ -56,6 +58,7 @@ class FloodZoneResponse(ApiResponse):
     number_returned: int = Field(alias="numberReturned")
     time_stamp: datetime | None = Field(default=None, alias="timeStamp")
     crs: dict[str, Any] | None = None
+    bbox: list[float] | None = None  # extent of the features; only present when the geometry is requested
 
 
 # ------------------------------------ 3. Response sub-models ------------------------------------ #
@@ -75,6 +78,7 @@ class FloodZoneFeature(ApiResponse):
     type: Literal["Feature"]
     id: str
     geometry: dict[str, Any] | None = None  # null unless `shape` is requested
+    geometry_name: str | None = None  # "shape"; only present when the geometry is
     properties: FloodZoneProperties
     bbox: list[float] | None = None  # EPSG:27700 [minE, minN, maxE, maxN]
 
@@ -88,3 +92,17 @@ def flood_zone_at_point(lat: float, lon: float, buffer_m: float | None = None) -
     if buffer_m is None:
         return FloodZoneRequest(cql_filter=f"INTERSECTS(shape,{point})")
     return FloodZoneRequest(cql_filter=f"DWITHIN(shape,{point},{buffer_m},meters)")
+
+
+def flood_zones_in_bbox(min_lat: float, min_lon: float, max_lat: float, max_lon: float) -> FloodZoneRequest:
+    """Request the zones touching a WGS84 box, with their polygons in WGS84 (to measure against a site).
+
+    A box, not the site polygon: INTERSECTS with an EPSG:4326 polygon matches nothing on this server
+    (verified live 2026-09), while BBOX with an explicit CRS does.
+    """
+    return FloodZoneRequest(
+        cql_filter=f"BBOX(shape,{min_lon},{min_lat},{max_lon},{max_lat},'EPSG:4326')",
+        property_name=None,
+        srs_name="EPSG:4326",
+        count=200,
+    )
