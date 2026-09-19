@@ -1,0 +1,9 @@
+{
+  "stream": "wholesale",
+  "source": "Wholesale arbitrage (Elexon market index prices), fixture",
+  "source_url": "https://www.elexon.co.uk/",
+  "as_of": "2026-09-19",
+  "status": "placeholder",
+  "note": "PLACEHOLDER figures, not agreed and not from a live or paid feed. Arbitrage revenue rises with duration.",
+  "gbp_per_mw_year_by_duration": {"2": 30000, "4": 45000, "8": 55000}
+}

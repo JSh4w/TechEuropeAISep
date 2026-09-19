@@ -1,13 +1,13 @@
 ## 1. F1 consenting-route (start here, no model call)
 
-- [ ] 1.1 Write `planning/route.py` `consenting_route` and `lookup_lpa` (postcodes.io with cached fixtures); verify by printing the route for 6 MW and 49 MW (same route), and for a known district, an unknown one, and a Welsh postcode
-- [ ] 1.2 Add planning risks from `site_land` constraints with artifact citations; verify each printed risk cites an existing artifact id
-- [ ] 1.3 Replace `stages/planning.py` with F1 output and artifacts (NSIP fact with source link, LPA); verify a Temporal run prints the route and LPA
+- [x] 1.1 Write `planning/route.py` `consenting_route` and `lookup_lpa` (postcodes.io with cached fixtures); verify by printing the route for 6 MW and 49 MW (same route), and for a known district, an unknown one, and a Welsh postcode
+- [x] 1.2 Add planning risks from `site_land` constraints with artifact citations; verify each printed risk cites an existing artifact id
+- [x] 1.3 Replace `stages/planning.py` with F1 output and artifacts (NSIP fact with source link, LPA); verify a Temporal run prints the route and LPA
 
 ## 2. F2 transmission-impact (independent of F1; needs `tia_threshold_mw` from the capacity change)
 
-- [ ] 2.1 Write `planning/tia.py` `tia_statement`; verify by printing threshold 5 at 5 MW, threshold 1 at 8 MW, and unknown threshold
-- [ ] 2.2 Add the TIA artifact and optional `tia` field to `PlanningOutput`; verify a Temporal run shows "TIA triggered" for a UKPN postcode
+- [x] 2.1 Write `planning/tia.py` `tia_statement`; verify by printing threshold 5 at 5 MW, threshold 1 at 8 MW, and unknown threshold
+- [x] 2.2 Add the TIA artifact and optional `tia` field to `PlanningOutput`; verify a Temporal run shows "TIA triggered" for a UKPN postcode
 
 ## 3. F3 planning-evidence (independent of F1, F2)
 
