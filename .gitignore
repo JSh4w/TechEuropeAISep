@@ -221,8 +221,12 @@ __marimo__/
 .python-version
 
 # local experiments and run output
-sandbox/
+sandbox/*
+!sandbox/map_session/
 out/
+
+# scripts/site_report.py output
+site_report_*.html
 
 # Node / Next.js
 node_modules/
@@ -231,4 +235,3 @@ web/node_modules/
 web/.next/
 web/out/
 .context/
-

@@ -1,0 +1,140 @@
+{
+ "total_count": 17,
+ "results": [
+  {
+   "geo_point_2d": {
+    "lon": -2.9471727485877386,
+    "lat": 57.5251730292531
+   },
+   "geo_shape": {
+    "type": "Feature",
+    "geometry": {
+     "coordinates": [
+      [
+       -2.946967171144536,
+       57.52537675466726,
+       0.0
+      ],
+      [
+       -2.947378326030942,
+       57.52496930383894,
+       0.0
+      ]
+     ],
+     "type": "LineString"
+    },
+    "properties": {}
+   },
+   "ex_date": null,
+   "voltage": 275000
+  },
+  {
+   "geo_point_2d": {
+    "lon": -2.947198288920506,
+    "lat": 57.525176514098646
+   },
+   "geo_shape": {
+    "type": "Feature",
+    "geometry": {
+     "coordinates": [
+      [
+       -2.946967171144536,
+       57.52537675466726,
+       0.0
+      ],
+      [
+       -2.947429406696476,
+       57.52497627353002,
+       0.0
+      ]
+     ],
+     "type": "LineString"
+    },
+    "properties": {}
+   },
+   "ex_date": null,
+   "voltage": 275000
+  },
+  {
+   "geo_point_2d": {
+    "lon": -2.9472245889790045,
+    "lat": 57.525180102592614
+   },
+   "geo_shape": {
+    "type": "Feature",
+    "geometry": {
+     "coordinates": [
+      [
+       -2.946967171144536,
+       57.52537675466726,
+       0.0
+      ],
+      [
+       -2.947482006813473,
+       57.52498345051796,
+       0.0
+      ]
+     ],
+     "type": "LineString"
+    },
+    "properties": {}
+   },
+   "ex_date": null,
+   "voltage": 275000
+  },
+  {
+   "geo_point_2d": {
+    "lon": -2.947469487150201,
+    "lat": 57.52516594202371
+   },
+   "geo_shape": {
+    "type": "Feature",
+    "geometry": {
+     "coordinates": [
+      [
+       -2.947168162993363,
+       57.525309028234176,
+       0.0
+      ],
+      [
+       -2.947770811307038,
+       57.52502285581324,
+       0.0
+      ]
+     ],
+     "type": "LineString"
+    },
+    "properties": {}
+   },
+   "ex_date": null,
+   "voltage": 275000
+  },
+  {
+   "geo_point_2d": {
+    "lon": -2.9475032296478334,
+    "lat": 57.5251705458909
+   },
+   "geo_shape": {
+    "type": "Feature",
+    "geometry": {
+     "coordinates": [
+      [
+       -2.947168162993363,
+       57.525309028234176,
+       0.0
+      ],
+      [
+       -2.947838296302304,
+       57.525032063547634,
+       0.0
+      ]
+     ],
+     "type": "LineString"
+    },
+    "properties": {}
+   },
+   "ex_date": null,
+   "voltage": 275000
+  }
+ ]
+}

@@ -15,13 +15,14 @@ deepmind llama : do you save cache between those multiple models/ threads? Consu
 ## Setup (macOS or Linux)
 
 ```bash
-./scripts/setup.sh    # installs uv + Temporal CLI (via Homebrew on Mac), Python deps, creates .env, logs in to Modal
+./scripts/setup.sh    # installs uv, Temporal CLI, Node (Homebrew on Mac), Python + web deps, creates .env, logs in to Modal
+./scripts/dev.sh      # starts Temporal + worker + web UI, opens http://localhost:3000; Ctrl+C stops all
 ```
 
 1. Fill in `.env` with the keys (get them from Josh privately, never commit `.env`). `GOOGLE_API_KEY` and `PYDANTIC_AI_GATEWAY_API_KEY` are required.
 2. Accept the invite to Josh's Modal workspace, then `uv run modal profile activate <workspace>` if you're in more than one.
-3. Start Temporal in its own terminal: `temporal server start-dev` (UI at http://localhost:8233).
-4. Check everything: `uv run python scripts/check_env.py` (add `--live` to test Gemini and the Modal model)
+3. Check everything: `uv run python scripts/check_env.py` (add `--live` to test Gemini and the Modal model). Needs Temporal running (`./scripts/dev.sh` or `temporal server start-dev`).
+4. Run the map prototype (base for the final build): `./scripts/dev.sh`. Logs in `out/logs/`, Temporal UI at http://localhost:8233. Details: `sandbox/map_session/web/README.md`.
 
 Run Python with `uv run ...` (or `source .venv/bin/activate`). Add packages with `uv add <pkg>`, not pip.
 For OpenSpec's `/opsx` commands: `npm install -g @fission-ai/openspec@latest`.

@@ -34,17 +34,26 @@ model used); the report is built only from artifacts. CLI first; a web UI is opt
   Modal + model wiring, env setup.
 
 ## Setup & commands
-- `./scripts/setup.sh` — installs uv + Temporal CLI (Homebrew on Mac), `uv sync`, creates `.env`, Modal login.
+- `./scripts/setup.sh` — installs uv, Temporal CLI, Node (Homebrew on Mac), `uv sync`, web `npm ci`, `.env`, Modal login.
+- `./scripts/dev.sh` — starts Temporal (reuses a running one; persists to `out/temporal.db`), the map worker and web UI;
+  Ctrl+C stops what it started; logs in `out/logs/`. Must stay bash 3.2-compatible (macOS demo machine).
 - `temporal server start-dev` — local Temporal (UI http://localhost:8233). Linux CLI lives in `~/.temporalio/bin`.
 - `uv run python scripts/check_env.py [--live]` — checks keys, Temporal, Modal login; `--live` pings Gemini + Modal.
 - Python via **uv** only: `uv run ...`, `uv add <pkg>` (never pip). Python 3.13–3.14. Package code in `src/bessible/`.
-- `sandbox/` and `out/` are gitignored. `sandbox/workflow_demo.py` is a working single-file Temporal demo of the whole
+- `sandbox/` (except `sandbox/map_session/`) and `out/` are gitignored. `sandbox/workflow_demo.py` is a working single-file Temporal demo of the whole
   pipeline with dummy activities and the HITL prompt (`uv run python sandbox/workflow_demo.py start <url>`).
 
 ## Code map
 - `src/bessible/config.py` — `settings` (pydantic-settings, reads `.env`; empty values count as unset).
 - `src/bessible/llm.py` — `gemini_model()`, `modal_model()` (gateway route), `setup_logfire()`. Keys are passed from
   `settings` explicitly because `.env` is not loaded into `os.environ`.
+
+- `sandbox/map_session/` — tracked prototype, the base for the final build (the rest of `sandbox/` is gitignored).
+  `workflow.py`: `AssessWorkflow` (task queue `bessible-web`): AI suggests area → human edits on the map (`submit_area`
+  update, validated) → `confirm_area` → engines; the UI polls the `state` query. `activities.py` (dummies),
+  `models.py` (Pydantic, mirrored in `web/lib/types.ts`), `worker.py` (`uv run python sandbox/map_session/worker.py`).
+  `web/`: Next.js map UI; its route handlers are the only Temporal client and call workflow/query/update names as
+  strings (`web/lib/temporal.ts`), so rename both sides together. See `web/README.md`.
 
 ## Secrets
 - `.env` is gitignored; `.env.example` lists every key. Keys are Josh's accounts, shared privately — never commit,
