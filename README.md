@@ -47,6 +47,43 @@ uv run uvicorn bessible.api.app:app --host 0.0.0.0 --port 8000
 
 ---
 
+## Running the Frontend
+
+The web UI is a Next.js 16 application featuring an interactive MapLibre map, live SSE pipeline trace, human-in-the-loop decision controls, and synthesized report viewing.
+
+### 1. Prerequisites
+
+- **Node.js 20+** (`node -v` >= 20.9)
+- **FastAPI backend** running on `http://localhost:8000` (step 4 above)
+
+### 2. Install Dependencies
+
+Navigate to the `web/` directory and install the packages:
+
+```bash
+cd web
+npm install
+```
+
+### 3. Start the Development Server
+
+```bash
+npm run dev
+```
+
+* The frontend is accessible at **http://localhost:3000**.
+* By default, it communicates with the API at `http://localhost:8000`. If running on a different port or host, set `NEXT_PUBLIC_API_URL` (e.g. `NEXT_PUBLIC_API_URL=http://localhost:8080 npm run dev`).
+
+### Alternative: All-in-One Dev Script
+
+To start Temporal dev server, the Python worker, FastAPI API server, and the Next.js frontend all together in a single command:
+
+```bash
+./scripts/dev.sh
+```
+
+---
+
 ## CLI Usage
 
 The backend CLI (`bessible.cli`) allows you to start assessments, confirm site parameters, and inspect results.
