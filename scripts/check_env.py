@@ -1,13 +1,15 @@
 """Check the dev environment is ready: secrets, Temporal server, Modal login.
 
-    uv run python scripts/check_env.py          # config only
-    uv run python scripts/check_env.py --live   # also send one tiny prompt to Gemini and the Modal model
+uv run python scripts/check_env.py          # config only
+uv run python scripts/check_env.py --live   # also send one tiny prompt to Gemini and the Modal model
 """
 
+from __future__ import annotations
+
 import asyncio
-import subprocess
 import sys
 
+from modal.config import config as modal_config
 from pydantic_ai import Agent
 from temporalio.client import Client
 
@@ -52,7 +54,7 @@ def main() -> None:
         ),
         check(
             "Modal login",
-            subprocess.run(["modal", "profile", "current"], capture_output=True).returncode == 0,
+            bool(modal_config.get("token_id")),
             "run `uv run modal setup`",
         ),
     ]

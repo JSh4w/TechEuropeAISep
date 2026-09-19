@@ -15,9 +15,31 @@ dependencies = [
 requires = ["uv_build>=0.10,<0.11"]
 build-backend = "uv_build"
 
+# Pylance / pyright (the editor's checker). mypy with the pydantic plugin stays the source of truth.
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
+pythonVersion = "3.13"
+include = ["src", "scripts", "tests"]
+# Pydantic models narrow inherited fields on purpose (e.g. `dataset: Literal["green-belt"]`).
+reportIncompatibleVariableOverride = false
+
+[[tool.pyright.executionEnvironments]]
+root = "tests"
+extraPaths = ["src"]
+# Tests assert on parsed fixtures: Optional fields are read without None checks, models built by field name.
+reportOptionalMemberAccess = false
+reportOptionalSubscript = false
+reportOptionalOperand = false
+reportOptionalIterable = false
+reportOperatorIssue = false
+reportArgumentType = false
+reportAttributeAccessIssue = false
+reportCallIssue = false
+
+[[tool.pyright.executionEnvironments]]
+root = "."
+extraPaths = ["src"]
 
 [dependency-groups]
 dev = [
@@ -49,6 +71,21 @@ ignore = [
     ]
 
 [tool.ruff.lint.per-file-ignores]
+# A command-line script: prints, runs top to bottom, holds the map's JavaScript and UI text (en dashes intended).
+"scripts/site_report.py" = [
+    "print",
+    "implicit-namespace-package",
+    "any-type",
+    "complex-structure",
+    "too-many-statements",
+    "too-many-locals",
+    "too-many-branches",
+    "too-many-arguments",
+    "too-many-positional-arguments",
+    "too-many-statements-in-try-clause",
+    "line-too-long",
+    "ambiguous-unicode-character-string",
+    ]
 "test_*" = [
     "ANN",
     "D",
@@ -81,7 +118,22 @@ ignore = [
 "src/bessible/workflow.py" = ["TC"]
 
 [tool.ruff.lint.flake8-type-checking]
-runtime-evaluated-base-classes = ["pydantic.BaseModel", "pydantic_settings.BaseSettings"]
+# Ruff does not follow inheritance across modules, so our pydantic base classes are listed too.
+runtime-evaluated-base-classes = [
+    "pydantic.BaseModel",
+    "pydantic_settings.BaseSettings",
+    "bessible.api.base.ApiRequest",
+    "bessible.api.base.ApiResponse",
+    "bessible.api.base.NullMarkerResponse",
+    "bessible.api.ckan.CkanResponse",
+    "bessible.api.ckan.DatastoreSearchRequest",
+    "bessible.api.ckan.DatastoreSearchSqlRequest",
+    "bessible.api.ckan.PackageSearchRequest",
+    "bessible.api.ckan.PackageShowRequest",
+    "bessible.api.nged._Record",
+    "bessible.api.ssen_distribution._Record",
+    "bessible.api.planning_data.EntityBase",
+]
 
 [tool.ruff.lint.isort]
 required-imports = ["from __future__ import annotations"]
@@ -95,6 +147,7 @@ testpaths = ["tests"]
 
 [tool.mypy]
 strict = true
+plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
 module = "tests.*"

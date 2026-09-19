@@ -65,20 +65,24 @@ class OverheadLine(ApiResponse):
 class RegisterRecord(ApiResponse):
     """Row of the SSEN TEC register or Embedded register (columns as NESO's ``TecRegisterRecord``)."""
 
-    project_name: str | None = Field(None, alias="tec_register_records_project_name")
-    customer_name: str | None = Field(None, alias="tec_register_records_customer_name")
-    connection_site: str | None = Field(None, alias="tec_register_records_connection_site")  # only location column
-    stage: int | None = Field(None, alias="tec_register_records_stage")
-    mw_connected: float | None = Field(None, alias="tec_register_records_mw_connected")
-    mw_increase_decrease: float | None = Field(None, alias="tec_register_records_mw_increase_decrease")
-    cumulative_total_capacity_mw: float | None = Field(None, alias="tec_register_records_cumulative_total_capacity_mw")
-    mw_effective_from: date | None = Field(None, alias="tec_register_records_mw_effective_from")
-    project_status: str | None = Field(None, alias="tec_register_records_project_status")
-    agreement_type: str | None = Field(None, alias="tec_register_records_agreement_type")
-    host_to: str | None = Field(None, alias="tec_register_records_host_to")  # always SHET here
-    plant_type: str | None = Field(None, alias="tec_register_records_plant_type")
-    project_id: str | None = Field(None, alias="tec_register_records_project_id")
-    project_number: str | None = Field(None, alias="tec_register_records_project_number")
+    project_name: str | None = Field(default=None, alias="tec_register_records_project_name")
+    customer_name: str | None = Field(default=None, alias="tec_register_records_customer_name")
+    connection_site: str | None = Field(
+        default=None, alias="tec_register_records_connection_site"
+    )  # only location column
+    stage: int | None = Field(default=None, alias="tec_register_records_stage")
+    mw_connected: float | None = Field(default=None, alias="tec_register_records_mw_connected")
+    mw_increase_decrease: float | None = Field(default=None, alias="tec_register_records_mw_increase_decrease")
+    cumulative_total_capacity_mw: float | None = Field(
+        default=None, alias="tec_register_records_cumulative_total_capacity_mw"
+    )
+    mw_effective_from: date | None = Field(default=None, alias="tec_register_records_mw_effective_from")
+    project_status: str | None = Field(default=None, alias="tec_register_records_project_status")
+    agreement_type: str | None = Field(default=None, alias="tec_register_records_agreement_type")
+    host_to: str | None = Field(default=None, alias="tec_register_records_host_to")  # always SHET here
+    plant_type: str | None = Field(default=None, alias="tec_register_records_plant_type")
+    project_id: str | None = Field(default=None, alias="tec_register_records_project_id")
+    project_number: str | None = Field(default=None, alias="tec_register_records_project_number")
 
 
 # -------------------- 4. Not from the API (helpers, registries, transforms) --------------------- #

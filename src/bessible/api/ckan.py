@@ -50,9 +50,9 @@ class PackageSearchRequest(ApiRequest):
     start: int | None = Field(default=None, ge=0)
     sort: str | None = None  # e.g. "metadata_modified desc"; default "score desc, metadata_modified desc"
     facet: bool | None = None
-    facet_field: list[str] | None = Field(default=None, alias="facet.field")  # sent as JSON list
-    facet_limit: int | None = Field(default=None, alias="facet.limit")  # default 50, negative = unlimited
-    facet_mincount: int | None = Field(default=None, alias="facet.mincount")
+    facet_field: list[str] | None = Field(default=None, serialization_alias="facet.field")  # sent as JSON list
+    facet_limit: int | None = Field(default=None, serialization_alias="facet.limit")  # default 50, negative = unlimited
+    facet_mincount: int | None = Field(default=None, serialization_alias="facet.mincount")
     include_drafts: bool | None = None
     include_private: bool | None = None
     use_default_schema: bool | None = None

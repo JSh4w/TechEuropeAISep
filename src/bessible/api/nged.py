@@ -79,7 +79,7 @@ class EcrResponse(ckan.CkanResponse):
 class _Record(NullMarkerResponse):
     """A datastore row: NGED writes empty cells as ``""`` whatever the column type (read as None)."""
 
-    id: int | None = Field(None, alias="_id")
+    id: int | None = Field(default=None, alias="_id")
 
 
 class CapacityMapSite(_Record):
@@ -90,57 +90,61 @@ class CapacityMapSite(_Record):
     (typed ``float | str`` because the datastore calls them text).
     """
 
-    substation_id: int | None = Field(None, alias="substationID")
-    heatmap_dataset_id: str | None = Field(None, alias="heatmapDatasetID")
+    substation_id: int | None = Field(default=None, alias="substationID")
+    heatmap_dataset_id: str | None = Field(default=None, alias="heatmapDatasetID")
     type: str | None = None  # "Primary" | "BSP" | "Secondary" (~120k distribution substations)
     area: str | None = None  # "South West" | "South Wales" | "East Midlands" | "West Midlands"
     name: str | None = None
-    substation_number: int | None = Field(None, alias="substationNumber")
+    substation_number: int | None = Field(default=None, alias="substationNumber")
     description: str | None = None
     voltages: str | None = None
     longitude: float | None = None
     latitude: float | None = None
     primary: str | None = None
-    bsp: str | None = Field(None, alias="BSP")  # bulk supply point feeding it, e.g. "Fraddon Bsp"
+    bsp: str | None = Field(default=None, alias="BSP")  # bulk supply point feeding it, e.g. "Fraddon Bsp"
     gsp: str | None = Field(
-        None, alias="GSP"
+        default=None, alias="GSP"
     )  # grid supply point, e.g. "Indian Queens  S.G.P." (join to NESO after clean_site_name)
-    demand_total_capacity: float | str | None = Field(None, alias="demandTotalCapacity")
+    demand_total_capacity: float | str | None = Field(default=None, alias="demandTotalCapacity")
     demand_connected_headroom_mw: float | None = Field(
-        None, alias="demandConnectedHeadroomMW"
+        default=None, alias="demandConnectedHeadroomMW"
     )  # import headroom against what is connected today
     demand_contracted_headroom_mw: float | None = Field(
-        None, alias="demandContractedHeadroomMW"
+        default=None, alias="demandContractedHeadroomMW"
     )  # ... after accepted-not-yet-connected schemes: the number that matters
-    demand_quoted_capacity: float | str | None = Field(None, alias="demandQuotedCapacity")
-    demand_available_capacity: float | str | None = Field(None, alias="demandAvailableCapacity")
-    demand_maximum: float | str | None = Field(None, alias="demandMaximum")
-    demand_minimum: float | str | None = Field(None, alias="demandMinimum")
-    demand99_percentile: float | str | None = Field(None, alias="demand99Percentile")
-    demand75_percentile: float | str | None = Field(None, alias="demand75Percentile")
-    demand50_percentile: float | str | None = Field(None, alias="demand50Percentile")
-    demand25_percentile: float | str | None = Field(None, alias="demand25Percentile")
-    demand_connected_rag: str | None = Field(None, alias="demandConnectedRAG")
-    demand_contracted_rag: str | None = Field(None, alias="demandContractedRAG")
-    demand_constraint_limiting_factor: float | str | None = Field(None, alias="demandConstraintLimitingFactor")
-    generation_total_capacity: float | str | None = Field(None, alias="generationTotalCapacity")
-    generation_connected_headroom_mw: float | None = Field(None, alias="generationConnectedHeadroomMW")
-    generation_contracted_headroom_mw: float | None = Field(None, alias="generationContractedHeadroomMW")
-    generation_quoted_capacity: float | None = Field(None, alias="generationQuotedCapacity")
-    generation_available_capacity: float | str | None = Field(None, alias="generationAvailableCapacity")
+    demand_quoted_capacity: float | str | None = Field(default=None, alias="demandQuotedCapacity")
+    demand_available_capacity: float | str | None = Field(default=None, alias="demandAvailableCapacity")
+    demand_maximum: float | str | None = Field(default=None, alias="demandMaximum")
+    demand_minimum: float | str | None = Field(default=None, alias="demandMinimum")
+    demand99_percentile: float | str | None = Field(default=None, alias="demand99Percentile")
+    demand75_percentile: float | str | None = Field(default=None, alias="demand75Percentile")
+    demand50_percentile: float | str | None = Field(default=None, alias="demand50Percentile")
+    demand25_percentile: float | str | None = Field(default=None, alias="demand25Percentile")
+    demand_connected_rag: str | None = Field(default=None, alias="demandConnectedRAG")
+    demand_contracted_rag: str | None = Field(default=None, alias="demandContractedRAG")
+    demand_constraint_limiting_factor: float | str | None = Field(default=None, alias="demandConstraintLimitingFactor")
+    generation_total_capacity: float | str | None = Field(default=None, alias="generationTotalCapacity")
+    generation_connected_headroom_mw: float | None = Field(default=None, alias="generationConnectedHeadroomMW")
+    generation_contracted_headroom_mw: float | None = Field(default=None, alias="generationContractedHeadroomMW")
+    generation_quoted_capacity: float | None = Field(default=None, alias="generationQuotedCapacity")
+    generation_available_capacity: float | str | None = Field(default=None, alias="generationAvailableCapacity")
     generation_connected_rag: str | None = Field(
-        None, alias="generationConnectedRAG"
+        default=None, alias="generationConnectedRAG"
     )  # "red" | "amber" | "green" (lower case)
-    generation_contracted_rag: str | None = Field(None, alias="generationContractedRAG")
-    generation_constraint_limiting_factor: float | str | None = Field(None, alias="generationConstraintLimitingFactor")
-    breaker_rated_current: float | str | None = Field(None, alias="breakerRatedCurrent")
-    breaker_breaking_capacity: float | str | None = Field(None, alias="breakerBreakingCapacity")
-    breaker_making_capacity: float | str | None = Field(None, alias="breakerMakingCapacity")
-    breaker_available_capacity: float | str | None = Field(None, alias="breakerAvailableCapacity")
-    breaker_short_circuit_current: float | str | None = Field(None, alias="breakerShortCircuitCurrent")
-    breaker_short_circuit_duration: float | str | None = Field(None, alias="breakerShortCircuitDuration")
-    reverse_power_flow_total_capacity: float | str | None = Field(None, alias="reversePowerFlowTotalCapacity")
-    reverse_power_flow_available_capacity: float | str | None = Field(None, alias="reversePowerFlowAvailableCapacity")
+    generation_contracted_rag: str | None = Field(default=None, alias="generationContractedRAG")
+    generation_constraint_limiting_factor: float | str | None = Field(
+        default=None, alias="generationConstraintLimitingFactor"
+    )
+    breaker_rated_current: float | str | None = Field(default=None, alias="breakerRatedCurrent")
+    breaker_breaking_capacity: float | str | None = Field(default=None, alias="breakerBreakingCapacity")
+    breaker_making_capacity: float | str | None = Field(default=None, alias="breakerMakingCapacity")
+    breaker_available_capacity: float | str | None = Field(default=None, alias="breakerAvailableCapacity")
+    breaker_short_circuit_current: float | str | None = Field(default=None, alias="breakerShortCircuitCurrent")
+    breaker_short_circuit_duration: float | str | None = Field(default=None, alias="breakerShortCircuitDuration")
+    reverse_power_flow_total_capacity: float | str | None = Field(default=None, alias="reversePowerFlowTotalCapacity")
+    reverse_power_flow_available_capacity: float | str | None = Field(
+        default=None, alias="reversePowerFlowAvailableCapacity"
+    )
 
 
 class EcrRecord(_Record):
@@ -149,74 +153,88 @@ class EcrRecord(_Record):
     Unlike UKPN's, this one lists sites below 1 MW too. Unknowns are the text "data not available".
     """
 
-    export_mpan_msid: str | None = Field(None, alias="export_mpan/msid")
-    import_mpan_msid: str | None = Field(None, alias="import_mpan/msid")
+    export_mpan_msid: str | None = Field(default=None, alias="export_mpan/msid")
+    import_mpan_msid: str | None = Field(default=None, alias="import_mpan/msid")
     customer_name: str | None = None
     customer_site: str | None = None
     address_line_1: str | None = None
     address_line_2: str | None = None
-    town_city: str | None = Field(None, alias="Town/City")
+    town_city: str | None = Field(default=None, alias="Town/City")
     county: str | None = None
     postcode: str | None = None
     country: str | None = None
-    eastings: str | None = Field(None, alias="location(x-coordinate):_eastings_(where_data_is_held)")
-    northings: str | None = Field(None, alias="location(y-coordinate):_northings_(where_data_is_held)")
+    eastings: str | None = Field(default=None, alias="location(x-coordinate):_eastings_(where_data_is_held)")
+    northings: str | None = Field(default=None, alias="location(y-coordinate):_northings_(where_data_is_held)")
     grid_supply_point: str | None = None  # e.g. "Walpole 132Kv S Stn"
     bulk_supply_point: str | None = None
     primary: str | None = None
-    poc_voltage_kv: str | None = Field(None, alias="point_of_connection(poc)_voltage(kv)")
+    poc_voltage_kv: str | None = Field(default=None, alias="point_of_connection(poc)_voltage(kv)")
     licence_area: str | None = None
     energy_source_1: str | None = (
         None  # "Solar", "Stored Energy (all stored energy ...)"; unused slots are "data not applicable"
     )
-    energy_conversion_technology_1: str | None = Field(None, alias="Energy Conversion Technology 1")
-    chp_cogeneration_yes_no: str | None = Field(None, alias="chp_cogeneration(yes/no)")
-    storage_capacity_1_mwh: str | None = Field(None, alias="storage_capacity_1(mwh)")
-    storage_duration_1_hours: str | None = Field(None, alias="storage_duration_1(hours)")
-    registered_capacity_1_mw: float | None = Field(None, alias="energy_source_&_conversion_tech_1_reg_capacity_mw")
+    energy_conversion_technology_1: str | None = Field(default=None, alias="Energy Conversion Technology 1")
+    chp_cogeneration_yes_no: str | None = Field(default=None, alias="chp_cogeneration(yes/no)")
+    storage_capacity_1_mwh: str | None = Field(default=None, alias="storage_capacity_1(mwh)")
+    storage_duration_1_hours: str | None = Field(default=None, alias="storage_duration_1(hours)")
+    registered_capacity_1_mw: float | None = Field(
+        default=None, alias="energy_source_&_conversion_tech_1_reg_capacity_mw"
+    )
     energy_source_2: str | None = None
-    energy_conversion_technology_2: str | None = Field(None, alias="Energy Conversion Technology 2")
-    chp_cogeneration2_yes_no: str | None = Field(None, alias="chp_cogeneration2(yes/no)")
-    storage_capacity_2_mwh: str | None = Field(None, alias="storage_capacity_2(mwh)")
-    storage_duration_2_hours: str | None = Field(None, alias="storage_duration_2(hours)")
-    registered_capacity_2_mw: float | None = Field(None, alias="energy_source_&_conversion_tech_2_reg_capacity_mw")
+    energy_conversion_technology_2: str | None = Field(default=None, alias="Energy Conversion Technology 2")
+    chp_cogeneration2_yes_no: str | None = Field(default=None, alias="chp_cogeneration2(yes/no)")
+    storage_capacity_2_mwh: str | None = Field(default=None, alias="storage_capacity_2(mwh)")
+    storage_duration_2_hours: str | None = Field(default=None, alias="storage_duration_2(hours)")
+    registered_capacity_2_mw: float | None = Field(
+        default=None, alias="energy_source_&_conversion_tech_2_reg_capacity_mw"
+    )
     energy_source_3: str | None = None
-    energy_conversion_technology_3: str | None = Field(None, alias="Energy Conversion Technology 3")
-    chp_cogeneration3_yes_no: str | None = Field(None, alias="chp_cogeneration3(yes/no)")
-    storage_capacity_3_mwh: str | None = Field(None, alias="storage_capacity_3(mwh)")
-    storage_duration_3_hours: str | None = Field(None, alias="storage_duration_3(hours)")
-    registered_capacity_3_mw: float | None = Field(None, alias="energy_source_&_conversion_tech_3_reg_capacity_mw")
-    flexible_connection_yes_no: str | None = Field(None, alias="flexible_connection (Yes/No)")
+    energy_conversion_technology_3: str | None = Field(default=None, alias="Energy Conversion Technology 3")
+    chp_cogeneration3_yes_no: str | None = Field(default=None, alias="chp_cogeneration3(yes/no)")
+    storage_capacity_3_mwh: str | None = Field(default=None, alias="storage_capacity_3(mwh)")
+    storage_duration_3_hours: str | None = Field(default=None, alias="storage_duration_3(hours)")
+    registered_capacity_3_mw: float | None = Field(
+        default=None, alias="energy_source_&_conversion_tech_3_reg_capacity_mw"
+    )
+    flexible_connection_yes_no: str | None = Field(default=None, alias="flexible_connection (Yes/No)")
     connection_status: str | None = None  # "Connected" | "Accepted to connect"
     already_connected_registered_capacity_mw: float | None = Field(
-        None, alias="already_connected_registered_capacity(mw)"
+        default=None, alias="already_connected_registered_capacity(mw)"
     )
-    connected_maximum_export_capacity_mw: float | None = Field(None, alias="connected_maximum_export_capacity(mw)")
-    connected_maximum_export_capacity_mva: float | None = Field(None, alias="connected_maximum_export_capacity(mva)")
-    connected_maximum_import_capacity_mw: float | None = Field(None, alias="connected_maximum_import_capacity(mw)")
-    connected_maximum_import_capacity_mva: float | None = Field(None, alias="connected_maximum_import_capacity(mva)")
+    connected_maximum_export_capacity_mw: float | None = Field(
+        default=None, alias="connected_maximum_export_capacity(mw)"
+    )
+    connected_maximum_export_capacity_mva: float | None = Field(
+        default=None, alias="connected_maximum_export_capacity(mva)"
+    )
+    connected_maximum_import_capacity_mw: float | None = Field(
+        default=None, alias="connected_maximum_import_capacity(mw)"
+    )
+    connected_maximum_import_capacity_mva: float | None = Field(
+        default=None, alias="connected_maximum_import_capacity(mva)"
+    )
     date_connected: datetime | None = None
     accepted_to_connect_registered_capacity_mw: str | None = Field(
-        None, alias="accepted_to_connect_registered_capacity(mw)"
+        default=None, alias="accepted_to_connect_registered_capacity(mw)"
     )
     accepted_change_to_maximum_export_capacity_mw: str | None = Field(
-        None, alias="accepted_change_to_maximum_export_capacity(mw)"
+        default=None, alias="accepted_change_to_maximum_export_capacity(mw)"
     )
     accepted_change_to_maximum_export_capacity_mva: str | None = Field(
-        None, alias="accepted_change_to_maximum_export_capacity(mva)"
+        default=None, alias="accepted_change_to_maximum_export_capacity(mva)"
     )
     accepted_change_to_maximum_import_capacity_mw: str | None = Field(
-        None, alias="accepted_change_to_maximum_import_capacity(mw)"
+        default=None, alias="accepted_change_to_maximum_import_capacity(mw)"
     )
     accepted_change_to_maximum_import_capacity_mva: str | None = Field(
-        None, alias="accepted_change_to_maximum_import_capacity(mva)"
+        default=None, alias="accepted_change_to_maximum_import_capacity(mva)"
     )
     date_accepted: str | None = None  # text upstream, "06/03/2013 00:00"
     target_energisation_date: str | None = None  # text upstream, "30/12/2026"
-    distribution_service_provider_y_n: str | None = Field(None, alias="distribution_service_provider(y/n)")
-    transmission_service_provider_y_n: str | None = Field(None, alias="transmission_service_provider(y/n)")
+    distribution_service_provider_y_n: str | None = Field(default=None, alias="distribution_service_provider(y/n)")
+    transmission_service_provider_y_n: str | None = Field(default=None, alias="transmission_service_provider(y/n)")
     reference: str | None = None
-    in_a_connection_queue_y_n: str | None = Field(None, alias="in_a_connection_queue(y/n)")
+    in_a_connection_queue_y_n: str | None = Field(default=None, alias="in_a_connection_queue(y/n)")
     distribution_reinforcement_reference: str | None = None
     transmission_reinforcement_reference: str | None = None
     last_updated: datetime | None = None

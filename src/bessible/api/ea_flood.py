@@ -34,11 +34,11 @@ class FloodZoneRequest(ApiRequest):
     service: Literal["WFS"] = "WFS"
     version: Literal["2.0.0"] = "2.0.0"
     request: Literal["GetFeature"] = "GetFeature"
-    type_names: str = Field(default=_FZ_TYPENAME, alias="typeNames")
-    output_format: Literal["application/json"] = Field(default="application/json", alias="outputFormat")
+    type_names: str = Field(default=_FZ_TYPENAME, serialization_alias="typeNames")
+    output_format: Literal["application/json"] = Field(default="application/json", serialization_alias="outputFormat")
     count: int | None = 20
     # Omitting `shape` returns geometry: null (polygons are large). None => all properties.
-    property_name: str | None = Field(default="origin,flood_zone,flood_source", alias="propertyName")
+    property_name: str | None = Field(default="origin,flood_zone,flood_source", serialization_alias="propertyName")
     # ECQL. EWKT points are lon-lat order: INTERSECTS(shape,SRID=4326;POINT(lon lat))
     cql_filter: str | None = None
 

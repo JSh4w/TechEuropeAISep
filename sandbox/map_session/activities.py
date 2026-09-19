@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import math
 from itertools import pairwise
+from typing import Literal
 
 from models import (
     AreaFeedback,
@@ -16,7 +17,10 @@ from models import (
     Polygon,
     ValidateInput,
 )
+from pydantic import BaseModel, Field
 from temporalio import activity
+
+from bessible.classifier import MODEL_NAME, classify
 
 M2_PER_MW = 250  # rough BESS footprint incl. spacing; placeholder for the real feasibility model
 EARTH_RADIUS_M = 6_371_000
@@ -91,21 +95,64 @@ async def validate_area(args: ValidateInput) -> AreaFeedback:  # ruff: ignore[un
     return AreaFeedback(ok=not issues, area_m2=round(m2), capacity_mw=round(capacity, 1), issues=issues)
 
 
+class ParagraphLabels(BaseModel):
+    """Questions the classifier (open-jev on Modal) answers about each document paragraph."""
+
+    kind: Literal["planning policy", "local news", "grid / network information", "other"] = Field(
+        description="What kind of text is this?"
+    )
+    stance: Literal["against", "neutral", "supportive"] = Field(
+        description="What is this text's stance on building battery storage here?"
+    )
+    mentions_risk: bool = Field(description="The text mentions a risk or constraint for a battery storage project.")
+
+
+# Stand-in for the collected documents (Gemini / dataset collection): (source, paragraph)
+SAMPLE_DOCUMENTS = [
+    (
+        "https://example.com/local-plan.pdf#EN7",
+        "Policy EN7: The council will support proposals for battery energy storage where they do not cause "
+        "unacceptable harm to landscape character, residential amenity or highway safety.",
+    ),
+    (
+        "https://example.com/news/village-hall",
+        "Residents packed the village hall on Tuesday to oppose plans for a 50MW battery site next to the "
+        "primary school, citing fire risk and noise from cooling fans.",
+    ),
+    (
+        "https://example.com/dno/capacity-map",
+        "The district's electricity network is heavily constrained; new grid connections in this area are "
+        "not expected to be offered before 2031.",
+    ),
+]
+STANCE_SCORE = {"against": 0.0, "neutral": 0.5, "supportive": 1.0}
+
+
 @activity.defn
 async def run_feasibility(args: EngineInput) -> EngineResult:
-    """Planning policy, permissions and battery size: is it possible?"""
-    await asyncio.sleep(2)
+    """Planning policy, permissions and battery size: is it possible? Classifies each paragraph on Modal."""
+    sources, paragraphs = zip(*SAMPLE_DOCUMENTS, strict=True)
+    results = await classify(list(paragraphs), ParagraphLabels)
+
+    artifacts = [
+        Artifact(
+            step="feasibility",
+            claim=f"{r.labels.kind}, {r.labels.stance}{', mentions a risk' if r.labels.mentions_risk else ''}: "
+            f"{r.text[:80]}...",
+            source=source,
+            confidence=round(min(r.confidence.values()), 2),
+            model=MODEL_NAME,
+        )
+        for source, r in zip(sources, results, strict=True)
+    ]
+    # Confidence-weighted stance across paragraphs
+    weights = [r.confidence["stance"] for r in results]
+    score = sum(STANCE_SCORE[r.labels.stance] * w for r, w in zip(results, weights, strict=True)) / sum(weights)
+    risks = sum(r.labels.mentions_risk for r in results)
     return EngineResult(
-        score=0.7,
-        summary=f"{args.feedback.capacity_mw:g} MW fits; permitted development unlikely, full planning needed",
-        artifacts=[
-            Artifact(
-                step="feasibility",
-                claim="Local plan policy EN7 supports storage",
-                source="https://example.com/local-plan.pdf",
-                confidence=0.6,
-            ),
-        ],
+        score=round(score, 2),
+        summary=f"{args.feedback.capacity_mw:g} MW fits; {len(results)} documents classified, {risks} flag risks",
+        artifacts=artifacts,
     )
 
 

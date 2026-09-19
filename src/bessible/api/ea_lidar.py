@@ -40,11 +40,11 @@ class DtmCoverageRequest(ApiRequest):
     service: Literal["WCS"] = "WCS"
     version: Literal["2.0.1"] = "2.0.1"
     request: Literal["GetCoverage"] = "GetCoverage"
-    coverage_id: str = Field(COVERAGE_ID, alias="coverageId")
+    coverage_id: str = Field(default=COVERAGE_ID, serialization_alias="coverageId")
     format: Literal["image/tiff"] = "image/tiff"
     subset: list[str]  # one per axis, e.g. ["Lat(51.23,51.24)", "Long(-0.34,-0.33)"]; sent as repeated params
-    subsetting_crs: str = Field(_EPSG.format(4326), alias="subsettingCrs")
-    scale_factor: float | None = Field(None, alias="scaleFactor", gt=0, le=1)
+    subsetting_crs: str = Field(default=_EPSG.format(4326), serialization_alias="subsettingCrs")
+    scale_factor: float | None = Field(default=None, serialization_alias="scaleFactor", gt=0, le=1)
 
 
 # ----------------------------------------- 2. Response ------------------------------------------ #

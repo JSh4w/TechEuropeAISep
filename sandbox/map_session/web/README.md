@@ -4,6 +4,8 @@ Working prototype, kept as the base for the final build. Next.js map UI talking 
 (`../workflow.py`) through route handlers in
 `app/api/session/`; the browser never talks to Temporal directly.
 
+One command from the repo root: `./scripts/dev.sh`. Or by hand:
+
 ```bash
 temporal server start-dev                 # terminal 1
 uv run python sandbox/map_session/worker.py        # terminal 2 (repo root)

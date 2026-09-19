@@ -39,8 +39,8 @@ class RecordsRequest(ApiRequest):
     where: str | None = None  # ODSQL filter, e.g. "sitevoltage >= 33"
     group_by: str | None = None
     order_by: str | None = None  # e.g. "sitevoltage desc"
-    limit: int | None = Field(None, ge=-1, le=100)  # server default 10
-    offset: int | None = Field(None, ge=0)
+    limit: int | None = Field(default=None, ge=-1, le=100)  # server default 10
+    offset: int | None = Field(default=None, ge=0)
     refine: list[str] | None = None  # facet filters "field:value", repeatable
     exclude: list[str] | None = None
     lang: str | None = None

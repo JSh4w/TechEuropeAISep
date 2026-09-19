@@ -1,0 +1,252 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Bessible: data sources</title>
+<style>
+  :root { --use:#1b7f3b; --part:#b26a00; --no:#9aa0a6; --line:#e4e4e7; }
+  body { font: 15px/1.5 system-ui, sans-serif; color:#1f2328; max-width: 1080px; margin: 2.5rem auto; padding: 0 1.5rem; }
+  h1 { font-size: 1.7rem; margin-bottom: .2rem; } h2 { font-size: 1.2rem; margin: 2.4rem 0 .6rem; border-bottom: 2px solid var(--line); padding-bottom: .3rem; }
+  h3 { font-size: 1.02rem; margin: 0; } .sub { color:#57606a; margin-top: 0; }
+  code { font: 12.5px ui-monospace, Menlo, monospace; background:#f3f4f6; padding: 1px 5px; border-radius: 4px; }
+  .flow { display:flex; flex-wrap:nowrap; gap:.4rem; align-items:stretch; margin: 1rem 0; }
+  .step { flex:1 1 0; min-width:0; border:1px solid var(--line); border-radius:8px; padding:.6rem .7rem; background:#fafafa; font-size: 13.5px; }
+  .step b { display:block; font-size: 14px; } .step small { color:#57606a; display:block; margin-top:.35rem; } .arrow { align-self:center; color:#9aa0a6; }
+  .src { border:1px solid var(--line); border-radius:10px; margin: 1rem 0; overflow:hidden; }
+  .src > header { display:flex; gap:.8rem; align-items:baseline; flex-wrap:wrap; padding:.7rem 1rem; background:#f8f9fb; border-bottom:1px solid var(--line); }
+  .src > header .q { color:#57606a; font-size: 13.5px; flex: 1 1 300px; } .src > .body { padding: .2rem 1rem .8rem; }
+  .meta { font-size: 13px; color:#57606a; margin:.5rem 0; }
+  table { border-collapse: collapse; width:100%; font-size: 13.5px; margin:.4rem 0; }
+  th, td { text-align:left; vertical-align:top; padding: 6px 8px; border-bottom:1px solid var(--line); }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing:.04em; color:#57606a; background:#fff; }
+  td:first-child { width: 27%; } td:nth-child(2) { width: 84px; white-space:nowrap; }
+  .tag { display:inline-block; font-size: 11.5px; font-weight:600; padding: 1px 8px; border-radius: 999px; color:#fff; }
+  .use { background: var(--use); } .part { background: var(--part); } .no { background: var(--no); }
+  .legend span { margin-right: 1rem; font-size: 13px; }
+  .gap { background:#fff8e6; border:1px solid #f1d48a; border-radius:8px; padding:.6rem 1rem; }
+  .removed { background:#fdf0f0; border:1px solid #efc4c4; border-radius:8px; padding:.6rem 1rem; }
+  ul { margin:.3rem 0; padding-left: 1.2rem; } li { margin: .15rem 0; }
+</style>
+
+<h1>Bessible: data sources</h1>
+<p class="sub">What each external API in <code>src/bessible/api/</code> gives us, and whether we use it to answer
+<b>“is it possible, and if so feasible, to build a BESS here?”</b> &nbsp;·&nbsp; state as of 19 Sep 2026</p>
+
+<p class="legend">
+  <span><i class="tag use">USED</i> feeds the assessment</span>
+  <span><i class="tag part">PARTLY</i> useful but needs a change first</span>
+  <span><i class="tag no">NOT USED</i> modelled (responses must parse) but ignored</span>
+</p>
+<p class="meta">Every module in <code>api/</code> has the same four sections: <b>1. Request</b>, <b>2. Response</b>, <b>3. Response sub-models</b>, <b>4. Not from the API</b> (request builders, registries, transforms). Sections 1–3 model the wire format only; <code>api/__init__.py</code> summarises each source.</p>
+<p class="meta">Every response model has <code>extra="forbid"</code>, so all fields an API returns are modelled even when we ignore them:
+an unknown field means our model is stale. “Not used” therefore means “parsed, then ignored”, not “missing”.</p>
+
+<h2>1. The flow</h2>
+<div class="flow">
+  <div class="step"><b>1. Locate</b>postcode or lat/lon → coordinate, human-readable address<small>postcodes_io · nominatim</small></div><div class="arrow">→</div>
+  <div class="step"><b>2. The site</b>title boundary polygon containing the point: the thing we assess<small>planning_data</small></div><div class="arrow">→</div>
+  <div class="step"><b>3. Land &amp; constraints</b>designations, land grade, flood zone, habitats on / near the polygon<small>planning_data · natural_england · ea_flood</small></div><div class="arrow">→</div>
+  <div class="step"><b>4. Terrain</b>1 m heights and slope inside the polygon<small>ea_lidar · open_meteo (fallback)</small></div><div class="arrow">→</div>
+  <div class="step"><b>5. Grid</b>nearest substation, headroom, queue, lines<small>ukpn · nged · ssen_distribution · ssen · neso</small></div><div class="arrow">→</div>
+  <div class="step"><b>6. Policy</b>which LPA / local plan applies → agentic reading<small>planning_data → LLM</small></div>
+</div>
+<p class="meta">Try it: <code>python scripts/site_report.py &lt;lat&gt; &lt;lon&gt;</code> runs steps 1–5 (grid first, then NESO filtered by the grid supply points it found) and writes a map + every parsed response to one HTML page.</p>
+
+<h2>2. Sources</h2>
+
+<section class="src">
+  <header><h3>planning_data <small>· planning.data.gov.uk</small></h3><span class="q">What plot is this, who decides, and what is designated on it?</span><i class="tag use">CORE</i></header>
+  <div class="body">
+    <p class="meta">No key · <code>EntitySearchRequest</code> (point-in-polygon across all datasets, JSON or GeoJSON), <code>EntityRequest</code>, <code>DatasetListRequest</code>, <code>DatasetRequest</code> · 43 typed dataset models, discriminated on <code>dataset</code></p>
+    <table>
+      <tr><th>Data</th><th>Status</th><th>What it is / what we do with it</th></tr>
+      <tr><td><code>title-boundary</code> + geometry</td><td><i class="tag use">USED</i></td><td>HM Land Registry INSPIRE polygon containing the point. <b>The site.</b> Gives the INSPIRE id, the area (ha) and the polygon every other check should run against.</td></tr>
+      <tr><td><code>local-planning-authority</code>, <code>local-authority-district</code></td><td><i class="tag use">USED</i></td><td>Who determines the application. Key for the policy step.</td></tr>
+      <tr><td><code>local-plan-boundary</code>, <code>local-plan</code>, <code>development-plan-document</code></td><td><i class="tag use">USED</i></td><td>Which adopted plan (and documents) the agent must read for energy / countryside policy.</td></tr>
+      <tr><td><code>green-belt</code>, <code>conservation-area</code>, <code>listed-building(-outline)</code>, <code>scheduled-monument</code>, <code>park-and-garden</code>, <code>battlefield</code>, <code>world-heritage-site(+buffer)</code>, <code>heritage-at-risk</code>, <code>archaeological-priority-area</code></td><td><i class="tag use">USED</i></td><td>Policy and heritage designations. On the polygon = likely blocker or very special circumstances; nearby = setting / consultation. <b>Absence is a finding too.</b></td></tr>
+      <tr><td><code>agricultural-land-classification</code></td><td><i class="tag use">USED</i></td><td>Provisional ALC grade at the point. Grades 1–3a are “best and most versatile” land, a policy hurdle for greenfield energy schemes.</td></tr>
+      <tr><td><code>flood-risk-zone</code>, <code>flood-storage-area</code></td><td><i class="tag use">USED</i></td><td>Second source for flood zone 2/3 (cross-checks <code>ea_flood</code>).</td></tr>
+      <tr><td><code>article-4-direction-area</code>, <code>tree-preservation-zone</code>, <code>brownfield-land</code>, <code>built-up-area</code></td><td><i class="tag use">USED</i></td><td>Local controls (removed permitted-development rights, TPOs) and positives (brownfield is preferred land).</td></tr>
+      <tr><td><code>planning-application</code>, <code>infrastructure-project</code></td><td><i class="tag part">PARTLY</i></td><td>Planning history / nearby NSIPs. Useful precedent, but national coverage is patchy (only LPAs that publish), so an empty result proves nothing.</td></tr>
+      <tr><td><code>parish</code>, <code>ward</code></td><td><i class="tag part">PARTLY</i></td><td>Who gets consulted; feeds the “local news / sentiment” agent as search terms.</td></tr>
+      <tr><td>SSSI, SAC, SPA, Ramsar, AONB, national park, ancient woodland, nature reserves</td><td><i class="tag part">PARTLY</i></td><td>Same designations as <code>natural_england</code>. Use as presence check; Natural England is the authoritative geometry.</td></tr>
+      <tr><td><code>region</code>, <code>border</code>, <code>local-resilience-forum-boundary</code>, <code>minerals-plan-boundary</code>, <code>waste-plan-boundary</code>, <code>central-activities-zone</code>, <code>main-river</code> (empty upstream)</td><td><i class="tag no">NOT USED</i></td><td>Administrative context with no bearing on a BESS decision.</td></tr>
+      <tr><td>Per-entity fields: <code>entry-date</code>, <code>quality</code>, <code>prefix</code>, <code>organisation-entity</code>, centroid <code>point</code>, <code>typology</code></td><td><i class="tag no">NOT USED</i></td><td>Provenance metadata. (Keep <code>entity</code> + <code>reference</code>: they make the source link for artifacts.)</td></tr>
+      <tr><td><code>DatasetListResponse</code>, <code>DatasetResponse</code></td><td><i class="tag no">NOT USED</i></td><td>Catalogue of datasets. Dev-time discovery only.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="src">
+  <header><h3>natural_england <small>· ArcGIS feature services</small></h3><span class="q">What environmental designations and what grade of land?</span><i class="tag use">CORE</i></header>
+  <div class="body">
+    <p class="meta">No key · <code>ArcGisQueryRequest</code> via the <code>LAYERS</code> registry (14 layers): <code>LAYERS["sssi"].at_point(lat, lon, distance_m)</code> · returns GeoJSON polygons</p>
+    <table>
+      <tr><th>Data</th><th>Status</th><th>What it is / what we do with it</th></tr>
+      <tr><td><code>alc_post_1988</code>: <code>alc_grade</code>, <code>hectares</code>, <code>published</code></td><td><i class="tag use">USED</i></td><td>Detailed survey that splits Grade 3 into <b>3a / 3b</b>, which decides “best and most versatile”. <code>published</code> links the survey report (artifact source). Only exists where surveyed.</td></tr>
+      <tr><td><code>alc_provisional</code>: <code>alc_grade</code></td><td><i class="tag part">PARTLY</i></td><td>1:250k fallback when there is no post-1988 survey. Same data as Planning Data's ALC.</td></tr>
+      <tr><td><code>sssi</code>, <code>sac</code>, <code>spa</code>, <code>ramsar</code>: name, code, status + polygon</td><td><i class="tag use">USED</i></td><td>Statutory nature sites. On site = near-certain refusal; within a few km = Habitats Regulations screening likely. Drawn on the map.</td></tr>
+      <tr><td><code>sssi_irz</code>: <code>irzurl</code></td><td><i class="tag use">USED</i></td><td>Impact Risk Zone <b>at the point</b>: decides whether Natural England must be consulted. The URL is the evidence. Zones merely nearby are irrelevant.</td></tr>
+      <tr><td><code>aonb</code>, <code>national_parks</code></td><td><i class="tag use">USED</i></td><td>Protected landscapes: major development is refused except in exceptional circumstances.</td></tr>
+      <tr><td><code>ancient_woodland_revised</code>: name, status</td><td><i class="tag use">USED</i></td><td>Irreplaceable habitat; needs a ≥15 m buffer. Supersedes <code>ancient_woodland</code>.</td></tr>
+      <tr><td><code>nnr</code>, <code>lnr</code></td><td><i class="tag use">USED</i></td><td>National / local nature reserves on or next to the site.</td></tr>
+      <tr><td><code>priority_habitats</code>: <code>main_habs</code>, <code>area_ha</code>, <code>prim_source</code></td><td><i class="tag part">PARTLY</i></td><td>Only what touches the polygon matters (biodiversity net gain, setbacks). Inventory is indicative (digitised from aerial imagery), not a legal boundary.</td></tr>
+      <tr><td><code>ancient_woodland</code> (original)</td><td><i class="tag no">NOT USED</i></td><td>Superseded by the revised inventory.</td></tr>
+      <tr><td>Per-feature fields: <code>shape_area</code>, <code>shape_length</code>, <code>objectid</code>, <code>global_id</code>, grid refs, <code>gis_date</code>, <code>version</code>, <code>contact_no</code></td><td><i class="tag no">NOT USED</i></td><td>GIS bookkeeping.</td></tr>
+      <tr><td><code>LayerMetadataRequest/Response</code> (92 fields), <code>ArcGisCountResponse</code></td><td><i class="tag no">NOT USED</i></td><td>Layer schema discovery / counts. Dev-time only, and brittle under <code>forbid</code> (Esri adds flags often): candidate for deletion.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="src">
+  <header><h3>ea_flood <small>· Environment Agency Flood Map for Planning (WFS)</small></h3><span class="q">Which flood zone?</span><i class="tag use">CORE</i></header>
+  <div class="body">
+    <p class="meta">No key · <code>flood_zone_at_point(lat, lon, buffer_m=None)</code> → <code>FloodZoneRequest</code></p>
+    <table>
+      <tr><th>Data</th><th>Status</th><th>What it is / what we do with it</th></tr>
+      <tr><td><code>flood_zone</code> (FZ2 / FZ3), <code>number_matched</code></td><td><i class="tag use">USED</i></td><td>The planning flood test. <b>No features = Zone 1</b> (fine). FZ2 needs a sequential test; FZ3 is very hard for a BESS.</td></tr>
+      <tr><td><code>flood_source</code>, <code>origin</code></td><td><i class="tag part">PARTLY</i></td><td>Rivers vs sea and the model behind it: one line in the report.</td></tr>
+      <tr><td><code>time_stamp</code>, <code>total_features</code>, <code>number_returned</code>, <code>crs</code></td><td><i class="tag no">NOT USED</i></td><td>WFS envelope.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="src">
+  <header><h3>ukpn <small>· UK Power Networks open data (Opendatasoft)</small></h3><span class="q">Can it connect to the grid, and how far away?</span><i class="tag use">CORE</i></header>
+  <div class="body">
+    <p class="meta"><b>Key required</b> (<code>UKPN_API_KEY</code> in <code>.env</code>) · <code>DATASETS["substations"].near(lat, lon, metres)</code> → <code>RecordsRequest</code> · <b>covers London, South East and East of England only</b></p>
+    <table>
+      <tr><th>Data</th><th>Status</th><th>What it is / what we do with it</th></tr>
+      <tr><td><code>capacity_heatmap</code>: <code>generationavailablecapacity</code>, <code>demandavailablecapacity</code>, <code>generationconstraint</code>, <code>demandconstraint</code>, <code>*limitingfactor</code></td><td><i class="tag use">USED</i></td><td><b>The headline grid numbers.</b> Export and import headroom (MW) at each substation plus a RED/AMBER/GREEN flag and why (thermal, fault level…). A BESS needs both directions.</td></tr>
+      <tr><td><code>capacity_heatmap</code>: <code>*connectionoffers*</code>, <code>*budgetestimates*</code>, <code>bsp</code>, <code>gsp</code></td><td><i class="tag use">USED</i></td><td>Pipeline already offered / accepted at that substation (headroom that is spoken for) and the upstream supply points (join to NESO).</td></tr>
+      <tr><td><code>substations</code>: <code>sitename</code>, <code>sitetype</code>, <code>sitevoltage</code>, <code>spatial_coordinates</code>, <code>powertransformercount</code></td><td><i class="tag use">USED</i></td><td>Every grid (132/66 kV) and primary (33/11 kV) substation. Distance to the nearest one drives connection cost.</td></tr>
+      <tr><td><code>embedded_capacity_register</code>: <code>customer_site</code>, <code>energy_source_1</code>, <code>registered_capacity_1_mw</code>, <code>storage_capacity_1_mwh</code>, <code>connection_status</code>, <code>primary</code>, <code>target_energisation_date</code></td><td><i class="tag use">USED</i></td><td>Ofgem-mandated list of connected / accepted projects ≥1 MW. Shows competing batteries and the queue at each substation; nearby connected BESS is also planning precedent.</td></tr>
+      <tr><td><code>overhead_lines_132kv</code>, <code>overhead_lines_33kv</code>: geometry, <code>voltage</code></td><td><i class="tag use">USED</i></td><td>Lines crossing or near the polygon: a possible point of connection, and an easement constraint on layout.</td></tr>
+      <tr><td><code>substations</code>: <code>maxdemand*</code>, <code>transrating*</code>, <code>reversepower</code></td><td><i class="tag part">PARTLY</i></td><td>Loading detail; the heatmap already summarises it.</td></tr>
+      <tr><td>Register: MPANs, address lines, technologies 2 and 3, MVA variants, service-provider flags, reinforcement references</td><td><i class="tag no">NOT USED</i></td><td>Register detail beyond what / how big / what status.</td></tr>
+      <tr><td><code>substations</code> earthing fields (<code>siteclassification</code>, resistance, <code>last_report</code>), <code>what3words</code>, <code>gridref</code></td><td><i class="tag no">NOT USED</i></td><td>Earthing studies matter at detailed design, not feasibility.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="src">
+  <header><h3>nged <small>· National Grid Electricity Distribution, Connected Data (CKAN)</small></h3><span class="q">Can it connect to the grid, and how far away? (South West, South Wales, Midlands)</span><i class="tag use">CORE</i></header>
+  <div class="body">
+    <p class="meta">Token (<code>NGED_API_KEY</code> in <code>.env</code>, header <code>Authorization: &lt;token&gt;</code>; reads also work anonymously) · shared <code>ckan</code> envelope (as <code>neso</code>) · <b>no SQL and no spatial filter</b> on this portal, so we fetch the whole small table and pick rows client-side: <code>capacity_map_request()</code> → <code>CapacityMapResponse</code>, <code>ecr_request(storage_only=False)</code> → <code>EcrResponse</code>, then <code>nearest(records, lat, lon, max_km)</code></p>
+    <table>
+      <tr><th>Data</th><th>Status</th><th>What it is / what we do with it</th></tr>
+      <tr><td>Network Capacity Map (primaries + BSPs, 1.2k rows): <code>generation/demand ContractedHeadroomMW</code>, <code>*ConnectedHeadroomMW</code>, <code>*RAG</code>, <code>BSP</code>, <code>GSP</code>, lat / lon</td><td><i class="tag use">USED</i></td><td><b>The headline grid numbers for NGED's area</b>, and the substation locations (distance to nearest). “Contracted” = after accepted-but-unbuilt schemes, the number that matters. <code>clean_site_name(GSP)</code> (“Bridgwater  S.G.P.” → “Bridgwater”) feeds the NESO query.</td></tr>
+      <tr><td>Embedded Capacity Register (7.2k rows, projected to 16 columns via <code>ECR_FIELDS</code>: 19 MB → 4 MB)</td><td><i class="tag use">USED</i></td><td>Same Ofgem register as UKPN's, but includes sites under 1 MW (the report filters ≥1 MW). Bridgwater → 25 projects within 10 km, 3 storage. ~16% of rows have no coordinates and are skipped. Resource id changes monthly (see module docstring).</td></tr>
+      <tr><td>Capacity map: ~30 empty columns (<code>demandMaximum</code>, percentiles, breaker ratings, reverse power flow), 120k “Secondary” rows</td><td><i class="tag no">NOT USED</i></td><td>Modelled so responses parse; blank upstream. Secondary (11 kV/LV) substations are too small for a BESS.</td></tr>
+      <tr><td>Overhead lines, 132 / 33 kV substation footprints</td><td><i class="tag no">MISSING</i></td><td>Shapefile downloads only, no API: no lines on the map in NGED's area.</td></tr>
+      <tr><td>Generation Capacity Register, GSP technical limits, LTDS heatmap JSON, substation loading</td><td><i class="tag no">NOT USED</i></td><td>Candidates if the queue / curtailment picture needs more depth.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="src">
+  <header><h3>ssen_distribution <small>· SSEN Distribution open data (CKAN)</small></h3><span class="q">Can it connect to the grid, and how far away? (central southern England, north of Scotland)</span><i class="tag use">CORE</i></header>
+  <div class="body">
+    <p class="meta">No key, but <b>needs a browser-like User-Agent</b> (<code>HEADERS</code>; Cloudflare 403s <code>httpx</code>'s default) · API host <code>data-api.ssen.co.uk</code> · no SQL without an account, so as with <code>nged</code> we fetch the table and use <code>nearest()</code>: <code>headroom_request()</code> → <code>HeadroomResponse</code>, <code>ecr_request(storage_only=False)</code> → <code>EcrResponse</code></p>
+    <table>
+      <tr><th>Data</th><th>Status</th><th>What it is / what we do with it</th></tr>
+      <tr><td>Headroom Dashboard Data (998 primaries / BSPs / GSPs): <code>estimated_generation_headroom_mw</code>, <code>estimated_demand_headroom_mva</code>, RAG flags, <code>generation_constraint</code>, <code>upstream_gsp</code> / <code>upstream_bsp</code>, lat / lon, <code>voltage_kv</code></td><td><i class="tag use">USED</i></td><td><b>The headline grid numbers for SSEN's area</b> and the substation locations. Westbury → Westbury Primary 2.3 km away: export 0 MW (RED, “Upstream Thermal Capacity”), import 10.4 MVA (GREEN). <code>clean_site_name(upstream_gsp)</code> (“Melksham GSP” → “Melksham”) feeds the NESO query.</td></tr>
+      <tr><td><code>upstream_reinforcement_works</code> + completion date, <code>substation_reinforcement_works</code>, <code>technical_limits_agreed_at_gsp</code>, <code>tia_threshold</code>, <code>contracted_bess_demand_mva</code></td><td><i class="tag part">PARTLY</i></td><td>Richer than UKPN / NGED: says <i>when</i> a red substation is due to be unlocked and whether a curtailable connection is on offer. Shown in the raw table; not yet in the headline.</td></tr>
+      <tr><td>Embedded Capacity Register Part 1 (≥1 MW, 1.3k rows): site, energy source, MW, status, primary, lat / lon</td><td><i class="tag use">USED</i></td><td>Competing / precedent projects near the site. Upper-case text and “DATA NOT AVAILABLE” markers are normalised to None. Resource id changes monthly.</td></tr>
+      <tr><td>Fault ratings / levels, transformer ratings, observed demand, CIM nodes, register MPANs and addresses</td><td><i class="tag no">NOT USED</i></td><td>Detailed-design data.</td></tr>
+      <tr><td>SSEN Overhead Lines (437k rows; <code>lines_request()</code> keeps 22–132 kV: 14k rows, WKT geometry)</td><td><i class="tag use">USED</i></td><td>Lines within 3 km drawn on the map (Westbury: 19 × 33 kV sections). No spatial filter, so the 22 kV+ subset is fetched whole (~4 MB) and clipped client-side.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="src">
+  <header><h3>ssen <small>· SSEN Transmission open data (Opendatasoft)</small></h3><span class="q">Transmission substations, lines and queue in the north of Scotland</span><i class="tag part">SCOTLAND ONLY</i></header>
+  <div class="body">
+    <p class="meta"><b>Key required</b> (<code>SSEN_API_KEY</code> in <code>.env</code>) · same request shape as <code>ukpn</code> (shared <code>opendatasoft.RecordsRequest</code>): <code>DATASETS["substations_supergrid"].near(lat, lon, metres)</code>, <code>register_request("tec_register", site, storage_only=True)</code> · <b>this portal is SSEN <i>Transmission</i> (SHET): lat 55.6–58.5 only. It is not the southern-England distribution network</b> (SSEN Distribution, <code>data.ssen.co.uk</code>), so English sites return nothing.</p>
+    <table>
+      <tr><th>Data</th><th>Status</th><th>What it is / what we do with it</th></tr>
+      <tr><td><code>substations_132kv</code>, <code>substations_supergrid</code> (275/400 kV): <code>name</code>, <code>voltage</code> (volts), site polygon</td><td><i class="tag use">USED</i></td><td>Nearest transmission substation and distance; its name keys the registers below and NESO.</td></tr>
+      <tr><td><code>overhead_lines_132kv</code>, <code>overhead_lines_supergrid</code>: geometry, <code>voltage</code></td><td><i class="tag use">USED</i></td><td>Lines on / near the plot, drawn on the map.</td></tr>
+      <tr><td><code>tec_register</code>, <code>embedded_register</code>: project, connection site, plant type, MW, status, effective date</td><td><i class="tag use">USED</i></td><td>SSEN's slice of NESO's registers, word-matched on the nearest substation. Blackhillock → 5 storage TEC projects (1.4 GW) + 6 embedded.</td></tr>
+      <tr><td>No headroom / capacity heatmap on this portal</td><td><i class="tag no">MISSING</i></td><td>Transmission owners do not publish one; queue size is the only congestion signal.</td></tr>
+      <tr><td>ETYS fault levels, circuits, transformers, tower / pole points, ground investigations, glossary (63 other datasets)</td><td><i class="tag no">NOT USED</i></td><td>Detailed-design data, not modelled.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="src">
+  <header><h3>neso <small>· National Energy System Operator (CKAN)</small></h3><span class="q">What is queued on the transmission system at our grid supply point?</span><i class="tag use">CORE</i></header>
+  <div class="body">
+    <p class="meta">No key · max 2 requests/minute · <b><code>tec_at_sites(sites, storage_only=False)</code></b> → <code>DatastoreSearchSqlRequest</code> · also <code>DatastoreSearchRequest</code>, <code>PackageShowRequest</code>, <code>PackageSearchRequest</code></p>
+    <table>
+      <tr><th>Data</th><th>Status</th><th>What it is / what we do with it</th></tr>
+      <tr><td>TEC register: <code>Project Name</code>, <code>Connection Site</code>, <code>Plant Type</code>, <code>MW Connected</code>, <code>Cumulative Total Capacity (MW)</code>, <code>MW Effective From</code>, <code>Project Status</code>, <code>Gate</code></td><td><i class="tag use">USED</i></td><td>GB-wide transmission connection queue. The register has no coordinates, so it is made location-based by name: the nearest distinct <code>gsp</code> values from UKPN's heatmap (e.g. “West Weybridge”, “Bolney”) are matched against <code>Connection Site</code> with SQL <code>ILIKE</code>, largest first; <code>storage_only=True</code> keeps plant types containing “Energy Storage System” (incl. hybrids). Dorking → 12 projects, 9 with storage. Needs a DNO module to supply the GSP name (UKPN, NGED, SSEN Distribution, SSEN Transmission today); elsewhere it is skipped.</td></tr>
+      <tr><td><code>DNO_LICENCE_AREAS_RESOURCES</code></td><td><i class="tag part">PARTLY</i></td><td>DNO boundary files: tells us which DNO a site is in (so which portal to query).</td></tr>
+      <tr><td>Embedded register (Scotland only)</td><td><i class="tag no">NOT USED</i></td><td>Out of area for an England demo.</td></tr>
+      <tr><td><code>fields</code> metadata block, <code>_full_text</code>, <code>rank</code>, package / resource / organisation models</td><td><i class="tag no">NOT USED</i></td><td>CKAN plumbing (about half of each payload).</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="src">
+  <header><h3>ea_lidar <small>· Environment Agency LIDAR Composite DTM, 1 m (WCS)</small></h3><span class="q">Is the plot flat enough?</span><i class="tag use">CORE</i></header>
+  <div class="body">
+    <p class="meta">No key · <b>England only</b> (outside coverage = HTTP 500) · <code>dtm_for_bbox(min_lat, min_lon, max_lat, max_lon, max_pixels=250)</code> → <code>DtmCoverageRequest</code> → GeoTIFF → <code>DtmGrid.from_geotiff(bytes)</code> (stdlib decoder, no raster dependency)</p>
+    <table>
+      <tr><th>Data</th><th>Status</th><th>What it is / what we do with it</th></tr>
+      <tr><td><code>DtmGrid.rows</code>, <code>.at(lat, lon)</code>, <code>.slope_percent(row, col)</code></td><td><i class="tag use">USED</i></td><td>Bare-earth heights for every cell inside the title polygon: min / max height, median and 90th-percentile slope, share of the plot steeper than 5%. Plots up to 250 m across stay at the native 1 m; larger ones are downsampled server-side (<code>scaleFactor</code>), e.g. a 70 ha title → 20k cells of ~6 m.</td></tr>
+      <tr><td>Hillshade coverage, WMS layers</td><td><i class="tag no">NOT USED</i></td><td>Pictures of the same data.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="src">
+  <header><h3>open_meteo <small>· elevation (Copernicus 90 m DEM)</small></h3><span class="q">Terrain where there is no LIDAR</span><i class="tag part">FALLBACK</i></header>
+  <div class="body">
+    <p class="meta">No key · <code>ElevationRequest</code> (up to 100 points per call)</p>
+    <table>
+      <tr><th>Data</th><th>Status</th><th>What it is / what we do with it</th></tr>
+      <tr><td><code>elevation[]</code> on a 10×10 grid inside the title polygon</td><td><i class="tag part">PARTLY</i></td><td>Used only when <code>ea_lidar</code> fails (Scotland, Wales, service down). Neighbouring points share values at 90 m: good for “is this a hillside?”, not for siting.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="src">
+  <header><h3>postcodes_io</h3><span class="q">Postcode ↔ coordinate, plus administrative codes</span><i class="tag use">ENTRY POINT</i></header>
+  <div class="body">
+    <p class="meta">No key · <code>PostcodeLookupRequest</code>, <code>ReverseGeocodeRequest</code>, <code>NearestOutcodesRequest</code></p>
+    <table>
+      <tr><th>Data</th><th>Status</th><th>What it is / what we do with it</th></tr>
+      <tr><td><code>latitude</code>, <code>longitude</code> (postcode lookup)</td><td><i class="tag use">USED</i></td><td>Optional start of the flow: postcode → coordinate.</td></tr>
+      <tr><td><code>admin_district</code>, <code>parish</code>, <code>parliamentary_constituency</code>, <code>codes.*</code> (ONS)</td><td><i class="tag use">USED</i></td><td>Names for the report and for the news agent; ONS codes join to other datasets.</td></tr>
+      <tr><td><code>ruc21</code> (rural / urban classification), <code>national_park</code>, <code>bua</code></td><td><i class="tag part">PARTLY</i></td><td>Quick rural-vs-urban policy signal.</td></tr>
+      <tr><td>NHS / ICB / CCG / cancer alliance, police force, LSOA / MSOA, deprivation index, European region, <code>NearestOutcodes</code>, <code>TerminatedPostcode</code></td><td><i class="tag no">NOT USED</i></td><td>Irrelevant to siting.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="src">
+  <header><h3>nominatim <small>· OpenStreetMap reverse geocode</small></h3><span class="q">What do humans call this place?</span><i class="tag part">LABEL ONLY</i></header>
+  <div class="body">
+    <p class="meta">No key · 1 request/second, needs a User-Agent · <code>ReverseRequest</code></p>
+    <table>
+      <tr><th>Data</th><th>Status</th><th>What it is / what we do with it</th></tr>
+      <tr><td><code>display_name</code>, <code>address.road / town / county</code></td><td><i class="tag use">USED</i></td><td>Site label for the human-in-the-loop confirmation and the report title.</td></tr>
+      <tr><td><code>place_id</code>, <code>osm_id</code>, <code>importance</code>, <code>place_rank</code>, <code>boundingbox</code>, polygon outputs</td><td><i class="tag no">NOT USED</i></td><td>OSM internals.</td></tr>
+    </table>
+  </div>
+</section>
+
+<h2>3. Gaps</h2>
+<div class="gap"><ul>
+  <li><b>Checks still run on the point, not the polygon.</b> Steps 3 and 5 query “at the coordinate” or “within N km”. Next: intersect with the title polygon, and report two tiers: <i>on site</i> (can block) vs <i>within X km</i> (consultation / setting), each with a distance.</li>
+  <li><b>Grid data outside UKPN's area.</b> <code>ssen</code> covers SSEN <i>Transmission</i> (north Scotland) only. <code>nged</code> covers the South West, South Wales and the Midlands; <code>ssen_distribution</code> central southern England and north Scotland. Still missing: Northern Powergrid, ENWL, SPEN (north of England, south Scotland, north Wales). Opendatasoft and CKAN portals reuse the shared <code>opendatasoft</code> / <code>ckan</code> modules, so each is a small file. Overhead lines: UKPN, SSEN Distribution and SSEN Transmission have them; NGED publishes shapefiles only.</li>
+  <li><b>Transmission network.</b> National Grid publishes lines, towers and substations as shapefiles (no API).</li>
+  <li><b>Nearby BESS precedent.</b> DESNZ Renewable Energy Planning Database (quarterly CSV) lists battery projects with coordinates and planning outcome.</li>
+  <li><b>Policy text.</b> We know <i>which</i> local plan applies, not what it says: that is the agentic step.</li>
+  <li><b>Terrain outside England.</b> LIDAR is England only; Scotland / Wales fall back to the 90 m DEM (Scottish and Welsh LIDAR exist as separate downloads).</li>
+</ul></div>
+
+<h2>4. Removed</h2>
+<div class="removed"><ul>
+  <li><b>Overpass (OpenStreetMap power data)</b>: module, tests and fixtures deleted. The only responsive mirror was Russian-hosted (<code>maps.mail.ru</code>); the replacements timed out all day. UKPN's own data replaces it and is authoritative.</li>
+  <li><b>EA real-time flood monitoring</b> (flood warnings, flood warning areas, monitoring stations): operational data, not a planning constraint. <code>ea_flood</code> now models only Flood Zones 2/3.</li>
+</ul></div>
