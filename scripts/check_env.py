@@ -5,9 +5,9 @@
 """
 
 import asyncio
-import subprocess
 import sys
 
+from modal.config import config as modal_config
 from pydantic_ai import Agent
 from temporalio.client import Client
 
@@ -52,7 +52,7 @@ def main() -> None:
         ),
         check(
             "Modal login",
-            subprocess.run(["modal", "profile", "current"], capture_output=True).returncode == 0,
+            bool(modal_config.get("token_id")),
             "run `uv run modal setup`",
         ),
     ]
