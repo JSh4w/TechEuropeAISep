@@ -11,7 +11,7 @@
 
 ## 3. F3 planning-evidence (independent of F1, F2)
 
-- [ ] 3.1 Team check, 10 min: confirm REPD and write `planning/policy.json` (a handful of items with source links); verify each item has a source
-- [ ] 3.2 Write `planning/ingest_repd.py` and `nearby_batteries`; verify by printing results for a position with nearby batteries and one without
-- [ ] 3.3 Write `planning/evidence.py` `summarise` with `gemini_model()` and the citation check; verify a stub model that returns an uncited statement has it rejected
-- [ ] 3.4 Wire F3 into the planning stage, recording `model_used`; verify one live run with `GOOGLE_API_KEY` set prints a cited summary and the artifact names the Gemini model
+- [x] 3.1 Team check, 10 min: confirm REPD and write `planning/policy.json` (a handful of items with source links); verify each item has a source
+- [x] 3.2 Write `planning/ingest_repd.py` and `nearby_batteries`; verify by printing results for a position with nearby batteries and one without
+- [x] 3.3 Write `planning/evidence.py` `summarise` with `gemini_model()` and the citation check; verify a stub model that returns an uncited statement has it rejected
+- [x] 3.4 Wire F3 into the planning stage, recording `model_used`; verify one live run with `GOOGLE_API_KEY` set prints a cited summary and the artifact names the Gemini model

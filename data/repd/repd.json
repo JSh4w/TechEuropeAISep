@@ -1,0 +1,71 @@
+{
+  "total_count": 6,
+  "results": [
+    {
+      "id": "repd-101",
+      "name": "Dorking BESS Facility",
+      "mw": 49.5,
+      "status": "Application Approved",
+      "status_date": "2024-04-18",
+      "latitude": 51.2412,
+      "longitude": -0.3421,
+      "postcode": "RH4 1HF",
+      "technology_type": "Battery"
+    },
+    {
+      "id": "repd-102",
+      "name": "Brockham Battery Energy Storage",
+      "mw": 20.0,
+      "status": "Awaiting Construction",
+      "status_date": "2023-11-22",
+      "latitude": 51.2290,
+      "longitude": -0.3045,
+      "postcode": "RH3 7EZ",
+      "technology_type": "Battery"
+    },
+    {
+      "id": "repd-103",
+      "name": "Mole Valley Energy Reserve",
+      "mw": 100.0,
+      "status": "Application Submitted",
+      "status_date": "2024-08-05",
+      "latitude": 51.2580,
+      "longitude": -0.3650,
+      "postcode": "RH4 3JQ",
+      "technology_type": "Battery"
+    },
+    {
+      "id": "repd-104",
+      "name": "Leatherhead Grid Storage",
+      "mw": 50.0,
+      "status": "Operational",
+      "status_date": "2022-09-30",
+      "latitude": 51.3010,
+      "longitude": -0.3280,
+      "postcode": "KT22 0BN",
+      "technology_type": "Battery"
+    },
+    {
+      "id": "repd-105",
+      "name": "Cottenham BESS Substation",
+      "mw": 40.0,
+      "status": "Application Approved",
+      "status_date": "2023-06-14",
+      "latitude": 52.2850,
+      "longitude": 0.1250,
+      "postcode": "CB24 8TT",
+      "technology_type": "Battery"
+    },
+    {
+      "id": "repd-106",
+      "name": "Westbury Grid Battery",
+      "mw": 100.0,
+      "status": "Under Construction",
+      "status_date": "2024-02-10",
+      "latitude": 51.2610,
+      "longitude": -2.1850,
+      "postcode": "BA13 4HP",
+      "technology_type": "Battery"
+    }
+  ]
+}
