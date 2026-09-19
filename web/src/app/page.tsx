@@ -347,6 +347,7 @@ export default function Home() {
 
       setCapacityProposal(mockCapacity);
       setSelectedCapacityMw(flexibleConnection ? ceilingMw : firmMw);
+      setInspireGeoJson(generateMockInspireParcels(centerCoords));
       setRunStatus({
         run_id: fakeRunId,
         status: 'awaiting_confirmation',
@@ -359,14 +360,36 @@ export default function Home() {
   // Re-check capacity when pin moves
   const handlePositionChange = async (newPos: [number, number]) => {
     setCurrentPosition(newPos);
+    setSubstationChangeNotice(null);
     try {
       const updated = await checkCapacity(newPos, flexibleConnection);
+      if (
+        capacityProposal?.serving_substation &&
+        updated.serving_substation &&
+        updated.serving_substation !== capacityProposal.serving_substation
+      ) {
+        setSubstationChangeNotice(
+          `Pin moved into new substation area: Now served by ${updated.serving_substation}`
+        );
+      }
       setCapacityProposal(updated);
       if (updated.recommended_mw) {
         setSelectedCapacityMw(updated.recommended_mw);
       }
     } catch {
-      // Keep existing capacity proposal if offline
+      // Offline/simulation demo: check if moved > 0.9km away from origin
+      const dist = distanceKm(initialCenter, newPos);
+      if (
+        dist > 0.9 &&
+        capacityProposal &&
+        capacityProposal.alternates &&
+        capacityProposal.alternates.length > 0
+      ) {
+        const alt = capacityProposal.alternates[0];
+        setSubstationChangeNotice(
+          `Pin moved into new substation area: Now served by ${alt.name} (${alt.distance_km} km away)`
+        );
+      }
     }
   };
 
