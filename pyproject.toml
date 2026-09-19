@@ -17,3 +17,65 @@ build-backend = "uv_build"
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "mypy>=2.3.1",
+    "pytest>=9.1.1",
+    "ruff>=0.16.8",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.format]
+docstring-code-format = true
+line-ending = "lf"
+preview = true
+
+[tool.ruff.lint]
+preview = true
+select = ["ALL"]
+ignore = [
+    "missing-trailing-comma",
+    "missing-copyright-notice",
+    "docstring-missing-returns",
+    "docstring-missing-exception",
+    "no-self-use",
+    "non-empty-init-module"
+    ]
+
+[tool.ruff.lint.per-file-ignores]
+"test_*" = [
+    "ANN",
+    "D",
+    "PLC",
+    "PLR",
+    "S",
+    "complex-structure",
+    "implicit-namespace-package",
+    "raise-vanilla-args",
+    "raw-string-in-exception",
+    ]
+
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = ["pydantic.BaseModel"]
+
+[tool.ruff.lint.isort]
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.mypy]
+strict = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
