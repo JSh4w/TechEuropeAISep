@@ -224,3 +224,6 @@ __marimo__/
 sandbox/*
 !sandbox/map_session/
 out/
+
+# scripts/site_report.py output
+site_report_*.html

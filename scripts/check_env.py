@@ -1,8 +1,10 @@
 """Check the dev environment is ready: secrets, Temporal server, Modal login.
 
-    uv run python scripts/check_env.py          # config only
-    uv run python scripts/check_env.py --live   # also send one tiny prompt to Gemini and the Modal model
+uv run python scripts/check_env.py          # config only
+uv run python scripts/check_env.py --live   # also send one tiny prompt to Gemini and the Modal model
 """
+
+from __future__ import annotations
 
 import asyncio
 import sys

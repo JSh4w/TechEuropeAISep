@@ -1,0 +1,836 @@
+{
+ "help": "https://data-api.ssen.co.uk/api/3/action/help_show?name=datastore_search",
+ "success": true,
+ "result": {
+  "include_total": true,
+  "limit": 32000,
+  "records_format": "objects",
+  "resource_id": "bbae6797-364a-4b2d-a01a-8395e21bee76",
+  "total_estimation_threshold": null,
+  "records": [
+   {
+    "_id": 169,
+    "export_mpan___msid": "2.00006E+12",
+    "import_mpan___msid": "2.00006E+12",
+    "Customer Name": "BLENCHES MILL FARM SOLAR PARK LIMITED",
+    "Customer Site": "BLENCHES MILL PV",
+    "Address Line 1": "SOLAR PARK BLENCHES MILL FARM ",
+    "Address Line 2": "SHALLOW WAGGON LANE",
+    "town__city": "WESTBURY",
+    "County": "WILTSHIRE",
+    "Postcode": "BA13 4HQ",
+    "Country": "ENGLAND",
+    "location__x_coordinate___eastings__where_data_is_held_": "386482",
+    "location__y_coordinate___northings__where_data_is_held_": "152739",
+    "Grid Supply Point": "MELKSHAM GSP",
+    "Bulk Supply Point": "NORRINGTON",
+    "Primary": "BLENCHES MILL PV",
+    "point_of_connection__poc__voltage__kv_": 33,
+    "Licence Area": "SOUTHERN ELECTRIC POWER DISTRIBUTION PLC",
+    "Energy Source 1": "SOLAR",
+    "Energy Conversion Technology 1": "PHOTOVOLTAIC",
+    "chp_cogeneration__yes_no_": "NO",
+    "storage_capacity_1__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_1__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_1___registered_": 9.063,
+    "Energy Source 2": "DATA NOT AVAILABLE",
+    "Energy Conversion Technology 2": "DATA NOT AVAILABLE",
+    "chp_cogeneration_2__yes_no_": "DATA NOT AVAILABLE",
+    "storage_capacity_2__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_2__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_2___registered_": "DATA NOT AVAILABLE",
+    "Energy Source 3": "DATA NOT AVAILABLE",
+    "Energy Conversion Technology 3": "DATA NOT AVAILABLE",
+    "chp_cogeneration_3__yes_no_": "DATA NOT AVAILABLE",
+    "storage_capacity_3__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_3__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_3___registered_": "DATA NOT AVAILABLE",
+    "flexible_connection__yes_no_": "NO",
+    "Connection Status": "CONNECTED",
+    "already_connected_registered_capacity__mw_": "9.063",
+    "maximum_export_capacity__mw_": "9.063",
+    "maximum_export_capacity__mva_": "9.54",
+    "maximum_import_capacity__mw_": "DATA NOT AVAILABLE",
+    "maximum_import_capacity__mva_": "DATA NOT AVAILABLE",
+    "Date Connected": "26/03/2014",
+    "accepted_to_connect_registered_capacity__mw_": "DATA NOT AVAILABLE",
+    "change_to_maximum_export_capacity__mw_": "DATA NOT AVAILABLE",
+    "change_to_maximum_export_capacity__mva_": "DATA NOT AVAILABLE",
+    "change_to_maximum_import_capacity__mw_": "DATA NOT AVAILABLE",
+    "change_to_maximum_import_capacity__mva_": "DATA NOT AVAILABLE",
+    "Date Accepted": "DATA NOT AVAILABLE",
+    "Target Energisation Date": "DATA NOT AVAILABLE",
+    "distribution_service_provider__y_n_": "N",
+    "transmission_service_provider__y_n_": "DATA NOT AVAILABLE",
+    "Reference": "DATA NOT AVAILABLE",
+    "in_a_connection_queue__y_n_": "DATA NOT AVAILABLE",
+    "Distribution Reinforcement Reference": "DATA NOT AVAILABLE",
+    "Transmission Reinforcement Reference": "DATA NOT AVAILABLE",
+    "Last Updated": "2026-12-02T00:00:00",
+    "transmission_and_distribution_contracted__t_d_": "DATA NOT APPLICABLE",
+    "Latitude": "51.273636",
+    "Longitude": "-2.1951679",
+    "Unique ID": "SSEN0169-1MW-CONNECTED"
+   },
+   {
+    "_id": 252,
+    "export_mpan___msid": "2.00006E+12",
+    "import_mpan___msid": "2.00006E+12",
+    "Customer Name": "SUNSAVE 13 (SOUTHWICK) LIMITED",
+    "Customer Site": "POLESHOLE FARM PV ADD CAP",
+    "Address Line 1": "POLESHOLE FARM PV ADD CAP  ",
+    "Address Line 2": "SOUTHWICK",
+    "town__city": "TROWBRIDGE",
+    "County": "WILTSHIRE",
+    "Postcode": "BA14 9PS",
+    "Country": "ENGLAND",
+    "location__x_coordinate___eastings__where_data_is_held_": "384137",
+    "location__y_coordinate___northings__where_data_is_held_": "154248",
+    "Grid Supply Point": "MELKSHAM GSP",
+    "Bulk Supply Point": "FROME ",
+    "Primary": "POLESHOLE PV",
+    "point_of_connection__poc__voltage__kv_": 33,
+    "Licence Area": "SOUTHERN ELECTRIC POWER DISTRIBUTION PLC",
+    "Energy Source 1": "SOLAR",
+    "Energy Conversion Technology 1": "PHOTOVOLTAIC",
+    "chp_cogeneration__yes_no_": "NO",
+    "storage_capacity_1__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_1__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_1___registered_": 9.5,
+    "Energy Source 2": "DATA NOT AVAILABLE",
+    "Energy Conversion Technology 2": "DATA NOT AVAILABLE",
+    "chp_cogeneration_2__yes_no_": "DATA NOT AVAILABLE",
+    "storage_capacity_2__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_2__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_2___registered_": "DATA NOT AVAILABLE",
+    "Energy Source 3": "DATA NOT AVAILABLE",
+    "Energy Conversion Technology 3": "DATA NOT AVAILABLE",
+    "chp_cogeneration_3__yes_no_": "DATA NOT AVAILABLE",
+    "storage_capacity_3__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_3__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_3___registered_": "DATA NOT AVAILABLE",
+    "flexible_connection__yes_no_": "NO",
+    "Connection Status": "CONNECTED",
+    "already_connected_registered_capacity__mw_": "9.5",
+    "maximum_export_capacity__mw_": "9.5",
+    "maximum_export_capacity__mva_": "10",
+    "maximum_import_capacity__mw_": "DATA NOT AVAILABLE",
+    "maximum_import_capacity__mva_": "DATA NOT AVAILABLE",
+    "Date Connected": "27/02/2017",
+    "accepted_to_connect_registered_capacity__mw_": "DATA NOT AVAILABLE",
+    "change_to_maximum_export_capacity__mw_": "DATA NOT AVAILABLE",
+    "change_to_maximum_export_capacity__mva_": "DATA NOT AVAILABLE",
+    "change_to_maximum_import_capacity__mw_": "DATA NOT AVAILABLE",
+    "change_to_maximum_import_capacity__mva_": "DATA NOT AVAILABLE",
+    "Date Accepted": "DATA NOT AVAILABLE",
+    "Target Energisation Date": "DATA NOT AVAILABLE",
+    "distribution_service_provider__y_n_": "N",
+    "transmission_service_provider__y_n_": "DATA NOT AVAILABLE",
+    "Reference": "DATA NOT AVAILABLE",
+    "in_a_connection_queue__y_n_": "DATA NOT AVAILABLE",
+    "Distribution Reinforcement Reference": "DATA NOT AVAILABLE",
+    "Transmission Reinforcement Reference": "DATA NOT AVAILABLE",
+    "Last Updated": "2026-12-02T00:00:00",
+    "transmission_and_distribution_contracted__t_d_": "DATA NOT APPLICABLE",
+    "Latitude": "51.287144",
+    "Longitude": "-2.2288513",
+    "Unique ID": "SSEN0252-1MW-CONNECTED"
+   },
+   {
+    "_id": 371,
+    "export_mpan___msid": "2.00005E+12",
+    "import_mpan___msid": "2.00005E+12",
+    "Customer Name": "VIRIDOR WASTE MANAGEMENT LIMITED",
+    "Customer Site": "DATA NOT AVAILABLE",
+    "Address Line 1": "WESTBURY LANDFILL",
+    "Address Line 2": "TROWBRIDGE ROAD",
+    "town__city": "WESTBURY",
+    "County": "WILTSHIRE",
+    "Postcode": "BA13 4LX",
+    "Country": "ENGLAND",
+    "location__x_coordinate___eastings__where_data_is_held_": "388879",
+    "location__y_coordinate___northings__where_data_is_held_": "152665",
+    "Grid Supply Point": "MELKSHAM GSP",
+    "Bulk Supply Point": "FROME ",
+    "Primary": "WESTBURY",
+    "point_of_connection__poc__voltage__kv_": 11,
+    "Licence Area": "SOUTHERN ELECTRIC POWER DISTRIBUTION PLC",
+    "Energy Source 1": "WASTE",
+    "Energy Conversion Technology 1": "ENGINE (COMBUSTION / RECIPROCATING)",
+    "chp_cogeneration__yes_no_": "NO",
+    "storage_capacity_1__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_1__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_1___registered_": 1.14,
+    "Energy Source 2": "DATA NOT AVAILABLE",
+    "Energy Conversion Technology 2": "DATA NOT AVAILABLE",
+    "chp_cogeneration_2__yes_no_": "DATA NOT AVAILABLE",
+    "storage_capacity_2__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_2__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_2___registered_": "DATA NOT AVAILABLE",
+    "Energy Source 3": "DATA NOT AVAILABLE",
+    "Energy Conversion Technology 3": "DATA NOT AVAILABLE",
+    "chp_cogeneration_3__yes_no_": "DATA NOT AVAILABLE",
+    "storage_capacity_3__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_3__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_3___registered_": "DATA NOT AVAILABLE",
+    "flexible_connection__yes_no_": "NO",
+    "Connection Status": "CONNECTED",
+    "already_connected_registered_capacity__mw_": "1.14",
+    "maximum_export_capacity__mw_": "1.14",
+    "maximum_export_capacity__mva_": "1.2",
+    "maximum_import_capacity__mw_": "DATA NOT AVAILABLE",
+    "maximum_import_capacity__mva_": "DATA NOT AVAILABLE",
+    "Date Connected": "DATA NOT AVAILABLE",
+    "accepted_to_connect_registered_capacity__mw_": "DATA NOT AVAILABLE",
+    "change_to_maximum_export_capacity__mw_": "DATA NOT AVAILABLE",
+    "change_to_maximum_export_capacity__mva_": "DATA NOT AVAILABLE",
+    "change_to_maximum_import_capacity__mw_": "DATA NOT AVAILABLE",
+    "change_to_maximum_import_capacity__mva_": "DATA NOT AVAILABLE",
+    "Date Accepted": "DATA NOT AVAILABLE",
+    "Target Energisation Date": "DATA NOT AVAILABLE",
+    "distribution_service_provider__y_n_": "N",
+    "transmission_service_provider__y_n_": "DATA NOT AVAILABLE",
+    "Reference": "DATA NOT AVAILABLE",
+    "in_a_connection_queue__y_n_": "DATA NOT AVAILABLE",
+    "Distribution Reinforcement Reference": "DATA NOT AVAILABLE",
+    "Transmission Reinforcement Reference": "DATA NOT AVAILABLE",
+    "Last Updated": "2026-12-02T00:00:00",
+    "transmission_and_distribution_contracted__t_d_": "DATA NOT APPLICABLE",
+    "Latitude": "51.273023",
+    "Longitude": "-2.1608041",
+    "Unique ID": "SSEN0371-1MW-CONNECTED"
+   },
+   {
+    "_id": 378,
+    "export_mpan___msid": "2.00005E+12",
+    "import_mpan___msid": "2.00005E+12",
+    "Customer Name": "VIRIDOR WASTE MANAGEMENT LIMITED",
+    "Customer Site": "VIRADOR WASTE MANAGEMENT",
+    "Address Line 1": "WESTBURY LANDFILL SITE",
+    "Address Line 2": "TROWBRIDGE ROAD",
+    "town__city": "WESTBURY",
+    "County": "WILTSHIRE",
+    "Postcode": "BA13 4LX",
+    "Country": "ENGLAND",
+    "location__x_coordinate___eastings__where_data_is_held_": "388879",
+    "location__y_coordinate___northings__where_data_is_held_": "152665",
+    "Grid Supply Point": "MELKSHAM GSP",
+    "Bulk Supply Point": "FROME ",
+    "Primary": "WESTBURY",
+    "point_of_connection__poc__voltage__kv_": 11,
+    "Licence Area": "SOUTHERN ELECTRIC POWER DISTRIBUTION PLC",
+    "Energy Source 1": "WASTE",
+    "Energy Conversion Technology 1": "ENGINE (COMBUSTION / RECIPROCATING)",
+    "chp_cogeneration__yes_no_": "NO",
+    "storage_capacity_1__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_1__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_1___registered_": 1.425,
+    "Energy Source 2": "DATA NOT AVAILABLE",
+    "Energy Conversion Technology 2": "DATA NOT AVAILABLE",
+    "chp_cogeneration_2__yes_no_": "DATA NOT AVAILABLE",
+    "storage_capacity_2__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_2__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_2___registered_": "DATA NOT AVAILABLE",
+    "Energy Source 3": "DATA NOT AVAILABLE",
+    "Energy Conversion Technology 3": "DATA NOT AVAILABLE",
+    "chp_cogeneration_3__yes_no_": "DATA NOT AVAILABLE",
+    "storage_capacity_3__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_3__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_3___registered_": "DATA NOT AVAILABLE",
+    "flexible_connection__yes_no_": "NO",
+    "Connection Status": "CONNECTED",
+    "already_connected_registered_capacity__mw_": "1.425",
+    "maximum_export_capacity__mw_": "1.425",
+    "maximum_export_capacity__mva_": "1.5",
+    "maximum_import_capacity__mw_": "DATA NOT AVAILABLE",
+    "maximum_import_capacity__mva_": "DATA NOT AVAILABLE",
+    "Date Connected": "DATA NOT AVAILABLE",
+    "accepted_to_connect_registered_capacity__mw_": "DATA NOT AVAILABLE",
+    "change_to_maximum_export_capacity__mw_": "DATA NOT AVAILABLE",
+    "change_to_maximum_export_capacity__mva_": "DATA NOT AVAILABLE",
+    "change_to_maximum_import_capacity__mw_": "DATA NOT AVAILABLE",
+    "change_to_maximum_import_capacity__mva_": "DATA NOT AVAILABLE",
+    "Date Accepted": "DATA NOT AVAILABLE",
+    "Target Energisation Date": "DATA NOT AVAILABLE",
+    "distribution_service_provider__y_n_": "N",
+    "transmission_service_provider__y_n_": "DATA NOT AVAILABLE",
+    "Reference": "DATA NOT AVAILABLE",
+    "in_a_connection_queue__y_n_": "DATA NOT AVAILABLE",
+    "Distribution Reinforcement Reference": "DATA NOT AVAILABLE",
+    "Transmission Reinforcement Reference": "DATA NOT AVAILABLE",
+    "Last Updated": "2026-12-02T00:00:00",
+    "transmission_and_distribution_contracted__t_d_": "DATA NOT APPLICABLE",
+    "Latitude": "51.273023",
+    "Longitude": "-2.1608041",
+    "Unique ID": "SSEN0378-1MW-CONNECTED"
+   },
+   {
+    "_id": 755,
+    "export_mpan___msid": "DATA NOT AVAILABLE",
+    "import_mpan___msid": "DATA NOT AVAILABLE",
+    "Customer Name": "WESSEX SOLAR POWER LIMITED",
+    "Customer Site": "ADAMS HILL FARM\n",
+    "Address Line 1": "ADAMS HILL FARM",
+    "Address Line 2": "CHAPMANSLADE",
+    "town__city": "WESTBURY",
+    "County": "SOMERSET",
+    "Postcode": "BA13 4AR",
+    "Country": "ENGLAND",
+    "location__x_coordinate___eastings__where_data_is_held_": "381365",
+    "location__y_coordinate___northings__where_data_is_held_": "148310",
+    "Grid Supply Point": "MELKSHAM GSP",
+    "Bulk Supply Point": "NORRINGTON",
+    "Primary": "DATA NOT AVAILABLE",
+    "point_of_connection__poc__voltage__kv_": 33,
+    "Licence Area": "SOUTHERN ELECTRIC POWER DISTRIBUTION PLC",
+    "Energy Source 1": "SOLAR",
+    "Energy Conversion Technology 1": "PHOTOVOLTAIC",
+    "chp_cogeneration__yes_no_": "NO",
+    "storage_capacity_1__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_1__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_1___registered_": 12,
+    "Energy Source 2": "DATA NOT AVAILABLE",
+    "Energy Conversion Technology 2": "DATA NOT AVAILABLE",
+    "chp_cogeneration_2__yes_no_": "DATA NOT AVAILABLE",
+    "storage_capacity_2__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_2__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_2___registered_": "DATA NOT AVAILABLE",
+    "Energy Source 3": "DATA NOT AVAILABLE",
+    "Energy Conversion Technology 3": "DATA NOT AVAILABLE",
+    "chp_cogeneration_3__yes_no_": "DATA NOT AVAILABLE",
+    "storage_capacity_3__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_3__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_3___registered_": "DATA NOT AVAILABLE",
+    "flexible_connection__yes_no_": "YES",
+    "Connection Status": "ACCEPTED TO CONNECT",
+    "already_connected_registered_capacity__mw_": "DATA NOT AVAILABLE",
+    "maximum_export_capacity__mw_": "DATA NOT AVAILABLE",
+    "maximum_export_capacity__mva_": "DATA NOT AVAILABLE",
+    "maximum_import_capacity__mw_": "DATA NOT AVAILABLE",
+    "maximum_import_capacity__mva_": "DATA NOT AVAILABLE",
+    "Date Connected": "DATA NOT AVAILABLE",
+    "accepted_to_connect_registered_capacity__mw_": "12",
+    "change_to_maximum_export_capacity__mw_": "12",
+    "change_to_maximum_export_capacity__mva_": "12.632",
+    "change_to_maximum_import_capacity__mw_": "0.086",
+    "change_to_maximum_import_capacity__mva_": "0.09",
+    "Date Accepted": "18/03/2024",
+    "Target Energisation Date": "29/10/2027",
+    "distribution_service_provider__y_n_": "N",
+    "transmission_service_provider__y_n_": "DATA NOT AVAILABLE",
+    "Reference": "DATA NOT AVAILABLE",
+    "in_a_connection_queue__y_n_": "DATA NOT AVAILABLE",
+    "Distribution Reinforcement Reference": "DATA NOT AVAILABLE",
+    "Transmission Reinforcement Reference": "DATA NOT AVAILABLE",
+    "Last Updated": "2026-10-02T00:00:00",
+    "transmission_and_distribution_contracted__t_d_": "DATA NOT AVAILABLE",
+    "Latitude": "51.233666",
+    "Longitude": "-2.2682886",
+    "Unique ID": "SSEN0779-1MW-ACCEPTED TO CONNECT"
+   },
+   {
+    "_id": 781,
+    "export_mpan___msid": "DATA NOT AVAILABLE",
+    "import_mpan___msid": "DATA NOT AVAILABLE",
+    "Customer Name": "DNO CONSULTING LTD",
+    "Customer Site": "NORTHACRE RESOURCE RECOVERY PLANT\n",
+    "Address Line 1": "NORTHACRE RESOURCE RECOVERY PLANT",
+    "Address Line 2": "STEPHENSON ROAD\n",
+    "town__city": "WESTBURY",
+    "County": "WILTSHIRE",
+    "Postcode": "BA13 4WD",
+    "Country": "ENGLAND",
+    "location__x_coordinate___eastings__where_data_is_held_": "385590",
+    "location__y_coordinate___northings__where_data_is_held_": "152134",
+    "Grid Supply Point": "MELKSHAM GSP",
+    "Bulk Supply Point": "NORRINGTON",
+    "Primary": "DATA NOT AVAILABLE",
+    "point_of_connection__poc__voltage__kv_": 33,
+    "Licence Area": "SOUTHERN ELECTRIC POWER DISTRIBUTION PLC",
+    "Energy Source 1": "WASTE",
+    "Energy Conversion Technology 1": "ENGINE (COMBUSTION / RECIPROCATING)",
+    "chp_cogeneration__yes_no_": "NO",
+    "storage_capacity_1__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_1__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_1___registered_": 35.473,
+    "Energy Source 2": "DATA NOT AVAILABLE",
+    "Energy Conversion Technology 2": "DATA NOT AVAILABLE",
+    "chp_cogeneration_2__yes_no_": "DATA NOT AVAILABLE",
+    "storage_capacity_2__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_2__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_2___registered_": "DATA NOT AVAILABLE",
+    "Energy Source 3": "DATA NOT AVAILABLE",
+    "Energy Conversion Technology 3": "DATA NOT AVAILABLE",
+    "chp_cogeneration_3__yes_no_": "DATA NOT AVAILABLE",
+    "storage_capacity_3__mwh_": "DATA NOT AVAILABLE",
+    "storage_duration_3__hours_": "DATA NOT AVAILABLE",
+    "energy_source___energy_conversion_technology_3___registered_": "DATA NOT AVAILABLE",
+    "flexible_connection__yes_no_": "DATA NOT AVAILABLE",
+    "Connection Status": "ACCEPTED TO CONNECT",
+    "already_connected_registered_capacity__mw_": "DATA NOT AVAILABLE",
+    "maximum_export_capacity__mw_": "DATA NOT AVAILABLE",
+    "maximum_export_capacity__mva_": "DATA NOT AVAILABLE",
+    "maximum_import_capacity__mw_": "DATA NOT AVAILABLE",
+    "maximum_import_capacity__mva_": "DATA NOT AVAILABLE",
+    "Date Connected": "DATA NOT AVAILABLE",
+    "accepted_to_connect_registered_capacity__mw_": "35.473",
+    "change_to_maximum_export_capacity__mw_": "26.5",
+    "change_to_maximum_export_capacity__mva_": "27.895",
+    "change_to_maximum_import_capacity__mw_": "5.495",
+    "change_to_maximum_import_capacity__mva_": "5.22",
+    "Date Accepted": "19/05/2021",
+    "Target Energisation Date": "23/10/2026",
+    "distribution_service_provider__y_n_": "N",
+    "transmission_service_provider__y_n_": "DATA NOT AVAILABLE",
+    "Reference": "DATA NOT AVAILABLE",
+    "in_a_connection_queue__y_n_": "DATA NOT AVAILABLE",
+    "Distribution Reinforcement Reference": "DATA NOT AVAILABLE",
+    "Transmission Reinforcement Reference": "DATA NOT AVAILABLE",
+    "Last Updated": "2026-10-02T00:00:00",
+    "transmission_and_distribution_contracted__t_d_": "DATA NOT AVAILABLE",
+    "Latitude": "51.268192",
+    "Longitude": "-2.2079304",
+    "Unique ID": "SSEN0814-1MW-ACCEPTED TO CONNECT"
+   }
+  ],
+  "fields": [
+   {
+    "id": "_id",
+    "type": "int"
+   },
+   {
+    "id": "export_mpan___msid",
+    "type": "text",
+    "info": {
+     "label": "Export MPAN / MSID"
+    }
+   },
+   {
+    "id": "import_mpan___msid",
+    "type": "text",
+    "info": {
+     "label": "Import MPAN / MSID"
+    }
+   },
+   {
+    "id": "Customer Name",
+    "type": "text",
+    "info": {
+     "label": "Customer Name"
+    }
+   },
+   {
+    "id": "Customer Site",
+    "type": "text",
+    "info": {
+     "label": "Customer Site"
+    }
+   },
+   {
+    "id": "Address Line 1",
+    "type": "text",
+    "info": {
+     "label": "Address Line 1"
+    }
+   },
+   {
+    "id": "Address Line 2",
+    "type": "text",
+    "info": {
+     "label": "Address Line 2"
+    }
+   },
+   {
+    "id": "town__city",
+    "type": "text",
+    "info": {
+     "label": "Town/ City"
+    }
+   },
+   {
+    "id": "County",
+    "type": "text",
+    "info": {
+     "label": "County"
+    }
+   },
+   {
+    "id": "Postcode",
+    "type": "text",
+    "info": {
+     "label": "Postcode"
+    }
+   },
+   {
+    "id": "Country",
+    "type": "text",
+    "info": {
+     "label": "Country"
+    }
+   },
+   {
+    "id": "location__x_coordinate___eastings__where_data_is_held_",
+    "type": "text",
+    "info": {
+     "label": "Location (X-coordinate):"
+    }
+   },
+   {
+    "id": "location__y_coordinate___northings__where_data_is_held_",
+    "type": "text",
+    "info": {
+     "label": "Eastings (where data is held)"
+    }
+   },
+   {
+    "id": "Grid Supply Point",
+    "type": "text",
+    "info": {
+     "label": "Location (y-coordinate):"
+    }
+   },
+   {
+    "id": "Bulk Supply Point",
+    "type": "text",
+    "info": {
+     "label": "Northings (where data is held)"
+    }
+   },
+   {
+    "id": "Primary",
+    "type": "text",
+    "info": {
+     "label": "Grid Supply Point"
+    }
+   },
+   {
+    "id": "point_of_connection__poc__voltage__kv_",
+    "type": "numeric",
+    "info": {
+     "label": "Bulk Supply Point"
+    }
+   },
+   {
+    "id": "Licence Area",
+    "type": "text",
+    "info": {
+     "label": "Primary"
+    }
+   },
+   {
+    "id": "Energy Source 1",
+    "type": "text",
+    "info": {
+     "label": "Point of Connection (POC)"
+    }
+   },
+   {
+    "id": "Energy Conversion Technology 1",
+    "type": "text",
+    "info": {
+     "label": "Voltage (kV)"
+    }
+   },
+   {
+    "id": "chp_cogeneration__yes_no_",
+    "type": "text",
+    "info": {
+     "label": "Licence Area"
+    }
+   },
+   {
+    "id": "storage_capacity_1__mwh_",
+    "type": "text",
+    "info": {
+     "label": "Energy Source 1"
+    }
+   },
+   {
+    "id": "storage_duration_1__hours_",
+    "type": "text",
+    "info": {
+     "label": "Energy Conversion Technology 1"
+    }
+   },
+   {
+    "id": "energy_source___energy_conversion_technology_1___registered_",
+    "type": "numeric",
+    "info": {
+     "label": "CHP Cogeneration (Yes/No)"
+    }
+   },
+   {
+    "id": "Energy Source 2",
+    "type": "text",
+    "info": {
+     "label": "Storage Capacity 1 (MWh)"
+    }
+   },
+   {
+    "id": "Energy Conversion Technology 2",
+    "type": "text",
+    "info": {
+     "label": "Storage Duration 1 (Hours)"
+    }
+   },
+   {
+    "id": "chp_cogeneration_2__yes_no_",
+    "type": "text",
+    "info": {
+     "label": "Energy Source & Energy Conversion Technology 1 - Registered Capacity (MW)"
+    }
+   },
+   {
+    "id": "storage_capacity_2__mwh_",
+    "type": "text",
+    "info": {
+     "label": "Energy Source 2"
+    }
+   },
+   {
+    "id": "storage_duration_2__hours_",
+    "type": "text",
+    "info": {
+     "label": "Energy Conversion Technology 2"
+    }
+   },
+   {
+    "id": "energy_source___energy_conversion_technology_2___registered_",
+    "type": "text",
+    "info": {
+     "label": "CHP Cogeneration 2 (Yes/No)"
+    }
+   },
+   {
+    "id": "Energy Source 3",
+    "type": "text",
+    "info": {
+     "label": "Storage Capacity 2 (MWh)"
+    }
+   },
+   {
+    "id": "Energy Conversion Technology 3",
+    "type": "text",
+    "info": {
+     "label": "Storage Duration 2 (Hours)"
+    }
+   },
+   {
+    "id": "chp_cogeneration_3__yes_no_",
+    "type": "text",
+    "info": {
+     "label": "Energy Source & Energy Conversion Technology 2 - Registered Capacity (MW)"
+    }
+   },
+   {
+    "id": "storage_capacity_3__mwh_",
+    "type": "text",
+    "info": {
+     "label": "Energy Source 3"
+    }
+   },
+   {
+    "id": "storage_duration_3__hours_",
+    "type": "text",
+    "info": {
+     "label": "Energy Conversion Technology 3"
+    }
+   },
+   {
+    "id": "energy_source___energy_conversion_technology_3___registered_",
+    "type": "text",
+    "info": {
+     "label": "CHP Cogeneration 3 (Yes/No)"
+    }
+   },
+   {
+    "id": "flexible_connection__yes_no_",
+    "type": "text",
+    "info": {
+     "label": "Storage Capacity 3 (MWh)"
+    }
+   },
+   {
+    "id": "Connection Status",
+    "type": "text",
+    "info": {
+     "label": "Storage Duration 3 (Hours)"
+    }
+   },
+   {
+    "id": "already_connected_registered_capacity__mw_",
+    "type": "text",
+    "info": {
+     "label": "Energy Source & Energy Conversion Technology 3 - Registered Capacity (MW)"
+    }
+   },
+   {
+    "id": "maximum_export_capacity__mw_",
+    "type": "text",
+    "info": {
+     "label": "Flexible Connection (Yes/No)"
+    }
+   },
+   {
+    "id": "maximum_export_capacity__mva_",
+    "type": "text",
+    "info": {
+     "label": "Connection Status"
+    }
+   },
+   {
+    "id": "maximum_import_capacity__mw_",
+    "type": "text",
+    "info": {
+     "label": "Already connected Registered Capacity (MW)"
+    }
+   },
+   {
+    "id": "maximum_import_capacity__mva_",
+    "type": "text",
+    "info": {
+     "label": "Maximum Export Capacity (MW)"
+    }
+   },
+   {
+    "id": "Date Connected",
+    "type": "text",
+    "info": {
+     "label": "Maximum Export Capacity (MVA)"
+    }
+   },
+   {
+    "id": "accepted_to_connect_registered_capacity__mw_",
+    "type": "text",
+    "info": {
+     "label": "Maximum Import Capacity (MW)"
+    }
+   },
+   {
+    "id": "change_to_maximum_export_capacity__mw_",
+    "type": "text",
+    "info": {
+     "label": "Maximum Import Capacity (MVA)"
+    }
+   },
+   {
+    "id": "change_to_maximum_export_capacity__mva_",
+    "type": "text",
+    "info": {
+     "label": "Date Connected"
+    }
+   },
+   {
+    "id": "change_to_maximum_import_capacity__mw_",
+    "type": "text",
+    "info": {
+     "label": "Accepted to Connect Registered Capacity (MW)"
+    }
+   },
+   {
+    "id": "change_to_maximum_import_capacity__mva_",
+    "type": "text",
+    "info": {
+     "label": "Change to Maximum Export Capacity (MW)"
+    }
+   },
+   {
+    "id": "Date Accepted",
+    "type": "text",
+    "info": {
+     "label": "Change to Maximum Export Capacity (MVA)"
+    }
+   },
+   {
+    "id": "Target Energisation Date",
+    "type": "text",
+    "info": {
+     "label": "Change to Maximum Import Capacity (MW)"
+    }
+   },
+   {
+    "id": "distribution_service_provider__y_n_",
+    "type": "text",
+    "info": {
+     "label": "Change to Maximum Import Capacity (MVA)"
+    }
+   },
+   {
+    "id": "transmission_service_provider__y_n_",
+    "type": "text",
+    "info": {
+     "label": "Date Accepted"
+    }
+   },
+   {
+    "id": "Reference",
+    "type": "text",
+    "info": {
+     "label": "Target Energisation Date"
+    }
+   },
+   {
+    "id": "in_a_connection_queue__y_n_",
+    "type": "text",
+    "info": {
+     "label": "Distribution Service Provider (Y/N)"
+    }
+   },
+   {
+    "id": "Distribution Reinforcement Reference",
+    "type": "text",
+    "info": {
+     "label": "Transmission Service Provider (Y/N)"
+    }
+   },
+   {
+    "id": "Transmission Reinforcement Reference",
+    "type": "text",
+    "info": {
+     "label": "Reference"
+    }
+   },
+   {
+    "id": "Last Updated",
+    "type": "timestamp",
+    "info": {
+     "label": "In a Connection Queue (Y/N)"
+    }
+   },
+   {
+    "id": "transmission_and_distribution_contracted__t_d_",
+    "type": "text",
+    "info": {
+     "label": "Distribution Reinforcement Reference"
+    }
+   },
+   {
+    "id": "Latitude",
+    "type": "text",
+    "info": {
+     "label": "Transmission Reinforcement Reference"
+    }
+   },
+   {
+    "id": "Longitude",
+    "type": "text",
+    "info": {
+     "label": "Last Updated"
+    }
+   },
+   {
+    "id": "Unique ID",
+    "type": "text",
+    "info": {
+     "label": "Transmission and Distribution contracted (T/D)"
+    }
+   }
+  ],
+  "_links": {
+   "start": "/api/3/action/datastore_search?resource_id=bbae6797-364a-4b2d-a01a-8395e21bee76&limit=32000",
+   "next": "/api/3/action/datastore_search?resource_id=bbae6797-364a-4b2d-a01a-8395e21bee76&limit=32000&offset=32000"
+  },
+  "total": 1324,
+  "total_was_estimated": false
+ }
+}

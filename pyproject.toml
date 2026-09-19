@@ -61,7 +61,21 @@ ignore = [
     ]
 
 [tool.ruff.lint.flake8-type-checking]
-runtime-evaluated-base-classes = ["pydantic.BaseModel"]
+# Ruff does not follow inheritance across modules, so our pydantic base classes are listed too.
+runtime-evaluated-base-classes = [
+    "pydantic.BaseModel",
+    "bessible.api.base.ApiRequest",
+    "bessible.api.base.ApiResponse",
+    "bessible.api.base.NullMarkerResponse",
+    "bessible.api.ckan.CkanResponse",
+    "bessible.api.ckan.DatastoreSearchRequest",
+    "bessible.api.ckan.DatastoreSearchSqlRequest",
+    "bessible.api.ckan.PackageSearchRequest",
+    "bessible.api.ckan.PackageShowRequest",
+    "bessible.api.nged._Record",
+    "bessible.api.ssen_distribution._Record",
+    "bessible.api.planning_data.EntityBase",
+]
 
 [tool.ruff.lint.isort]
 required-imports = ["from __future__ import annotations"]
@@ -75,6 +89,7 @@ testpaths = ["tests"]
 
 [tool.mypy]
 strict = true
+plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
 module = "tests.*"

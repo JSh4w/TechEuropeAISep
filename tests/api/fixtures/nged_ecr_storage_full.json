@@ -1,0 +1,457 @@
+{
+ "help": "https://connecteddata.nationalgrid.co.uk/api/3/action/help_show?name=datastore_search",
+ "success": true,
+ "result": {
+  "filters": {
+   "energy_source_1": "Stored Energy (all stored energy irrespective of the original energy source)"
+  },
+  "include_total": true,
+  "limit": 3,
+  "records_format": "objects",
+  "resource_id": "82a4ae83-77a3-4e7b-9060-8072ed96de9d",
+  "total_estimation_threshold": null,
+  "records": [
+   {
+    "_id": 418,
+    "export_mpan/msid": "1170002495961",
+    "import_mpan/msid": "1100039650717",
+    "customer_name": "Castle phoenix trust",
+    "customer_site": "Kingsbury school",
+    "address_line_1": "Flat School House, Kingsbury High School",
+    "address_line_2": "Tamworth Road, Kingsbury",
+    "Town/City": "Tamworth",
+    "county": "Staffordshire",
+    "postcode": "B78 2LE",
+    "country": "United Kingdom",
+    "location(x-coordinate):_eastings_(where_data_is_held)": "421662",
+    "location(y-coordinate):_northings_(where_data_is_held)": "296546",
+    "grid_supply_point": "Lea Marston 132Kv S Stn",
+    "bulk_supply_point": "Tamworth 33Kv S Stn",
+    "primary": "Wood End 33 11Kv S Stn",
+    "point_of_connection(poc)_voltage(kv)": "0.4",
+    "licence_area": "National Grid Electricity Distribution (East Midlands) Plc",
+    "energy_source_1": "Stored Energy (all stored energy irrespective of the original energy source)",
+    "Energy Conversion Technology 1": "Storage - Electrochemical  (Batteries)",
+    "chp_cogeneration(yes/no)": "No",
+    "storage_capacity_1(mwh)": "data not available",
+    "storage_duration_1(hours)": "data not available",
+    "energy_source_&_conversion_tech_1_reg_capacity_mw": 0.05,
+    "energy_source_2": "Solar",
+    "Energy Conversion Technology 2": "Photovoltaic",
+    "chp_cogeneration2(yes/no)": "No",
+    "storage_capacity_2(mwh)": "data not available",
+    "storage_duration_2(hours)": "data not available",
+    "energy_source_&_conversion_tech_2_reg_capacity_mw": 0.0333,
+    "energy_source_3": "data not applicable",
+    "Energy Conversion Technology 3": "data not applicable",
+    "chp_cogeneration3(yes/no)": "data not applicable",
+    "storage_capacity_3(mwh)": "data not available",
+    "storage_duration_3(hours)": "data not available",
+    "energy_source_&_conversion_tech_3_reg_capacity_mw": 0,
+    "flexible_connection (Yes/No)": "data not available",
+    "connection_status": "Connected",
+    "already_connected_registered_capacity(mw)": 0.0833,
+    "connected_maximum_export_capacity(mw)": 0.07885,
+    "connected_maximum_export_capacity(mva)": 0.083,
+    "connected_maximum_import_capacity(mw)": 0.1615,
+    "connected_maximum_import_capacity(mva)": 0.17,
+    "date_connected": "2026-05-13T00:00:00",
+    "accepted_to_connect_registered_capacity(mw)": "",
+    "accepted_change_to_maximum_export_capacity(mw)": "",
+    "accepted_change_to_maximum_export_capacity(mva)": "",
+    "accepted_change_to_maximum_import_capacity(mw)": "",
+    "accepted_change_to_maximum_import_capacity(mva)": "",
+    "date_accepted": "",
+    "target_energisation_date": "",
+    "distribution_service_provider(y/n)": "data not available",
+    "transmission_service_provider(y/n)": "data not available",
+    "reference": "data not available",
+    "in_a_connection_queue(y/n)": "data not available",
+    "distribution_reinforcement_reference": "data not available",
+    "transmission_reinforcement_reference": "data not available",
+    "last_updated": "2026-06-08T00:00:00",
+    "lon": -1.68184451,
+    "lat": 52.56633193,
+    "local_authority": "North Warwickshire"
+   },
+   {
+    "_id": 458,
+    "export_mpan/msid": "1170000992464",
+    "import_mpan/msid": "1100039657225",
+    "customer_name": "N m b minebea uk ltd",
+    "customer_site": "Lincoln sadler road",
+    "address_line_1": "N M B Minebea,   2",
+    "address_line_2": "Sadler Road",
+    "Town/City": "Lincoln",
+    "county": "data not available",
+    "postcode": "LN6 3RA",
+    "country": "United Kingdom",
+    "location(x-coordinate):_eastings_(where_data_is_held)": "4932120",
+    "location(y-coordinate):_northings_(where_data_is_held)": "3683165",
+    "grid_supply_point": "West Burton 132Kv S Stn",
+    "bulk_supply_point": "Lincoln Main No 1 33Kv S Stn",
+    "primary": "Doddington Park 33 11Kv S Stn",
+    "point_of_connection(poc)_voltage(kv)": "11",
+    "licence_area": "National Grid Electricity Distribution (East Midlands) Plc",
+    "energy_source_1": "Stored Energy (all stored energy irrespective of the original energy source)",
+    "Energy Conversion Technology 1": "Storage - Electrochemical  (Batteries)",
+    "chp_cogeneration(yes/no)": "No",
+    "storage_capacity_1(mwh)": "data not available",
+    "storage_duration_1(hours)": "data not available",
+    "energy_source_&_conversion_tech_1_reg_capacity_mw": 1,
+    "energy_source_2": "data not applicable",
+    "Energy Conversion Technology 2": "data not applicable",
+    "chp_cogeneration2(yes/no)": "data not applicable",
+    "storage_capacity_2(mwh)": "data not available",
+    "storage_duration_2(hours)": "data not available",
+    "energy_source_&_conversion_tech_2_reg_capacity_mw": 0,
+    "energy_source_3": "data not applicable",
+    "Energy Conversion Technology 3": "data not applicable",
+    "chp_cogeneration3(yes/no)": "data not applicable",
+    "storage_capacity_3(mwh)": "data not available",
+    "storage_duration_3(hours)": "data not available",
+    "energy_source_&_conversion_tech_3_reg_capacity_mw": 0,
+    "flexible_connection (Yes/No)": "data not available",
+    "connection_status": "Connected",
+    "already_connected_registered_capacity(mw)": 1,
+    "connected_maximum_export_capacity(mw)": 0.95,
+    "connected_maximum_export_capacity(mva)": 1,
+    "connected_maximum_import_capacity(mw)": 0.95,
+    "connected_maximum_import_capacity(mva)": 1,
+    "date_connected": "2018-07-06T00:00:00",
+    "accepted_to_connect_registered_capacity(mw)": "",
+    "accepted_change_to_maximum_export_capacity(mw)": "",
+    "accepted_change_to_maximum_export_capacity(mva)": "",
+    "accepted_change_to_maximum_import_capacity(mw)": "",
+    "accepted_change_to_maximum_import_capacity(mva)": "",
+    "date_accepted": "",
+    "target_energisation_date": "",
+    "distribution_service_provider(y/n)": "data not available",
+    "transmission_service_provider(y/n)": "data not available",
+    "reference": "data not available",
+    "in_a_connection_queue(y/n)": "data not available",
+    "distribution_reinforcement_reference": "data not available",
+    "transmission_reinforcement_reference": "data not available",
+    "last_updated": "2026-06-08T00:00:00",
+    "lon": -0.6056,
+    "lat": 53.2043,
+    "local_authority": "Lincoln"
+   },
+   {
+    "_id": 527,
+    "export_mpan/msid": "1100050222516",
+    "import_mpan/msid": "1100039675720",
+    "customer_name": "Cummins engine co ltd",
+    "customer_site": "Cummins engines ltd",
+    "address_line_1": "Cummins Limited",
+    "address_line_2": "Royal Oak Way South, Royal Oak Industrial Estate",
+    "Town/City": "Daventry",
+    "county": "Northamptonshire",
+    "postcode": "NN11 8NU",
+    "country": "United Kingdom",
+    "location(x-coordinate):_eastings_(where_data_is_held)": "456246",
+    "location(y-coordinate):_northings_(where_data_is_held)": "262963",
+    "grid_supply_point": "Coventry 132Kv S Stn",
+    "bulk_supply_point": "Daventry 33Kv S Stn",
+    "primary": "Braunston Road 33 11Kv S Stn",
+    "point_of_connection(poc)_voltage(kv)": "11",
+    "licence_area": "National Grid Electricity Distribution (East Midlands) Plc",
+    "energy_source_1": "Stored Energy (all stored energy irrespective of the original energy source)",
+    "Energy Conversion Technology 1": "Storage - Mechanical - Flywheel",
+    "chp_cogeneration(yes/no)": "No",
+    "storage_capacity_1(mwh)": "data not available",
+    "storage_duration_1(hours)": "data not available",
+    "energy_source_&_conversion_tech_1_reg_capacity_mw": 2.607,
+    "energy_source_2": "Fossil - Other",
+    "Energy Conversion Technology 2": "Engine (combustion / reciprocating)",
+    "chp_cogeneration2(yes/no)": "No",
+    "storage_capacity_2(mwh)": "data not available",
+    "storage_duration_2(hours)": "data not available",
+    "energy_source_&_conversion_tech_2_reg_capacity_mw": 2.24,
+    "energy_source_3": "Solar",
+    "Energy Conversion Technology 3": "Photovoltaic",
+    "chp_cogeneration3(yes/no)": "No",
+    "storage_capacity_3(mwh)": "data not available",
+    "storage_duration_3(hours)": "data not available",
+    "energy_source_&_conversion_tech_3_reg_capacity_mw": 0.1,
+    "flexible_connection (Yes/No)": "data not available",
+    "connection_status": "Connected",
+    "already_connected_registered_capacity(mw)": 4.947,
+    "connected_maximum_export_capacity(mw)": 5.035,
+    "connected_maximum_export_capacity(mva)": 5.3,
+    "connected_maximum_import_capacity(mw)": 3.515,
+    "connected_maximum_import_capacity(mva)": 3.7,
+    "date_connected": "2020-01-12T00:00:00",
+    "accepted_to_connect_registered_capacity(mw)": "",
+    "accepted_change_to_maximum_export_capacity(mw)": "",
+    "accepted_change_to_maximum_export_capacity(mva)": "",
+    "accepted_change_to_maximum_import_capacity(mw)": "",
+    "accepted_change_to_maximum_import_capacity(mva)": "",
+    "date_accepted": "",
+    "target_energisation_date": "",
+    "distribution_service_provider(y/n)": "data not available",
+    "transmission_service_provider(y/n)": "data not available",
+    "reference": "data not available",
+    "in_a_connection_queue(y/n)": "data not available",
+    "distribution_reinforcement_reference": "data not available",
+    "transmission_reinforcement_reference": "data not available",
+    "last_updated": "2026-06-08T00:00:00",
+    "lon": -1.17729426,
+    "lat": 52.26198035,
+    "local_authority": "West Northamptonshire"
+   }
+  ],
+  "fields": [
+   {
+    "id": "_id",
+    "type": "int"
+   },
+   {
+    "id": "export_mpan/msid",
+    "type": "text"
+   },
+   {
+    "id": "import_mpan/msid",
+    "type": "text"
+   },
+   {
+    "id": "customer_name",
+    "type": "text"
+   },
+   {
+    "id": "customer_site",
+    "type": "text"
+   },
+   {
+    "id": "address_line_1",
+    "type": "text"
+   },
+   {
+    "id": "address_line_2",
+    "type": "text"
+   },
+   {
+    "id": "Town/City",
+    "type": "text"
+   },
+   {
+    "id": "county",
+    "type": "text"
+   },
+   {
+    "id": "postcode",
+    "type": "text"
+   },
+   {
+    "id": "country",
+    "type": "text"
+   },
+   {
+    "id": "location(x-coordinate):_eastings_(where_data_is_held)",
+    "type": "text"
+   },
+   {
+    "id": "location(y-coordinate):_northings_(where_data_is_held)",
+    "type": "text"
+   },
+   {
+    "id": "grid_supply_point",
+    "type": "text"
+   },
+   {
+    "id": "bulk_supply_point",
+    "type": "text"
+   },
+   {
+    "id": "primary",
+    "type": "text"
+   },
+   {
+    "id": "point_of_connection(poc)_voltage(kv)",
+    "type": "text"
+   },
+   {
+    "id": "licence_area",
+    "type": "text"
+   },
+   {
+    "id": "energy_source_1",
+    "type": "text"
+   },
+   {
+    "id": "Energy Conversion Technology 1",
+    "type": "text"
+   },
+   {
+    "id": "chp_cogeneration(yes/no)",
+    "type": "text"
+   },
+   {
+    "id": "storage_capacity_1(mwh)",
+    "type": "text"
+   },
+   {
+    "id": "storage_duration_1(hours)",
+    "type": "text"
+   },
+   {
+    "id": "energy_source_&_conversion_tech_1_reg_capacity_mw",
+    "type": "numeric"
+   },
+   {
+    "id": "energy_source_2",
+    "type": "text"
+   },
+   {
+    "id": "Energy Conversion Technology 2",
+    "type": "text"
+   },
+   {
+    "id": "chp_cogeneration2(yes/no)",
+    "type": "text"
+   },
+   {
+    "id": "storage_capacity_2(mwh)",
+    "type": "text"
+   },
+   {
+    "id": "storage_duration_2(hours)",
+    "type": "text"
+   },
+   {
+    "id": "energy_source_&_conversion_tech_2_reg_capacity_mw",
+    "type": "numeric"
+   },
+   {
+    "id": "energy_source_3",
+    "type": "text"
+   },
+   {
+    "id": "Energy Conversion Technology 3",
+    "type": "text"
+   },
+   {
+    "id": "chp_cogeneration3(yes/no)",
+    "type": "text"
+   },
+   {
+    "id": "storage_capacity_3(mwh)",
+    "type": "text"
+   },
+   {
+    "id": "storage_duration_3(hours)",
+    "type": "text"
+   },
+   {
+    "id": "energy_source_&_conversion_tech_3_reg_capacity_mw",
+    "type": "numeric"
+   },
+   {
+    "id": "flexible_connection (Yes/No)",
+    "type": "text"
+   },
+   {
+    "id": "connection_status",
+    "type": "text"
+   },
+   {
+    "id": "already_connected_registered_capacity(mw)",
+    "type": "numeric"
+   },
+   {
+    "id": "connected_maximum_export_capacity(mw)",
+    "type": "numeric"
+   },
+   {
+    "id": "connected_maximum_export_capacity(mva)",
+    "type": "numeric"
+   },
+   {
+    "id": "connected_maximum_import_capacity(mw)",
+    "type": "numeric"
+   },
+   {
+    "id": "connected_maximum_import_capacity(mva)",
+    "type": "numeric"
+   },
+   {
+    "id": "date_connected",
+    "type": "timestamp"
+   },
+   {
+    "id": "accepted_to_connect_registered_capacity(mw)",
+    "type": "text"
+   },
+   {
+    "id": "accepted_change_to_maximum_export_capacity(mw)",
+    "type": "text"
+   },
+   {
+    "id": "accepted_change_to_maximum_export_capacity(mva)",
+    "type": "text"
+   },
+   {
+    "id": "accepted_change_to_maximum_import_capacity(mw)",
+    "type": "text"
+   },
+   {
+    "id": "accepted_change_to_maximum_import_capacity(mva)",
+    "type": "text"
+   },
+   {
+    "id": "date_accepted",
+    "type": "text"
+   },
+   {
+    "id": "target_energisation_date",
+    "type": "text"
+   },
+   {
+    "id": "distribution_service_provider(y/n)",
+    "type": "text"
+   },
+   {
+    "id": "transmission_service_provider(y/n)",
+    "type": "text"
+   },
+   {
+    "id": "reference",
+    "type": "text"
+   },
+   {
+    "id": "in_a_connection_queue(y/n)",
+    "type": "text"
+   },
+   {
+    "id": "distribution_reinforcement_reference",
+    "type": "text"
+   },
+   {
+    "id": "transmission_reinforcement_reference",
+    "type": "text"
+   },
+   {
+    "id": "last_updated",
+    "type": "timestamp"
+   },
+   {
+    "id": "lon",
+    "type": "numeric"
+   },
+   {
+    "id": "lat",
+    "type": "numeric"
+   },
+   {
+    "id": "local_authority",
+    "type": "text"
+   }
+  ],
+  "_links": {
+   "start": "/api/3/action/datastore_search?resource_id=82a4ae83-77a3-4e7b-9060-8072ed96de9d&filters=%7B%22energy_source_1%22%3A+%22Stored+Energy+%28all+stored+energy+irrespective+of+the+original+energy+source%29%22%7D&limit=3",
+   "next": "/api/3/action/datastore_search?resource_id=82a4ae83-77a3-4e7b-9060-8072ed96de9d&filters=%7B%22energy_source_1%22%3A+%22Stored+Energy+%28all+stored+energy+irrespective+of+the+original+energy+source%29%22%7D&limit=3&offset=3"
+  },
+  "total": 416,
+  "total_was_estimated": false
+ }
+}

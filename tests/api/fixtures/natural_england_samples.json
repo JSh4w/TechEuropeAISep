@@ -1,0 +1,384 @@
+{
+ "alc_post_1988": {
+  "type": "FeatureCollection",
+  "properties": {
+   "exceededTransferLimit": true
+  },
+  "features": [
+   {
+    "type": "Feature",
+    "id": 1,
+    "geometry": null,
+    "properties": {
+     "OBJECTID_1": 1,
+     "OBJECTID": 1,
+     "GEOGEXT": "9",
+     "JOB_NUMBER": "043\\93",
+     "RPT": "Leeds",
+     "ALC_GRADE": "Grade 3b",
+     "HECTARES": 2.8,
+     "RPT_JOBNUM": "Leeds_043\\93",
+     "Published_": "http://publications.naturalengland.org.uk/publication/6099715035758592",
+     "Shape__Area": 28250,
+     "Shape__Length": 749.7618285533717
+    }
+   }
+  ]
+ },
+ "alc_provisional": {
+  "type": "FeatureCollection",
+  "properties": {
+   "exceededTransferLimit": true
+  },
+  "features": [
+   {
+    "type": "Feature",
+    "id": 1,
+    "geometry": null,
+    "properties": {
+     "OBJECTID": 1,
+     "GEOGEXT": "TG2",
+     "AREA": 3712.535,
+     "ALC_GRADE": "Grade 1",
+     "PERIMETER": 69726.523,
+     "Shape__Area": 37125350,
+     "Shape__Length": 69726.52283607732
+    }
+   }
+  ]
+ },
+ "ancient_woodland": {
+  "type": "FeatureCollection",
+  "properties": {
+   "exceededTransferLimit": true
+  },
+  "features": [
+   {
+    "type": "Feature",
+    "id": 1,
+    "geometry": null,
+    "properties": {
+     "OBJECTID": 1,
+     "NAME": "Abbotswood Shaw",
+     "THEME": "ancient woodland",
+     "THEMNAME": "Ancient & Semi-Natural Woodland",
+     "THEMID": 1481207,
+     "STATUS": "ASNW",
+     "PERIMETER": 638.2662967826581,
+     "AREA": 0.6036925063309768,
+     "X_COORD": 550675,
+     "Y_COORD": 123054,
+     "GlobalID": "8994eeec-d9b6-476e-a50a-595866ec1e1a",
+     "Shape__Area": 6036.925079345703,
+     "Shape__Length": 638.266296782658
+    }
+   }
+  ]
+ },
+ "ancient_woodland_revised": {
+  "type": "FeatureCollection",
+  "properties": {
+   "exceededTransferLimit": true
+  },
+  "features": [
+   {
+    "type": "Feature",
+    "id": 1,
+    "geometry": null,
+    "properties": {
+     "OBJECTID": 1,
+     "NAME": "ROUND WOOD",
+     "THEME": "ancient woodland",
+     "THEMENAME": "Ancient & Semi-Natural Woodland",
+     "STATUS": "ASNW",
+     "X_COORD": 565294,
+     "Y_COORD": 195309,
+     "THEMEID": "ESS-2501",
+     "AREA": 1.2538492550000166,
+     "PERIMETER": 0.46406722014385593,
+     "GlobalID": "1821f173-12fb-4477-8b2a-b347fb55288d",
+     "Shape__Area": 12538.492622375488,
+     "Shape__Length": 464.06722014385593
+    }
+   }
+  ]
+ },
+ "sssi": {
+  "type": "FeatureCollection",
+  "properties": {
+   "exceededTransferLimit": true
+  },
+  "features": [
+   {
+    "type": "Feature",
+    "id": 1,
+    "geometry": null,
+    "properties": {
+     "OBJECTID": 1,
+     "REF_CODE": "1001673",
+     "NAME": "Abberton Reservoir SSSI",
+     "MEASURE": 718.3117461352504,
+     "LABEL": "Abberton Reservoir (SSSI)",
+     "HYPERLINK": "1001904",
+     "CONTACT_NO": "0845 600 3078",
+     "GlobalID": "e00bfed5-be2f-489f-834d-7ae02b6429d9",
+     "Shape__Area": 7183117.461143494,
+     "Shape__Length": 24636.0565684379
+    }
+   }
+  ]
+ },
+ "sssi_irz": {
+  "type": "FeatureCollection",
+  "properties": {
+   "exceededTransferLimit": true
+  },
+  "features": [
+   {
+    "type": "Feature",
+    "id": 1,
+    "geometry": null,
+    "properties": {
+     "OBJECTID": 1,
+     "IRZURL": "https://irz.geodata.org.uk/IRZ/step2.html?irzcode=0300000630000&notes=&location=77215,11523 %20(IRZ%20polygon%20centre)",
+     "GlobalID": "86341d72-619e-48e5-9f30-9651e1ec8c36",
+     "Shape__Area": 429103554.99336386,
+     "Shape__Length": 173849.62466867076
+    }
+   }
+  ]
+ },
+ "sac": {
+  "type": "FeatureCollection",
+  "properties": {
+   "exceededTransferLimit": true
+  },
+  "features": [
+   {
+    "type": "Feature",
+    "id": 1,
+    "geometry": null,
+    "properties": {
+     "OBJECTID": 1,
+     "SAC_NAME": "Overstrand Cliffs",
+     "SAC_CODE": "UK0030232",
+     "SAC_AREA": 29.353167070374766,
+     "GRID_REF": "TG235414",
+     "EASTING": 623597.443028,
+     "NORTHING": 341491.283171,
+     "LATITUDE": "52:55:27N",
+     "LONGITUDE": "1:19:29E",
+     "NAME": "",
+     "STATUS": "Designated",
+     "ID": 0,
+     "FILE_": "",
+     "AREA": 29.353167070374766,
+     "EASTING0": 623597.443028,
+     "NORTHING0": 341491.283171,
+     "GIS_DATE": "20150610",
+     "VERSION": 1,
+     "GlobalID": "e783897f-1c35-4800-9f69-5e4c6da5913d",
+     "Shape__Area": 293531.6707305908,
+     "Shape__Length": 4941.035538904935
+    }
+   }
+  ]
+ },
+ "spa": {
+  "type": "FeatureCollection",
+  "properties": {
+   "exceededTransferLimit": true
+  },
+  "features": [
+   {
+    "type": "Feature",
+    "id": 1,
+    "geometry": null,
+    "properties": {
+     "OBJECTID": 1,
+     "SPA_NAME": "Northumberland Marine",
+     "SPA_CODE": "UK9020325",
+     "SPA_AREA": 88498.6604175,
+     "GRID_REF": "NU280226",
+     "EASTING": 428052.154604,
+     "NORTHING": 622632.180381,
+     "LATITUDE": "55:30:11N",
+     "LONGITUDE": "1:33:27W",
+     "NAME": "",
+     "STATUS": "Classified",
+     "ID": 0,
+     "FILE_": "",
+     "AREA": 0,
+     "EASTING0": 0,
+     "NORTHING0": 0,
+     "GIS_DATE": "20190521",
+     "VERSION": 1,
+     "GlobalID": "8428a108-99f4-4411-9e99-120a0a9e8bef",
+     "Shape__Area": 884986604.1746674,
+     "Shape__Length": 334724.61404862447
+    }
+   }
+  ]
+ },
+ "ramsar": {
+  "type": "FeatureCollection",
+  "properties": {
+   "exceededTransferLimit": true
+  },
+  "features": [
+   {
+    "type": "Feature",
+    "id": 1,
+    "geometry": null,
+    "properties": {
+     "OBJECTID": 1,
+     "NAME": "Pevensey Levels",
+     "CODE": "UK11053",
+     "AREA": 3585.38170474,
+     "GRID_REF": "TQ647076",
+     "EASTING": 564719.938638,
+     "NORTHING": 107652.289202,
+     "LATITUDE": "50:51:18N",
+     "LONGITUDE": "0:20:18E",
+     "NAME0": "",
+     "STATUS": "Listed",
+     "ID": 0,
+     "FILE_": "",
+     "AREA0": 3585.38170474,
+     "EASTING0": 564719.938638,
+     "NORTHING0": 107652.289202,
+     "GIS_DATE": "20100518",
+     "VERSION": 1,
+     "Shape__Area": 35853817.04746246,
+     "Shape__Length": 64175.14157427057,
+     "GlobalID": "f691adfe-9972-4b95-bbc2-b28ab6657032"
+    }
+   }
+  ]
+ },
+ "nnr": {
+  "type": "FeatureCollection",
+  "properties": {
+   "exceededTransferLimit": true
+  },
+  "features": [
+   {
+    "type": "Feature",
+    "id": 1,
+    "geometry": null,
+    "properties": {
+     "HYPERLINK": "1006159",
+     "OBJECTID": 1,
+     "REF_CODE": "1006159",
+     "NAME": "WINTERTON DUNES",
+     "MEASURE": 84.42,
+     "LABEL": "Winterton Dunes (NNR)",
+     "GlobalID": "54d522fa-cae5-48b8-a113-0bc31a82ac81",
+     "Shape__Area": 844247.6652069092,
+     "Shape__Length": 8071.881607271293
+    }
+   }
+  ]
+ },
+ "lnr": {
+  "type": "FeatureCollection",
+  "properties": {
+   "exceededTransferLimit": true
+  },
+  "features": [
+   {
+    "type": "Feature",
+    "id": 1,
+    "geometry": null,
+    "properties": {
+     "HYPERLINK": null,
+     "OBJECTID": 1,
+     "REF_CODE": "1421535",
+     "NAME": "ALKINCOATS WOODLAND",
+     "MEASURE": 8.120371503810714,
+     "LABEL": "Alkincoats Woodland (LNR)",
+     "Shape__Area": 81203.71502685547,
+     "Shape__Length": 1260.170285752694,
+     "GlobalID": "cde87c1f-e24b-4167-a4b2-6f859159f8ed"
+    }
+   }
+  ]
+ },
+ "aonb": {
+  "type": "FeatureCollection",
+  "properties": {
+   "exceededTransferLimit": true
+  },
+  "features": [
+   {
+    "type": "Feature",
+    "id": 1,
+    "geometry": null,
+    "properties": {
+     "OBJECTID": 1,
+     "CODE": "11",
+     "NAME": "East Devon",
+     "DESIG_DATE": "Sep-63",
+     "HOTLINK": "https://www.eastdevon-nl.org.uk/",
+     "STAT_AREA": 269.13,
+     "Shape__Area": 269134222.8430424,
+     "Shape__Length": 135262.8832867655,
+     "GlobalID": "3d6d2039-f86a-467b-a66a-9e988aea8bf2"
+    }
+   }
+  ]
+ },
+ "national_parks": {
+  "type": "FeatureCollection",
+  "properties": {
+   "exceededTransferLimit": true
+  },
+  "features": [
+   {
+    "type": "Feature",
+    "id": 1,
+    "geometry": null,
+    "properties": {
+     "OBJECTID": 1,
+     "CODE": 5,
+     "NAME": "NEW FOREST",
+     "MEASURE": 567,
+     "DESIG_DATE": 1143849600000,
+     "HOTLINK": "http://www.newforestnpa.gov.uk/",
+     "STATUS": "Designated",
+     "Shape__Area": 566524771.760704,
+     "Shape__Length": 186207.1593806918
+    }
+   }
+  ]
+ },
+ "priority_habitats": {
+  "type": "FeatureCollection",
+  "properties": {
+   "exceededTransferLimit": true
+  },
+  "features": [
+   {
+    "type": "Feature",
+    "id": 1,
+    "geometry": null,
+    "properties": {
+     "OBJECTID": 1,
+     "MainHabs": "Blanket bog",
+     "HabCodes": "BLBOG",
+     "FeatDesc": "",
+     "FeatCodes": "",
+     "OtherClass": "",
+     "AddHabs": "",
+     "PrimSource": "Higher Level Stewardship (BLBOG)",
+     "AreaHa": 0.01,
+     "Version": "Sep_25",
+     "UID": "PHID21325721_008174694",
+     "GlobalID": "7ae78146-e680-433a-a27f-596378d78fee",
+     "Shape__Area": 107.41502380371094,
+     "Shape__Length": 89.60340753042907
+    }
+   }
+  ]
+ }
+}

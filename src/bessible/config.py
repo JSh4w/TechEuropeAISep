@@ -17,6 +17,9 @@ class Settings(BaseSettings):
 
     logfire_token: SecretStr | None = None
     typesafe_api_key: SecretStr | None = None
+    ukpn_api_key: SecretStr | None = None  # ukpowernetworks.opendatasoft.com
+    ssen_api_key: SecretStr | None = None  # ssentransmission.opendatasoft.com
+    nged_api_key: SecretStr | None = None  # connecteddata.nationalgrid.co.uk
 
     temporal_address: str = "localhost:7233"
     temporal_namespace: str = "default"
