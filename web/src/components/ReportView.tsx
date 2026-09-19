@@ -477,6 +477,51 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
         </Card>
       </div>
 
+      {/* Deterministic hard checks from the data layer (site_land artifacts) */}
+      {artifacts.some((a) => a.stage === 'site_land' && /^(OK|Caveat|Blocker|Unknown): /.test(a.claim)) && (
+        <Card className="border-border bg-card shadow-xs rounded-2xl overflow-hidden">
+          <CardHeader className="p-4 border-b border-border/70 bg-muted/20">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <CardTitle className="text-sm font-bold text-foreground">Site & Land Hard Checks</CardTitle>
+              <span className="text-xs text-muted-foreground">
+                Deterministic rules on live public data, measured against the real title boundary
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4 grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            {artifacts
+              .filter((a) => a.stage === 'site_land' && /^(OK|Caveat|Blocker|Unknown): /.test(a.claim))
+              .map((a) => {
+                const [outcome, ...rest] = a.claim.split(': ');
+                const tone =
+                  outcome === 'OK'
+                    ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/40'
+                    : outcome === 'Caveat'
+                      ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/40'
+                      : outcome === 'Blocker'
+                        ? 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/40'
+                        : 'bg-muted text-muted-foreground border-border';
+                const name = a.id.replace(/^site_land-/, '').replace(/-[^-]*$/, '').replace(/_/g, ' ');
+                return (
+                  <div
+                    key={a.id}
+                    onClick={() => setSelectedArtifact(a)}
+                    className="flex items-start gap-3 p-3 rounded-xl border border-border bg-muted/20 text-xs cursor-pointer hover:border-emerald-500/50 hover:bg-muted/30 transition shadow-2xs"
+                  >
+                    <span className={`shrink-0 w-16 text-center px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase ${tone}`}>
+                      {outcome}
+                    </span>
+                    <div>
+                      <div className="font-semibold capitalize text-foreground">{name}</div>
+                      <div className="text-muted-foreground mt-0.5">{rest.join(': ')}</div>
+                    </div>
+                  </div>
+                );
+              })}
+          </CardContent>
+        </Card>
+      )}
+
       {/* 4. Explainable AI: Artifacts & Data Provenance */}
       <Card className="border-border bg-card shadow-xs rounded-2xl overflow-hidden">
         <CardHeader className="p-4 border-b border-border/70 bg-muted/20">

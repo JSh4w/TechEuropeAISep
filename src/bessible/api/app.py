@@ -52,6 +52,21 @@ async def get_inspire_parcels(_bbox: str | None = None) -> Response:
     return JSONResponse(content={"type": "FeatureCollection", "features": []})
 
 
+_SITE_DATA_CACHE: dict[tuple[float, float], dict[str, object]] = {}
+
+
+@app.get("/site-data", tags=["data"])
+async def get_site_data(lat: float, lon: float) -> Response:
+    """Everything `location.collate` knows about a coordinate (the LocationData object), for the map layers."""
+    from bessible.location import Coordinates, collate  # ruff: ignore[import-outside-top-level]
+
+    key = (round(lat, 5), round(lon, 5))
+    if key not in _SITE_DATA_CACHE:
+        location = await collate(Coordinates(lat=lat, lon=lon))
+        _SITE_DATA_CACHE[key] = location.model_dump(mode="json")
+    return JSONResponse(content=_SITE_DATA_CACHE[key])
+
+
 @app.get("/health", tags=["system"])
 async def health_check() -> dict[str, str]:
     """Basic health check endpoint."""

@@ -26,6 +26,7 @@ import {
   getRunResult,
   checkCapacity,
   subscribeEvents,
+  getSiteData,
 } from '../lib/api';
 import {
   BatteryCharging,
@@ -39,10 +40,10 @@ import {
 // Demo Presets for Hackathon Testing
 const DEMO_PRESETS = [
   {
-    label: 'London Viable (SE1 7PB)',
-    postcode: 'SE1 7PB',
-    coords: [-0.1132, 51.5014] as [number, number],
-    desc: 'Viable firm capacity (12 MW firm, 18 MW ceiling)',
+    label: 'Dorking Viable (RH4 1AD)',
+    postcode: 'RH4 1AD',
+    coords: [-0.3302, 51.2329] as [number, number],
+    desc: 'Viable firm capacity (8 MW firm at Dorking Town 11kV)',
   },
   {
     label: 'Flexible Connection Needed (CB24 9ZR)',
@@ -69,6 +70,10 @@ export default function Home() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Map & Site Decision State
+  const positionedRunRef = useRef<string | null>(null);
+  const pendingPinRef = useRef<[number, number] | null>(null);
+  const lastRunPostcodeRef = useRef<string | null>(null);
+  const proposedRunRef = useRef<string | null>(null);
   const [initialCenter, setInitialCenter] = useState<[number, number]>([-0.1132, 51.5014]);
   const [currentPosition, setCurrentPosition] = useState<[number, number]>([-0.1132, 51.5014]);
   const [capacityProposal, setCapacityProposal] = useState<CapacityOutput | null>(null);
@@ -77,6 +82,30 @@ export default function Home() {
   const [submittingDecision, setSubmittingDecision] = useState<boolean>(false);
   const [substationChangeNotice, setSubstationChangeNotice] = useState<string | null>(null);
   const [inspireGeoJson, setInspireGeoJson] = useState<GeoJSON.GeoJSON | null>(null);
+  const [siteData, setSiteData] = useState<any>(null);
+  const [siteDataLoading, setSiteDataLoading] = useState(false);
+
+  // Real data for wherever the pin is: coordinate -> location.collate -> LocationData
+  useEffect(() => {
+    const [lon, lat] = currentPosition;
+    if (lon === -0.1132 && lat === 51.5014) return; // untouched default
+    let stale = false;
+    const timer = setTimeout(async () => {
+      setSiteDataLoading(true);
+      try {
+        const data = await getSiteData(lat, lon);
+        if (!stale && data) setSiteData(data);
+      } catch {
+        // keep the last layer
+      } finally {
+        if (!stale) setSiteDataLoading(false);
+      }
+    }, 400);
+    return () => {
+      stale = true;
+      clearTimeout(timer);
+    };
+  }, [currentPosition]);
 
   // Assessment Final Result
   const [result, setResult] = useState<AssessmentResult | null>(null);
@@ -295,16 +324,24 @@ export default function Home() {
         const status = await getRunStatus(runId);
         setRunStatus(status);
 
-        if (status.status === 'awaiting_confirmation' && status.capacity) {
+        if (status.position && positionedRunRef.current !== runId) {
+          positionedRunRef.current = runId;
+          const p: [number, number] = Array.isArray(status.position)
+            ? status.position
+            : [status.position.lon, status.position.lat];
+          setInitialCenter(p);
+          setCurrentPosition(pendingPinRef.current ?? p);
+        }
+        if (status.status === 'awaiting_confirmation' && status.capacity && proposedRunRef.current !== runId) {
+          proposedRunRef.current = runId;
           setCapacityProposal(status.capacity);
-          if (status.position) {
-            const p: [number, number] = Array.isArray(status.position)
-              ? status.position
-              : [status.position.lon, status.position.lat];
-            setCurrentPosition(p);
-          }
           if (status.capacity.recommended_mw) {
             setSelectedCapacityMw(status.capacity.recommended_mw);
+          }
+          if (pendingPinRef.current) {
+            const pin = pendingPinRef.current;
+            pendingPinRef.current = null;
+            void handlePositionChange(pin);
           }
         } else if (status.status === 'completed') {
           const res = await getRunResult(runId);
@@ -338,10 +375,36 @@ export default function Home() {
   }, [runId]);
 
   // Start Run Handler
-  const handleStartRun = async (overridePostcode?: string, overrideCoords?: [number, number]) => {
+  const handleStartRun = async (
+    overridePostcode?: string,
+    overrideCoords?: [number, number],
+    overrideFlexible?: boolean
+  ) => {
     const targetInput = (overridePostcode || postcode).trim();
     const isUrl = targetInput.startsWith('http://') || targetInput.startsWith('https://');
-    const targetPostcode = isUrl ? 'SE1 7PB' : targetInput;
+    let targetPostcode = isUrl ? 'SE1 7PB' : targetInput;
+    const flexible = overrideFlexible ?? flexibleConnection;
+
+    // Pin dragged away from the last assessed postcode (and the postcode text untouched): assess where the pin is.
+    // A run starts from a postcode, so use the nearest one and keep the pin where the user put it.
+    pendingPinRef.current = null;
+    const pinMoved = distanceKm(initialCenter, currentPosition) > 0.05;
+    if (!overridePostcode && !isUrl && pinMoved && postcode === lastRunPostcodeRef.current) {
+      try {
+        const r = await fetch(
+          `https://api.postcodes.io/postcodes?lon=${currentPosition[0]}&lat=${currentPosition[1]}&limit=1&radius=2000&widesearch=true`
+        );
+        const nearest = (await r.json())?.result?.[0]?.postcode as string | undefined;
+        if (nearest) {
+          targetPostcode = nearest;
+          setPostcode(nearest);
+          pendingPinRef.current = currentPosition;
+        }
+      } catch {
+        // fall through to the typed postcode
+      }
+    }
+    lastRunPostcodeRef.current = targetPostcode;
     setErrorMsg(null);
     setLoading(true);
     setResult(null);
@@ -356,12 +419,12 @@ export default function Home() {
         ? {
             link: targetInput,
             property_url: targetInput,
-            flexible_connection: flexibleConnection,
+            flexible_connection: flexible,
           }
         : {
             postcode: targetPostcode,
             link: propertyLink.trim() || undefined,
-            flexible_connection: flexibleConnection,
+            flexible_connection: flexible,
           };
 
       const res = await startRun(payload);
@@ -584,7 +647,7 @@ export default function Home() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+      <main className="flex-1 max-w-[1800px] w-full mx-auto p-4 sm:p-6 space-y-6">
         {/* Postcode Search & Preset Bar */}
         <Card className="border-border bg-card shadow-xs rounded-2xl overflow-hidden">
           <CardContent className="p-4 sm:p-5 space-y-3.5">
@@ -648,15 +711,22 @@ export default function Home() {
             <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
             <div className="text-xs text-foreground space-y-1">
               <p className="font-bold text-sm text-destructive">Site Not Viable for BESS Connection</p>
-              <p>{runStatus.message || 'Capacity is below the minimum viable connection threshold.'}</p>
-              <div className="pt-2">
+              <p>
+                {runStatus.message ||
+                  runStatus.capacity?.message ||
+                  'Capacity is below the minimum viable connection threshold.'}
+              </p>
+              <div
+                className="pt-2"
+                hidden={flexibleConnection || !/flexible/i.test(runStatus.message || runStatus.capacity?.message || '')}
+              >
                 <Button
                   type="button"
                   variant="destructive"
                   size="sm"
                   onClick={() => {
                     setFlexibleConnection(true);
-                    handleStartRun();
+                    handleStartRun(undefined, undefined, true);
                   }}
                   className="text-xs font-medium"
                 >
@@ -684,9 +754,9 @@ export default function Home() {
           </div>
         ) : (
           /* Active Workflow Layout: Map + Controls + Live Trace */
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Left 2 Cols: Interactive Map & Decision Controls */}
-            <div className="lg:col-span-2 space-y-4">
+            <div className="lg:col-span-3 space-y-4">
               {substationChangeNotice && (
                 <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg text-xs text-blue-900 dark:text-blue-200 flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
@@ -701,6 +771,8 @@ export default function Home() {
                 capacityMw={selectedCapacityMw}
                 substations={capacityProposal?.alternates || []}
                 inspireGeoJson={inspireGeoJson}
+                siteData={siteData}
+                siteDataLoading={siteDataLoading}
               />
 
               {runStatus?.status === 'awaiting_confirmation' && capacityProposal && (

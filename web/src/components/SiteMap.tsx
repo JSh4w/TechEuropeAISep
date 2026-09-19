@@ -14,6 +14,8 @@ interface SiteMapProps {
   substations?: SubstationOption[];
   areasGeoJson?: GeoJSON.GeoJSON | null;
   inspireGeoJson?: GeoJSON.GeoJSON | null;
+  siteData?: any; // LocationData from /site-data
+  siteDataLoading?: boolean;
   maxDistanceKm?: number;
 }
 
@@ -72,15 +74,22 @@ export default function SiteMap({
   substations = [],
   areasGeoJson,
   inspireGeoJson,
+  siteData,
+  siteDataLoading = false,
   maxDistanceKm = 2.0,
 }: SiteMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
   const pinMarkerRef = useRef<Marker | null>(null);
   const substationMarkersRef = useRef<Marker[]>([]);
+  const siteDataMarkersRef = useRef<Marker[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [distanceFromOrigin, setDistanceFromOrigin] = useState<number>(0);
   const [mapMode, setMapMode] = useState<'streets' | 'satellite'>('streets');
+
+  // Latest props for the marker's dragend handler, which is bound once
+  const latestRef = useRef({ initialCenter, maxDistanceKm, onPositionChange });
+  latestRef.current = { initialCenter, maxDistanceKm, onPositionChange };
 
   // Initialize Map
   useEffect(() => {
@@ -160,11 +169,12 @@ export default function SiteMap({
       marker.on('dragend', () => {
         const lngLat = marker.getLngLat();
         const rawPos: [number, number] = [lngLat.lng, lngLat.lat];
-        const clamped = clampPositionWithinDistance(initialCenter, rawPos, maxDistanceKm);
+        const latest = latestRef.current;
+        const clamped = clampPositionWithinDistance(latest.initialCenter, rawPos, latest.maxDistanceKm);
         marker.setLngLat(clamped);
-        const dist = distanceKm(initialCenter, clamped);
+        const dist = distanceKm(latest.initialCenter, clamped);
         setDistanceFromOrigin(dist);
-        onPositionChange(clamped);
+        latest.onPositionChange(clamped);
       });
 
       pinMarkerRef.current = marker;
@@ -280,6 +290,8 @@ export default function SiteMap({
     substationMarkersRef.current.forEach((m) => m.remove());
     substationMarkersRef.current = [];
 
+    if (siteData) return; // real substations (true coordinates) are drawn from LocationData below
+
     const calculatedSubstations: Array<{ coords: [number, number]; sub: SubstationOption }> = [];
 
     substations.forEach((sub, idx) => {
@@ -376,7 +388,131 @@ export default function SiteMap({
         });
       }
     }
-  }, [mapLoaded, substations, initialCenter, currentPosition]);
+  }, [mapLoaded, substations, initialCenter, currentPosition, siteData]);
+
+  // Real data layer from LocationData: title boundary, overhead lines, substations, generation / storage projects
+  useEffect(() => {
+    if (!mapRef.current || !mapLoaded) return;
+    const map = mapRef.current;
+
+    siteDataMarkersRef.current.forEach((m) => m.remove());
+    siteDataMarkersRef.current = [];
+
+    const grid = siteData?.deterministic?.grid;
+    const esc = (v: unknown) => String(v ?? '').replace(/[<>&]/g, '');
+    const fmt = (v: unknown, unit = '') => (typeof v === 'number' ? `${Math.round(v * 10) / 10}${unit}` : 'n/a');
+
+    const shapes = {
+      type: 'FeatureCollection',
+      features: [
+        ...((grid?.lines ?? []) as any[]).map((l) => ({
+          type: 'Feature',
+          properties: { layer: 'line', crosses: !!l.crosses_site },
+          geometry: l.geometry,
+        })),
+      ],
+    };
+    const titleShape = {
+      type: 'FeatureCollection',
+      features: siteData?.title ? [{ type: 'Feature', properties: {}, geometry: siteData.title.geometry }] : [],
+    };
+    const titleSource = map.getSource('site-title-source') as GeoJSONSource;
+    if (titleSource) {
+      titleSource.setData(titleShape as any);
+    } else {
+      map.addSource('site-title-source', { type: 'geojson', data: titleShape as any });
+      map.addLayer({
+        id: 'site-title-fill',
+        type: 'fill',
+        source: 'site-title-source',
+        paint: { 'fill-color': '#f97316', 'fill-opacity': 0.3 },
+      });
+      map.addLayer({
+        id: 'site-title-halo',
+        type: 'line',
+        source: 'site-title-source',
+        paint: { 'line-color': '#ffffff', 'line-width': 6 },
+      });
+      map.addLayer({
+        id: 'site-title-outline',
+        type: 'line',
+        source: 'site-title-source',
+        paint: { 'line-color': '#c2410c', 'line-width': 3 },
+      });
+    }
+    // keep the title above the footprint and every other shape
+    ['site-title-fill', 'site-title-halo', 'site-title-outline'].forEach((id) => map.getLayer(id) && map.moveLayer(id));
+
+    const source = map.getSource('site-data-source') as GeoJSONSource;
+    if (source) {
+      source.setData(shapes as any);
+    } else {
+      map.addSource('site-data-source', { type: 'geojson', data: shapes as any });
+      map.addLayer({
+        id: 'site-data-lines',
+        type: 'line',
+        source: 'site-data-source',
+        filter: ['==', ['get', 'layer'], 'line'],
+        paint: {
+          'line-color': ['case', ['get', 'crosses'], '#dc2626', '#7c3aed'],
+          'line-width': 1.5,
+          'line-dasharray': [3, 2],
+        },
+      });
+    }
+    if (!grid) return;
+
+    const add = (lngLat: [number, number], html: string, popupHtml: string) => {
+      const el = document.createElement('div');
+      el.innerHTML = html;
+      const marker = new Marker({ element: el })
+        .setLngLat(lngLat)
+        .setPopup(new Popup({ offset: 12 }).setHTML(`<div class="p-2 text-xs text-zinc-800">${popupHtml}</div>`))
+        .addTo(map);
+      siteDataMarkersRef.current.push(marker);
+    };
+
+    (grid.projects as any[]).slice(0, 40).forEach((p) => {
+      const icon = p.is_storage ? '🔋' : p.is_solar ? '☀️' : '⚙️';
+      add(
+        [p.coords.lon, p.coords.lat],
+        `<div class="text-sm leading-none bg-white/90 rounded-full border border-zinc-300 shadow p-1 cursor-pointer" title="${esc(p.name)}">${icon}</div>`,
+        `<div class="font-bold">${esc(p.name) || 'Unnamed project'}</div>
+         <div>${esc(p.technology)} · ${fmt(p.capacity_mw, ' MW')}${p.storage_mwh ? ` / ${fmt(p.storage_mwh, ' MWh')}` : ''}</div>
+         <div>${esc(p.status)} · ${esc(p.operator)} · ${fmt(p.distance_km, ' km')}</div>`
+      );
+    });
+
+    (grid.substations as any[]).slice(0, 12).forEach((sub) => {
+      const h = sub.headroom;
+      const twoWay = h ? Math.max(0, Math.min(h.generation_mw ?? 0, h.demand ?? 0)) : null;
+      const tone =
+        twoWay === null
+          ? 'bg-zinc-600 text-white'
+          : twoWay >= 5
+            ? 'bg-emerald-600 text-white'
+            : twoWay > 0
+              ? 'bg-amber-500 text-white'
+              : 'bg-red-600 text-white';
+      add(
+        [sub.coords.lon, sub.coords.lat],
+        `<div class="flex items-center gap-1 px-2 py-1 rounded-md shadow-md text-[11px] font-semibold cursor-pointer ${tone}">
+           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+           <span>${esc(sub.name)}</span>
+           <span class="opacity-90">${twoWay === null ? '' : `(${fmt(twoWay, ' MW')})`}</span>
+         </div>`,
+        `<div class="font-bold text-sm">${esc(sub.name)}</div>
+         <div>${esc(sub.operator)} · ${esc(sub.kind)} · ${esc(sub.voltages ?? sub.voltage_kv)} kV · ${fmt(sub.distance_km, ' km')}</div>
+         ${
+           h
+             ? `<div class="font-semibold mt-1">Import ${fmt(h.demand)} ${esc(h.demand_unit)} · Export ${fmt(h.generation_mw, ' MW')}</div>
+                <div>${esc(h.generation_constraint ?? h.demand_constraint ?? '')}</div>`
+             : '<div class="mt-1">No published headroom</div>'
+         }
+         ${sub.gsp ? `<div>GSP: ${esc(sub.gsp)}${sub.bsp ? ` · BSP: ${esc(sub.bsp)}` : ''}</div>` : ''}`
+      );
+    });
+  }, [mapLoaded, siteData]);
 
   // Render INSPIRE Land Registry Parcels if present
   useEffect(() => {
@@ -417,7 +553,7 @@ export default function SiteMap({
   }, [mapLoaded, inspireGeoJson]);
 
   return (
-    <div className="relative w-full h-[480px] rounded-2xl overflow-hidden border border-border shadow-md bg-muted">
+    <div className="relative w-full h-[72vh] min-h-[560px] rounded-2xl overflow-hidden border border-border shadow-md bg-muted">
       <div ref={mapContainer} className="w-full h-full" />
 
       {/* Top Left: Location & Pin Coordinate Telemetry */}
@@ -463,11 +599,48 @@ export default function SiteMap({
             <span className="inline-block w-4 h-0.5 border-t border-dashed border-sky-500"></span>
             <span>Cable Connection Run</span>
           </div>
-          {inspireGeoJson && (
+          {siteData && (
+            <>
+              <div className="flex items-center gap-1.5 border-l border-border pl-3">
+                <span className="inline-block w-2.5 h-2.5 rounded-sm border-2 border-orange-700 bg-orange-300"></span>
+                <span>Title {siteData.title ? `${siteData.title.area_ha.toFixed(2)} ha` : 'not registered'}</span>
+                {siteData.title && (
+                  <button
+                    type="button"
+                    className="pointer-events-auto underline text-orange-600 dark:text-orange-400 font-semibold cursor-pointer ml-1"
+                    onClick={() => {
+                      const [minLon, minLat, maxLon, maxLat] = siteData.title.bbox;
+                      mapRef.current?.fitBounds(
+                        [
+                          [minLon, minLat],
+                          [maxLon, maxLat],
+                        ],
+                        { padding: 120, maxZoom: 18 }
+                      );
+                    }}
+                  >
+                    zoom to title
+                  </button>
+                )}
+              </div>
+              <div className="hidden lg:flex items-center gap-2 border-l border-border pl-3 text-[10px]">
+                <span>⚡ substations</span>
+                <span>🔋 storage</span>
+                <span>☀️ solar</span>
+                <span>┄ lines</span>
+              </div>
+            </>
+          )}
+          {inspireGeoJson && !siteData && (
             <div className="flex items-center gap-1.5 border-l border-border pl-3">
               <span className="inline-block w-2.5 h-2.5 rounded-sm bg-rose-500 opacity-70"></span>
               <span>Cadastral Boundary</span>
             </div>
+          )}
+          {siteDataLoading && (
+            <span className="ml-1 text-emerald-600 dark:text-emerald-400 font-semibold animate-pulse border-l border-border pl-3">
+              Loading live site data…
+            </span>
           )}
         </div>
 

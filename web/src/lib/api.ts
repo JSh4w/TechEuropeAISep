@@ -55,7 +55,9 @@ export async function getRunStatus(id: string): Promise<RunStatus> {
     const errorData = await res.json().catch(() => ({}));
     throw new ApiError(res.status, errorData.detail || 'Failed to get status', errorData);
   }
-  return res.json();
+  const status = await res.json();
+  if (status?.capacity) status.capacity = normalizeCapacity(status.capacity);
+  return status;
 }
 
 export async function sendDecision(
@@ -112,7 +114,7 @@ export async function checkCapacity(
     throw new ApiError(res.status, errorData.detail || 'Capacity check failed', errorData);
   }
 
-  return res.json();
+  return normalizeCapacity(await res.json());
 }
 
 export async function getAreasGeoJson(): Promise<GeoJSON.GeoJSON | null> {
@@ -166,5 +168,30 @@ export function subscribeEvents(
 
   return () => {
     eventSource.close();
+  };
+}
+
+// LocationData for a coordinate: title boundary, substations with headroom, nearby projects, overhead lines.
+export async function getSiteData(lat: number, lon: number): Promise<any> {
+  const res = await fetch(`${API_BASE}/site-data?lat=${lat}&lon=${lon}`);
+  if (!res.ok) {
+    return null;
+  }
+  return res.json();
+}
+
+// The backend names things slightly differently from the UI types: map them once here.
+function normalizeCapacity(cap: any): any {
+  if (!cap) return cap;
+  return {
+    ...cap,
+    serving_substation: cap.serving_substation ?? cap.substation,
+    voltage_kv: cap.voltage_kv ?? cap.connection_voltage_kv,
+    alternates: (cap.alternates ?? []).map((a: any) => ({
+      ...a,
+      name: a.name ?? a.substation,
+      effective_headroom_mw: a.effective_headroom_mw ?? a.size_mw,
+      is_marginal: a.is_marginal ?? a.marginal,
+    })),
   };
 }
