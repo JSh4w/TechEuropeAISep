@@ -73,6 +73,8 @@ ignore = [
     ]
 
 [tool.ruff.lint.per-file-ignores]
+# The hard checks are small `Proposal -> Check` functions whose names say what they check.
+"src/bessible/possibility/hard.py" = ["undocumented-public-function"]
 # A command-line script: prints, runs top to bottom, holds the map's JavaScript and UI text (en dashes intended).
 "scripts/site_report.py" = [
     "print",

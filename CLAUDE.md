@@ -52,6 +52,10 @@ model used); the report is built only from artifacts. CLI first; a web UI is opt
   the title boundary everything is measured against; `deterministic` holds facts to compute on (locality, terrain,
   flood, land, designations, grid), `agentic` holds documents / notes / search terms for agents; `sources` lists every
   upstream call (URLs double as artifact sources). `uv run python -m bessible.location <lat> <lon>` dumps it as JSON.
+- `src/bessible/possibility/` — can a battery be built here at all? `assess(Proposal(location, battery_mw)) ->
+  PossibilityReport`. `hard.py`: the deterministic checks, each a plain `Proposal -> Check` function (pass / warn / fail /
+  unknown + reason, facts, source URLs) listed in `HARD_CHECKS`; thresholds live on `Limits`. No I/O.
+  `uv run python -m bessible.possibility <lat> <lon> [mw] [hours]` runs them on a live location.
 
 - `sandbox/map_session/` — tracked prototype, the base for the final build (the rest of `sandbox/` is gitignored).
   `workflow.py`: `AssessWorkflow` (task queue `bessible-web`): AI suggests area → human edits on the map (`submit_area`

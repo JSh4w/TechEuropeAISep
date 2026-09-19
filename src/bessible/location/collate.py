@@ -87,7 +87,7 @@ NEARBY_DATASETS = [
 ]
 NE_MARGIN_M: dict[str, float] = {"alc_provisional": 0, "alc_post_1988": 0, "sssi_irz": 0}  # others: NEARBY_M
 
-_tables: dict[str, tuple[float, Any]] = {}
+_tables: dict[str, tuple[float, Any, str]] = {}  # name -> (fetched at, table, url)
 
 
 class _Fetcher:
@@ -127,11 +127,14 @@ class _Fetcher:
         """A location-independent table, downloaded once per `TABLE_TTL_S` per process."""
         hit = _tables.get(name)
         if hit and time.monotonic() - hit[0] < TABLE_TTL_S:
-            self.sources.append(SourceStatus(name=name, url="(cached table)", status="ok"))
+            self.sources.append(
+                SourceStatus(name=name, url=hit[2], status="ok", detail="reused from this process's cache")
+            )
             return hit[1]  # type: ignore[no-any-return]
         result = await fetch()
         if result is not None:
-            _tables[name] = (time.monotonic(), result)
+            url = next((s.url for s in reversed(self.sources) if s.name.startswith(name)), "")
+            _tables[name] = (time.monotonic(), result, url)
         return result
 
     def skip(self, name: str, url: str, why: str) -> None:
