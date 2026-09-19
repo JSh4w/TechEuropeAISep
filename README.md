@@ -1,61 +1,152 @@
-# TechEuropeAISep
-Repo for AI hackathon for Tech {Europe}
+# Bessible — BESS Site Assessment Agent
 
-50% on technical execution 
-30% presentation??
-20% does it actually solvve a problem
+Bessible assesses real estate properties for Battery Energy Storage Systems (BESS) feasibility and suitability in the UK. Given a property link or postcode, it coordinates grid connection analysis, title boundaries, planning policy, market revenue, and financial returns with full explainability and durable human-in-the-loop orchestration.
 
+---
 
-Problem statement  
-Build an agent with >=2 tech partners from this event 
+## Running the Backend
 
+### 1. Prerequisites & Environment Check
 
-deepmind llama : do you save cache between those multiple models/ threads? Consumes a bunch of tokens
-
-## Setup (macOS or Linux)
+Ensure your `.env` contains your API keys (`GOOGLE_API_KEY`, `PYDANTIC_AI_GATEWAY_API_KEY` are required):
 
 ```bash
-./scripts/setup.sh    # installs uv, Temporal CLI, Node (Homebrew on Mac), Python + web deps, creates .env, logs in to Modal
-./scripts/dev.sh      # starts Temporal + worker + web UI, opens http://localhost:3000; Ctrl+C stops all
+# Check keys, Temporal reachability, and Modal login
+uv run python scripts/check_env.py
 ```
 
-1. Fill in `.env` with the keys (get them from Josh privately, never commit `.env`). `GOOGLE_API_KEY` and `PYDANTIC_AI_GATEWAY_API_KEY` are required.
-2. Accept the invite to Josh's Modal workspace, then `uv run modal profile activate <workspace>` if you're in more than one.
-3. Check everything: `uv run python scripts/check_env.py` (add `--live` to test Gemini and the Modal model). Needs Temporal running (`./scripts/dev.sh` or `temporal server start-dev`).
-4. Run the map prototype (base for the final build): `./scripts/dev.sh`. Logs in `out/logs/`, Temporal UI at http://localhost:8233. Details: `sandbox/map_session/web/README.md`.
+### 2. Start Temporal Server
 
-Run Python with `uv run ...` (or `source .venv/bin/activate`). Add packages with `uv add <pkg>`, not pip.
-For OpenSpec's `/opsx` commands: `npm install -g @fission-ai/openspec@latest`.
+The backend uses [Temporal](https://temporal.io) to orchestrate durable workflow execution:
 
-## Workflow
+```bash
+temporal server start-dev
+```
+* Temporal Web UI is accessible at **http://localhost:8233**.
 
-1. Everyone writes a 1-page plan in `docs/plans/<name>.md` (copy `docs/plans/TEMPLATE.md`).
-2. Together: `/opsx:explore` in Claude Code to merge the plans, then `/opsx:propose <change>` once per person's workstream.
-3. Each person builds their own change with `/opsx:apply <change>`. Pull often, only edit files you own.
+### 3. Start the Backend Worker
 
-## How to replace a stage
+In a separate terminal, launch the Bessible worker listening on task queue `bessible`:
 
-Each assessment stage is an independent, plain `async` function in `src/bessible/stages/`. To implement or customize a stage, you only need to edit your stage's module in `src/bessible/stages/<stage>.py` without touching workflow or worker code.
+```bash
+uv run python -m bessible.worker
+```
 
-Each stage receives a typed input model and returns a typed output model carrying `Artifact`s with supporting evidence (source URLs or relative files saved to `out/<run_id>/`).
+> **Demo Tip (Activity Retries):** To demonstrate live retry recovery on transient failures, launch the worker with:
+> ```bash
+> BESSIBLE_DEMO_FAIL_ONCE=1 uv run python -m bessible.worker
+> ```
 
-### Stage function signatures
+---
+
+## CLI Usage
+
+The backend CLI (`bessible.cli`) allows you to start assessments, confirm site parameters, and inspect results.
+
+### Starting an Assessment
+
+```bash
+# Attached interactive mode (guides you through progress & asks for confirmation)
+uv run python -m bessible.cli start --postcode "OX14 4TE"
+
+# Start with property link and target parameters
+uv run python -m bessible.cli start "https://example.com/property" --battery-mw 20 --budget-gbp 10000000
+
+# Enable flexible connection (allows connecting above firm headroom up to ceiling)
+uv run python -m bessible.cli start --postcode "OX14 4TE" --flexible
+
+# Auto-confirm defaults without interactive prompting
+uv run python -m bessible.cli start --postcode "OX14 4TE" --yes
+
+# Detached mode (starts run in background and prints run ID)
+uv run python -m bessible.cli start --postcode "OX14 4TE" --detach
+```
+
+### Confirming a Paused Run (Human-in-the-Loop)
+
+When a run reaches the `awaiting_confirmation` checkpoint, use `confirm`:
+
+```bash
+# Confirm using recommended capacity
+uv run python -m bessible.cli confirm <run-id>
+
+# Confirm with custom capacity within approved range
+uv run python -m bessible.cli confirm <run-id> --capacity-mw 15.0
+
+# Reject site proposal
+uv run python -m bessible.cli confirm <run-id> --reject
+```
+
+### Viewing Run Results & Reports
+
+```bash
+# View active progress or final report, duration comparison table, and artifact path
+uv run python -m bessible.cli result <run-id>
+```
+
+All generated evidence artifacts, GeoJSON boundaries, and Markdown reports are saved to:
+`out/<run-id>/report.md`
+
+---
+
+## Standalone Diagnostics & Data Tools
+
+### Site Data Report
+
+Generate a consolidated raw environmental and grid data report for any location:
+
+```bash
+uv run python scripts/site_report.py --postcode "RH3 7EZ"
+```
+
+### Location Pipeline Collation
+
+Test coordinate geocoding, boundary retrieval, flood zones, and designations:
+
+```bash
+uv run python -m bessible.location 51.2471 -0.2668
+```
+
+### Automated Tests & Linting
+
+```bash
+# Run all backend unit and integration tests
+uv run pytest
+
+# Check code formatting and linting
+uv run ruff check src/ tests/
+```
+
+---
+
+## Architecture & How to Replace a Stage
+
+The pipeline runs as a durable Temporal workflow (`AssessmentWorkflow`):
+
+1. **Sequential Front**: `resolve_location` &rarr; `propose_capacity` (with early stop for out-of-area/non-viable sites) &rarr; `find_title_boundaries`.
+2. **Human-in-the-Loop**: Pauses with `status="awaiting_confirmation"`. Validates user decision via `decide_site` update.
+3. **Parallel Group 1**: `grid_connection`, `site_land`, `market_revenue`.
+4. **Parallel Group 2**: `financial_model`, `regulatory_planning`.
+5. **Synthesis**: Compiles Markdown report and verifies that all claims cite evidence artifact IDs.
+
+Each assessment stage is an independent `async` function in `src/bessible/stages/<stage>.py`. You can swap or customize any stage implementation without modifying workflow or worker logic.
+
+### Stage Signatures
 
 ```python
 from bessible.models import (
-    LocationInput, LocationOutput,
     CapacityInput, CapacityOutput,
-    TitleInput, TitleOutput,
-    NodeInput, GridOutput, SiteLandOutput, MarketOutput,
     FinancialInput, FinancialOutput,
-    PlanningInput, PlanningOutput,
-    SynthesisInput, ReportOutput,
+    GridOutput, LocationInput, LocationOutput,
+    MarketOutput, NodeInput, PlanningInput,
+    PlanningOutput, ReportOutput, SiteLandOutput,
+    SynthesisInput, TitleInput, TitleOutput,
 )
 
-# 1. Location Resolution (src/bessible/stages/location.py)
+# 1. Location (src/bessible/stages/location.py)
 async def resolve_location(inp: LocationInput) -> LocationOutput: ...
 
-# 2. Grid Capacity Proposal (src/bessible/stages/capacity.py)
+# 2. Grid Capacity (src/bessible/stages/capacity.py)
 async def propose_capacity(inp: CapacityInput) -> CapacityOutput: ...
 
 # 3. Title Boundaries (src/bessible/stages/title.py)
@@ -64,42 +155,27 @@ async def find_title_boundaries(inp: TitleInput) -> TitleOutput: ...
 # 4. Grid Connection (src/bessible/stages/grid.py)
 async def grid_connection(inp: NodeInput) -> GridOutput: ...
 
-# 5. Site & Land Constraints (src/bessible/stages/site_land.py)
+# 5. Site & Land (src/bessible/stages/site_land.py)
 async def site_land(inp: NodeInput) -> SiteLandOutput: ...
 
-# 6. Market Revenue Projections (src/bessible/stages/market.py)
+# 6. Market Revenue (src/bessible/stages/market.py)
 async def market_revenue(inp: NodeInput) -> MarketOutput: ...
 
 # 7. Financial Model (src/bessible/stages/financial.py)
 async def financial_model(inp: FinancialInput) -> FinancialOutput: ...
 
-# 8. Regulatory & Planning (src/bessible/stages/planning.py)
+# 8. Regulatory Planning (src/bessible/stages/planning.py)
 async def regulatory_planning(inp: PlanningInput) -> PlanningOutput: ...
 
-# 9. Synthesis & Report (src/bessible/stages/synthesis.py)
+# 9. Synthesis (src/bessible/stages/synthesis.py)
 async def synthesise(inp: SynthesisInput) -> ReportOutput: ...
 ```
 
-### Running the pipeline
+---
 
-1. **Start Temporal dev server:**
-   ```bash
-   temporal server start-dev
-   ```
-2. **Start the worker in its own terminal:**
-   ```bash
-   uv run python -m bessible.worker
-   ```
-3. **Run an assessment from the CLI:**
-   ```bash
-   # Attached interactive mode
-   uv run python -m bessible.cli start --postcode "OX14 4TE"
+## Setup Script Reference
 
-   # Auto-confirm defaults
-   uv run python -m bessible.cli start --postcode "OX14 4TE" --yes
-
-   # Detached mode
-   uv run python -m bessible.cli start --postcode "OX14 4TE" --detach
-   uv run python -m bessible.cli confirm <run-id> [--capacity-mw 12.0]
-   uv run python -m bessible.cli result <run-id>
-   ```
+```bash
+./scripts/setup.sh    # Installs uv, Temporal CLI, Node, Python deps, creates .env, logs in to Modal
+./scripts/dev.sh      # Starts Temporal + worker + web UI in one command
+```
