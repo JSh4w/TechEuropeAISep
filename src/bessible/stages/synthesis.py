@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 from bessible.footprint import reserved_acres, reserved_acres_by_duration
@@ -195,11 +196,19 @@ def _render_markdown(
         f"- **Substation:** {sub}",
         f"- **Voltage:** {volt}",
         f"- **Binding Constraint:** {direction} ({season})",
+    ]
+
+    if inp.capacity.snapshot_date:
+        snap_date = inp.capacity.snapshot_date
+        age_days = (datetime.now(UTC).date() - snap_date).days
+        lines.append(f"- **Snapshot Date:** {snap_date.isoformat()} ({age_days} days old)")
+
+    lines.extend([
         "",
         "## Storage Duration Comparison",
         "| Duration | CAPEX (£) | 25-Year NPV (£) | IRR |",
         "|---|---|---|---|",
-    ]
+    ])
 
     for case in inp.financial.cases:
         irr_str = f"{case.irr * 100:.1f}%" if case.irr is not None else "N/A"

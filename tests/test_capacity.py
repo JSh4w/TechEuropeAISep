@@ -150,7 +150,14 @@ def test_artifacts_cite_dataset_and_snapshot_date():
     out = run(row())
     assert len(out.artifacts) >= 4
     for a in out.artifacts:
-        assert "ukpn-capacity-heatmap" in a.claim
+        assert any(
+            ds in a.claim
+            for ds in (
+                "ukpn-capacity-heatmap",
+                "ltds-table-6-interest-connections",
+                "ukpn-ltds-table-2a-transformer-2w",
+            )
+        )
         assert "2026-09-01" in a.claim
         assert a.model_used == "ukpn-snapshot"
         assert a.source_url is not None
@@ -271,3 +278,56 @@ def test_small_request_20mw_unchanged():
     assert out_20mw.substation == out_default.substation == "Serving 33kV"
     assert out_20mw.connection_voltage_kv == out_default.connection_voltage_kv == 33.0
     assert out_20mw.firm_mw == out_default.firm_mw
+
+
+def test_competition_artifacts_and_caveat():
+    snap = load_snapshot()
+    out = propose(Position(lat=51.2329, lon=-0.3302), snap, "run-comp-test", flexible=False)
+    comp_art = next((a for a in out.artifacts if "competition" in a.id), None)
+    caveat_art = next((a for a in out.artifacts if "caveat" in a.id), None)
+    assert comp_art is not None
+    assert "ltds-table-6-interest-connections" in comp_art.claim
+    assert caveat_art is not None
+    assert "speculative projects" in caveat_art.claim
+    assert out.competition is not None
+    assert out.competition.pressure in ("low", "medium", "high")
+
+
+def test_export_ceiling_applied_only_when_validated():
+    from bessible.ukpn.models import Table2aTransformerRecord
+
+    sub = row(
+        name="Test Export Sub 33kV",
+        voltage=33.0,
+        demandavailablecapacity=4.0,
+        demandfirmcapacity=11.0,
+        demandminimum=2.0,
+        generationavailablecapacity=4.0,
+    )
+    t2a = Table2aTransformerRecord(
+        lv_substation="Test Export Sub 33kV",
+        transformer_rating_mva_summer=6.0,
+        reverse_power_capability_percent="100%",
+    )
+    snap_off = Snapshot(
+        fetched_at=date(2026, 9, 1),
+        partial=False,
+        substations=[sub],
+        table2a_records=[t2a],
+        export_ceiling_validated=False,
+    )
+    out_off = propose(SITE, snap_off, "t-off", flexible=True)
+    assert out_off.ceiling_mw == 9.0
+    assert out_off.export_ceiling_mw is None
+    assert any("export ceiling is unavailable" in a.claim.lower() for a in out_off.artifacts)
+
+    snap_on = Snapshot(
+        fetched_at=date(2026, 9, 1),
+        partial=False,
+        substations=[sub],
+        table2a_records=[t2a],
+        export_ceiling_validated=True,
+    )
+    out_on = propose(SITE, snap_on, "t-on", flexible=True)
+    assert out_on.ceiling_mw == 6.0
+    assert out_on.export_ceiling_mw == 6.0

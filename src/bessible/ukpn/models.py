@@ -85,3 +85,97 @@ class GridSubstation(BaseModel):
             res.setdefault("max_demand_mva", dem)
 
         return res
+
+
+class GspQueue(BaseModel):
+    """Parent Grid Supply Point queue figures."""
+
+    projects: int
+    total_mw: float
+    by_status: dict[str, int]
+    next_position: int
+
+
+class Timescales(BaseModel):
+    """Indicative connection timescales from past outcome records."""
+
+    p25_months: float
+    p75_months: float
+    median_months: float
+    records: int
+    low_confidence: bool
+
+
+class GspProjectStatusRecord(BaseModel):
+    """Row of UKPN GSP Project Status or connection queue / outcome record."""
+
+    gsp: str
+    technology_type: str | None = None
+    measure: str | None = None  # "MW" or "#"
+    sortby: str | None = None
+    gate_2_protected_26_27: float | None = None
+    gate_2_phase_1: float | None = None
+    gate_2_phase_2: float | None = None
+    gate_1: float | None = None
+    has_not_undergone_gated_process: float | None = None
+
+    # Outcome / timescales fields
+    application_date: Any = None
+    offer_date: Any = None
+    energisation_date: Any = None
+    months: float | None = None
+    status: str | None = None
+    mw: float | None = None
+
+
+class Competition(BaseModel):
+    """Substation competition from offers not accepted, budget estimates, and enquiries."""
+
+    offers_not_accepted_mw: float
+    budget_estimates_mw: float
+    enquiries_mw: float
+    weighted_mw: float
+    pressure: Literal["low", "medium", "high"]
+
+
+class Table6InterestRecord(BaseModel):
+    """Row of LTDS Table 6: New Connection Interest."""
+
+    gridsupplypoint: str | None = None
+    substation: str | None = None
+    proposed_connection_voltage_kv: str | None = None
+    status_of_connection: str | None = None
+    demand_numbers_received_total_number: float | None = None
+    demand_numbers_received_total_capacity: float | None = None
+    generation_numbers_received_total_number: float | None = None
+    generation_numbers_received_total_capacity: float | None = None
+    spatial_coordinates: dict[str, float] | None = None
+    sitefunctionallocation: str | None = None
+    licencearea: str | None = None
+    id: int | None = None
+
+
+class Table2aTransformerRecord(BaseModel):
+    """Row of LTDS Table 2a: Transformer Data (2-Winding)."""
+
+    gridsupplypoint: str | None = None
+    hv_node: str | None = None
+    hv_substation: str | None = None
+    voltage_hv: float | None = None
+    lv_node: str | None = None
+    lv_substation: str | None = None
+    voltage_lv: float | None = None
+    vector_group: str | None = None
+    positive_sequence_impedance_r_percent: float | None = None
+    positive_sequence_impedance_x_percent: float | None = None
+    zero_sequence_impedance_x_percent: float | None = None
+    tap_range_max_percent: float | None = None
+    tap_range_min_percent: float | None = None
+    transformer_rating_mva_winter: float | None = None
+    transformer_rating_mva_summer: float | None = None
+    reverse_power_capability_percent: str | float | None = None
+    method_of_earthing_hv: str | None = None
+    method_of_earthing_lv: str | None = None
+    sitefunctionallocation: str | None = None
+    licencearea: str | None = None
+    id: int | None = None

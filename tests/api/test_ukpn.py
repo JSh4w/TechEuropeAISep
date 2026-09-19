@@ -103,6 +103,9 @@ def test_ingest_and_snapshot_load(tmp_path, monkeypatch):
 
     heatmap_fixture = load("capacity_heatmap_dorking")
     substations_fixture = load("substations_dorking")
+    table6_fixture = load("table6_dorking")
+    table2a_fixture = load("table2a_dorking")
+    gsp_fixture = load("gsp_project_status_dorking")
 
     def mock_get(url, *args, **kwargs):  # ruff: ignore[unused-function-argument]
         mock_resp = MagicMock()
@@ -110,6 +113,14 @@ def test_ingest_and_snapshot_load(tmp_path, monkeypatch):
         mock_resp.raise_for_status = MagicMock()
         if "ukpn-capacity-heatmap" in url:
             mock_resp.json.return_value = heatmap_fixture
+        elif "grid-and-primary-sites" in url:
+            mock_resp.json.return_value = substations_fixture
+        elif "ltds-table-6" in url:
+            mock_resp.json.return_value = table6_fixture
+        elif "ltds-table-2a" in url:
+            mock_resp.json.return_value = table2a_fixture
+        elif "gsp-project-status" in url:
+            mock_resp.json.return_value = gsp_fixture
         else:
             mock_resp.json.return_value = substations_fixture
         return mock_resp
@@ -129,3 +140,4 @@ def test_ingest_and_snapshot_load(tmp_path, monkeypatch):
     manifest = json.loads((tmp_path / "ukpn" / "manifest.json").read_text())
     assert "ukpn-capacity-heatmap" in manifest["datasets"]
     assert "grid-and-primary-sites" in manifest["datasets"]
+    assert "ltds-table-6-interest-connections" in manifest["datasets"]
