@@ -47,11 +47,7 @@ async def _get_client() -> Client:
 
 def _print_result(raw_result: AssessmentResult | dict[str, Any]) -> None:
     """Print detailed summary of an assessment result."""
-    result = (
-        AssessmentResult.model_validate(raw_result)
-        if isinstance(raw_result, dict)
-        else raw_result
-    )
+    result = AssessmentResult.model_validate(raw_result) if isinstance(raw_result, dict) else raw_result
     print(f"\nStatus: {result.status.upper()}")  # ruff: ignore[print]
     if result.message:
         print(f"Message: {result.message}")  # ruff: ignore[print]

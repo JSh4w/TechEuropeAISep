@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel
 
-from bessible.assumptions import AssumptionSet
-from bessible.finance.cost import CostBreakdown
 from bessible.models import DurationCase
+
+if TYPE_CHECKING:
+    from bessible.assumptions import AssumptionSet
+    from bessible.finance.cost import CostBreakdown
 
 IRR_UPPER = 10.0
 IRR_ITERATIONS = 200
@@ -42,10 +46,7 @@ def cash_flows(cost: CostBreakdown, revenue_gbp_per_mw_year: float, curtail_pct:
     annual_net = cost.mw * revenue_gbp_per_mw_year * (1 - curtail_pct / 100) - cost.opex_gbp_per_year
 
     n = f.loan_term_years
-    if f.interest_rate == 0:
-        payment = debt / n
-    else:
-        payment = debt * f.interest_rate / (1 - (1 + f.interest_rate) ** -n)
+    payment = debt / n if f.interest_rate == 0 else debt * f.interest_rate / (1 - (1 + f.interest_rate) ** -n)
 
     flows = [-(cost.capex_gbp - debt + fee)]
     flows.extend(annual_net - (payment if year <= n else 0.0) for year in range(1, f.project_life_years + 1))
@@ -73,8 +74,13 @@ def irr(flows: list[float]) -> float | None:
     return (low + high) / 2
 
 
-def returns(
-    cost: CostBreakdown, revenue_gbp_per_mw_year: float, curtail_pct: float, mw: float, a: AssumptionSet
+def returns(  # ruff: ignore[too-many-arguments,too-many-positional-arguments]
+    cost: CostBreakdown,
+    revenue_gbp_per_mw_year: float,
+    curtail_pct: float,
+    mw: float,
+    a: AssumptionSet,
+    budget_gbp: float | None = None,
 ) -> DurationCase:
     """Compute one duration case. `mw` must equal `cost.mw`."""
     if mw != cost.mw:
@@ -82,10 +88,12 @@ def returns(
         raise ValueError(msg)
     f = Financing.from_assumptions(a)
     flows = cash_flows(cost, revenue_gbp_per_mw_year, curtail_pct, f)
+    over_budget = bool(budget_gbp is not None and cost.capex_gbp > budget_gbp)
     return DurationCase(
         duration_h=cost.duration_h,
         capex_gbp=round(cost.capex_gbp, 2),
         npv_gbp=round(npv(f.discount_rate, flows), 2),
         irr=irr(flows),
+        over_budget=over_budget,
         curtailment_pct=round(curtail_pct, 2),
     )

@@ -49,6 +49,27 @@ async def test_location_and_capacity_stages():
 
 
 @pytest.mark.anyio
+async def test_capacity_below_floor_flexible():
+    from bessible.models import CapacityInput
+
+    run_id = "test-below-floor"
+    # Without flexible connection -> not viable, below 5 MW floor
+    req_firm = AssessmentRequest(postcode="RH3 7EZ", flexible_connection=False)
+    loc = await resolve_location(LocationInput(run_id=run_id, request=req_firm))
+    cap_firm = await propose_capacity(CapacityInput(run_id=run_id, request=req_firm, location=loc))
+    assert cap_firm.viable is False
+    assert cap_firm.firm_mw == 2.2
+    assert "below the 5 MW floor" in (cap_firm.message or "")
+
+    # With flexible connection -> viable at ceiling (6.5 MW)
+    req_flex = AssessmentRequest(postcode="RH3 7EZ", flexible_connection=True)
+    cap_flex = await propose_capacity(CapacityInput(run_id=run_id, request=req_flex, location=loc))
+    assert cap_flex.viable is True
+    assert cap_flex.ceiling_mw == pytest.approx(6.5)
+    assert cap_flex.substation == "Betchworth 11kV"
+
+
+@pytest.mark.anyio
 async def test_capacity_out_of_area():
     from bessible.models import CapacityInput, LocationOutput
 

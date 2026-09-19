@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
-from bessible.assumptions import AssumptionSet
-from bessible.market.sources import RevenueSource
+from typing import TYPE_CHECKING
+
 from bessible.market.support import qualifying, support_stream
 from bessible.models import REQUIRED_DURATION_HOURS, StreamValue
+
+if TYPE_CHECKING:
+    from bessible.assumptions import AssumptionSet
+    from bessible.market.sources import RevenueSource
 
 
 async def revenue_stack(mw: float, sources: list[RevenueSource], a: AssumptionSet) -> dict[int, list[StreamValue]]:

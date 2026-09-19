@@ -15,14 +15,16 @@ FIXTURES_DIR = DATA_DIR / "fixtures"
 AssumptionValue = float | list[float] | dict[str, float]
 
 
-class MissingAssumption(KeyError):  # noqa: N818
+class MissingAssumption(KeyError):  # ruff: ignore[error-suffix-on-exception-name]
     """A computation needs an assumption that is absent or null."""
 
     def __init__(self, key: str) -> None:
+        """Initialize with the missing assumption key."""
         super().__init__(key)
         self.key = key
 
     def __str__(self) -> str:
+        """User-facing missing assumption description."""
         return f"Missing assumption: {self.key}"
 
 
@@ -73,7 +75,7 @@ class AssumptionSet(BaseModel):
     def pair(self, key: str) -> tuple[float, float]:
         """Return a (low, high) assumption."""
         value = self.entry(key).value
-        if not isinstance(value, list) or len(value) != 2:  # noqa: PLR2004
+        if not isinstance(value, list) or len(value) != 2:  # ruff: ignore[magic-value-comparison]
             msg = f"Assumption {key} must be a [low, high] pair"
             raise TypeError(msg)
         return float(value[0]), float(value[1])
@@ -88,4 +90,6 @@ class AssumptionSet(BaseModel):
 
     def placeholder_keys(self) -> list[str]:
         """Keys that are used by code but not agreed by the team."""
-        return sorted(k for k, v in self.entries.items() if v.used and v.value is not None and v.status == "placeholder")
+        return sorted(
+            k for k, v in self.entries.items() if v.used and v.value is not None and v.status == "placeholder"
+        )

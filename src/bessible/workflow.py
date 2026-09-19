@@ -103,25 +103,14 @@ class AssessmentWorkflow:
             if self._capacity is None:
                 msg = "Cannot confirm without a capacity proposal"
                 raise ValueError(msg)
-            cap_mw = (
-                decision.capacity_mw
-                if decision.capacity_mw is not None
-                else self._capacity.recommended_mw
-            )
+            cap_mw = decision.capacity_mw if decision.capacity_mw is not None else self._capacity.recommended_mw
             if cap_mw <= 0:
                 msg = f"Capacity must be positive (got {cap_mw:g} MW)"
                 raise ValueError(msg)
             if cap_mw > self._capacity.ceiling_mw:
-                msg = (
-                    f"Capacity {cap_mw:g} MW exceeds ceiling headroom of "
-                    f"{self._capacity.ceiling_mw:g} MW"
-                )
+                msg = f"Capacity {cap_mw:g} MW exceeds ceiling headroom of {self._capacity.ceiling_mw:g} MW"
                 raise ValueError(msg)
-            if (
-                self._request is not None
-                and not self._request.flexible_connection
-                and cap_mw > self._capacity.firm_mw
-            ):
+            if self._request is not None and not self._request.flexible_connection and cap_mw > self._capacity.firm_mw:
                 msg = (
                     f"Capacity {cap_mw:g} MW exceeds firm headroom of "
                     f"{self._capacity.firm_mw:g} MW (flexible connection disabled)"
@@ -155,22 +144,16 @@ class AssessmentWorkflow:
         if cap.out_of_area:
             self._status = "out_of_area"
             self._stages = []
-            return AssessmentResult(
-                status="out_of_area", message=cap.message, artifacts=all_artifacts, run_dir=run_dir
-            )
+            return AssessmentResult(status="out_of_area", message=cap.message, artifacts=all_artifacts, run_dir=run_dir)
 
         if not cap.viable:
             self._status = "not_viable"
             self._stages = []
-            return AssessmentResult(
-                status="not_viable", message=cap.message, artifacts=all_artifacts, run_dir=run_dir
-            )
+            return AssessmentResult(status="not_viable", message=cap.message, artifacts=all_artifacts, run_dir=run_dir)
 
         return None
 
-    async def _await_confirmation(
-        self, run_id: str, all_artifacts: list[Artifact]
-    ) -> ConfirmedSite | AssessmentResult:
+    async def _await_confirmation(self, run_id: str, all_artifacts: list[Artifact]) -> ConfirmedSite | AssessmentResult:
         """Find title boundaries and await human confirmation."""
         if self._request is None or self._location is None or self._capacity is None:
             msg = "Workflow state incomplete before title stage"
@@ -207,11 +190,7 @@ class AssessmentWorkflow:
 
         self._status = "running"
         chosen_pos = decision.position or self._location.position
-        chosen_cap = (
-            decision.capacity_mw
-            if decision.capacity_mw is not None
-            else self._capacity.recommended_mw
-        )
+        chosen_cap = decision.capacity_mw if decision.capacity_mw is not None else self._capacity.recommended_mw
         return ConfirmedSite(
             position=chosen_pos,
             capacity_mw=chosen_cap,
@@ -231,9 +210,7 @@ class AssessmentWorkflow:
 
         # Parallel Group 1
         self._stages = ["grid", "site_land", "market"]
-        node_in = NodeInput(
-            run_id=run_id, request=self._request, site=site, capacity=self._capacity
-        )
+        node_in = NodeInput(run_id=run_id, request=self._request, site=site, capacity=self._capacity)
 
         grid_fut = workflow.execute_activity(activities.grid_connection, node_in, **AGENT_OPTS)
         land_fut = workflow.execute_activity(activities.site_land, node_in, **AGENT_OPTS)
@@ -253,6 +230,7 @@ class AssessmentWorkflow:
             capacity=self._capacity,
             grid=grid,
             market=market,
+            site_land=site_land,
         )
         plan_in = PlanningInput(
             run_id=run_id,
@@ -276,9 +254,7 @@ class AssessmentWorkflow:
         self,
         run_id: str,
         site: ConfirmedSite,
-        analysis: tuple[
-            GridOutput, SiteLandOutput, MarketOutput, FinancialOutput, PlanningOutput
-        ],
+        analysis: tuple[GridOutput, SiteLandOutput, MarketOutput, FinancialOutput, PlanningOutput],
         all_artifacts: list[Artifact],
     ) -> ReportOutput:
         """Run the final synthesis stage."""
