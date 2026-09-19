@@ -1,0 +1,24 @@
+{
+  "total_count": 1,
+  "results": [
+    {
+      "projectid": "SP-TG-001",
+      "projectname": "Strathclyde BESS",
+      "connectionsite": "Strathaven 275kV Substation",
+      "mwconnected": 0.0,
+      "mw_increasedecrease": 50.0,
+      "cumulativetotalcapacity_mw": 50.0,
+      "mweffectivefrom": "2027-10-01",
+      "projectstatus": "Consents Approved",
+      "planttype": "Energy Storage System",
+      "planttype_category": "Battery",
+      "coordinates": {
+        "lon": -4.25,
+        "lat": 55.85
+      },
+      "connection_year": "2027",
+      "longitude": "-4.25",
+      "latitude": "55.85"
+    }
+  ]
+}

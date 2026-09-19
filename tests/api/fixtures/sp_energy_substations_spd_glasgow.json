@@ -1,0 +1,27 @@
+{
+  "total_count": 1,
+  "results": [
+    {
+      "geo_point_2d": {
+        "lon": -4.2415,
+        "lat": 55.8540
+      },
+      "geo_shape": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [-4.2415, 55.8540]
+        },
+        "properties": {}
+      },
+      "sp_enid": 2001,
+      "sub_name": "Charlotte Street 33kV",
+      "status": "In Service",
+      "lic_area": "SPD",
+      "sub_note": "Site",
+      "asset_type": "Substation",
+      "voltage": 33.0,
+      "localauth": "Glasgow City"
+    }
+  ]
+}

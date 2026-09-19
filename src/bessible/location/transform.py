@@ -17,7 +17,7 @@ from shapely.errors import ShapelyError
 from shapely.geometry import LineString
 from shapely.ops import unary_union
 
-from bessible.api import natural_england, nged, planning_data, ssen, ssen_distribution
+from bessible.api import natural_england, nged, planning_data, sp_energy, ssen, ssen_distribution
 
 from .geometry import Site, from_geojson, to_geometry
 from .models import (
@@ -53,6 +53,7 @@ ENTITY_URL = "https://www.planning.data.gov.uk/entity/{}"
 LISTING_URL = "https://historicengland.org.uk/listing/the-list/list-entry/{}"
 SSSI_URL = "https://designatedsites.naturalengland.org.uk/SiteDetail.aspx?SiteCode=S{}"
 MIN_PROJECT_MW = 1.0  # the registers' own floor at UKPN / SSEN; applied to NGED too
+VOLTS_THRESHOLD = 1000  # operating voltage above this is in volts, not kV
 SAME_SUBSTATION_M = 150  # UKPN's two substation datasets share no id: rows this close are the same site
 SLOPE_LIMIT_PCT = 5.0
 SAMPLE_GRID = 10  # elevation labels: SAMPLE_GRID x SAMPLE_GRID over the title's box, inside points only
@@ -767,26 +768,119 @@ def ssen_transmission_substations(records: Sequence[ssen.SubstationSite], site: 
     ]
 
 
+def sp_energy_substations(
+    records: Sequence[sp_energy.CapacityHeatmapSite],
+    site: Site,
+    point_assets: Sequence[sp_energy.GisPointAsset] = (),
+) -> list[Substation]:
+    """SP Energy Networks (SPD and SPM) substations with their headroom, plus point assets."""
+    out: list[Substation] = []
+    seen_names: set[str] = set()
+    for r in records:
+        lat = r.effective_lat
+        lon = r.effective_lon
+        if lat is None or lon is None:
+            continue
+        v_kv = r.effective_voltage_kv
+        if v_kv is None and r.voltage:
+            v_kv = max(_floats(r.voltage), default=None)
+
+        name = r.effective_name
+        seen_names.add(name.lower())
+        bsp = _text(r.bsp)
+        gsp = sp_energy.clean_site_name(r.effective_gsp) if r.effective_gsp else None
+
+        gen_avail = _float(r.generationavailablecapacity)
+        dem_avail = _float(r.demandavailablecapacity)
+
+        out.append(
+            Substation(
+                name=name,
+                operator="SP Energy Networks",
+                kind=(r.type or "primary").lower(),
+                voltage_kv=v_kv,
+                voltages=_text(r.voltage),
+                coords=_at(lat, lon),
+                distance_km=site.distance_km(lat, lon),
+                bsp=bsp,
+                gsp=gsp,
+                headroom=Headroom(
+                    generation_mw=gen_avail,
+                    generation_rag=_rag(r.generationconstraint),
+                    generation_constraint=_text(r.generationconstraintlimitingfactor),
+                    demand=dem_avail,
+                    demand_rag=_rag(r.demandconstraint),
+                    demand_constraint=_text(r.demandconstraintlimitingfactor),
+                    basis="SP Energy Networks capacity heatmap: available headroom",
+                    demand_firm_mw=_float(r.demandfirmcapacity),
+                    demand_max_mw=_float(r.demandmaximum),
+                    demand_min_mw=_float(r.demandminimum),
+                    generation_firm_mw=_float(r.generationfirmcapacity),
+                    reverse_power_available_mw=_float(r.reversepowerflowavailablecapacity),
+                    generation_offers_accepted_mw=_float(r.generationconnectionofferacceptedcapacity),
+                    generation_offers_made_mw=_float(r.generationconnectionoffermadecapacity),
+                    generation_budget_estimates_mw=_float(r.generationbudgetestimatesprovidedcapacity),
+                    demand_offers_accepted_mw=_float(r.loadconnectionoffersacceptedcapacity),
+                    demand_offers_made_mw=_float(r.loadconnectionoffersmadecapacity),
+                    demand_budget_estimates_mw=_float(r.loadbudgetestimatesprovidedcapacity),
+                ),
+            )
+        )
+
+    for pt in point_assets:
+        p = pt.geo_point_2d
+        if p is None or not pt.sub_name:
+            continue
+        clean_name = pt.sub_name.strip()
+        if clean_name.lower() in seen_names:
+            continue
+        seen_names.add(clean_name.lower())
+        v_kv = _float(pt.voltage)
+        if v_kv and v_kv > VOLTS_THRESHOLD:
+            v_kv /= 1000
+        out.append(
+            Substation(
+                name=clean_name,
+                operator="SP Energy Networks",
+                kind=(pt.asset_type or "substation").lower(),
+                voltage_kv=v_kv,
+                voltages=str(pt.voltage) if pt.voltage else None,
+                coords=_at(p.lat, p.lon),
+                distance_km=site.distance_km(p.lat, p.lon),
+            )
+        )
+    return out
+
+
 def grid_projects(
-    records: Sequence[ukpn.EmbeddedCapacityRecord | nged.EcrRecord | ssen_distribution.EcrRecord],
+    records: Sequence[
+        ukpn.EmbeddedCapacityRecord
+        | nged.EcrRecord
+        | ssen_distribution.EcrRecord
+        | sp_energy.EmbeddedCapacityRecord
+    ],
     operator: Operator,
     site: Site,
 ) -> list[GridProject]:
     """Embedded capacity register rows (the same Ofgem columns at every operator) of at least 1 MW."""
     out: list[GridProject] = []
     for r in records:
-        point = getattr(r, "spatialcoordinates_customer", None)
+        point = getattr(r, "spatialcoordinates_customer", None) or getattr(r, "coordinates", None)
         lat = point.lat if point else getattr(r, "lat", None)
         lon = point.lon if point else getattr(r, "lon", None)
-        capacity = r.registered_capacity_1_mw
+        capacity = _float(r.registered_capacity_1_mw)
         if lat is None or lon is None or (capacity is not None and capacity < MIN_PROJECT_MW):
             continue
         source = (r.energy_source_1 or "").lower()
         status = (r.connection_status or "").lower()
-        export = getattr(r, "maximum_export_capacity_mw", None) or getattr(
-            r, "connected_maximum_export_capacity_mw", None
+        export = _float(
+            getattr(r, "maximum_export_capacity_mw", None)
+            or getattr(r, "connected_maximum_export_capacity_mw", None)
         )
-        imp = getattr(r, "maximum_import_capacity_mw", None) or getattr(r, "connected_maximum_import_capacity_mw", None)
+        imp = _float(
+            getattr(r, "maximum_import_capacity_mw", None)
+            or getattr(r, "connected_maximum_import_capacity_mw", None)
+        )
         out.append(
             GridProject(
                 name=(r.customer_site or "").strip().title() or None,
@@ -834,8 +928,9 @@ def line_inputs(
     ukpn_lines: Sequence[ukpn.OverheadLine],
     ssen_t_lines: Sequence[ssen.OverheadLine],
     ssen_d_lines: Sequence[ssen_distribution.OverheadLine],
+    sp_lines: Sequence[sp_energy.GisLineAsset] = (),
 ) -> list[tuple[Operator, float | None, dict[str, Any]]]:
-    """The three operators' line rows as (operator, kV, GeoJSON geometry)."""
+    """The operators' line rows as (operator, kV, GeoJSON geometry)."""
     out: list[tuple[Operator, float | None, dict[str, Any]]] = [
         ("UKPN", _float(ln.voltage), ln.geo_shape.geometry.model_dump()) for ln in ukpn_lines if ln.geo_shape
     ]
@@ -854,6 +949,13 @@ def line_inputs(
                 _float(ln.nominal_voltage_pp),
                 {"type": "LineString", "coordinates": coordinates},
             ))
+    for ln in sp_lines:
+        if not ln.geo_shape:
+            continue
+        kv = _float(ln.voltage)
+        if kv and kv > VOLTS_THRESHOLD:
+            kv /= 1000
+        out.append(("SP Energy Networks", kv, ln.geo_shape.geometry.model_dump()))
     return out
 
 

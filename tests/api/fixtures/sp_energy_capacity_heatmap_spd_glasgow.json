@@ -1,0 +1,51 @@
+{
+  "total_count": 1,
+  "results": [
+    {
+      "name": "Charlotte Street 33kV",
+      "type": "Primary",
+      "area": "SPD",
+      "voltage": "33kV",
+      "demandfirmcapacity": 45.0,
+      "mgrid": "SPD-001",
+      "longitude": -4.2415,
+      "latitude": 55.8540,
+      "gsp": "Strathaven",
+      "demandmaximum": 28.5,
+      "demandminimum": 12.0,
+      "demandavailablecapacity": 16.5,
+      "demandconstraint": "GREEN",
+      "demandconstraintlimitingfactor": "Thermal",
+      "generationfirmcapacity": "40.0",
+      "generationavailablecapacity": "22.5",
+      "reversepowerflowtotalcapacity": "30.0",
+      "reversepowerflowavailablecapacity": "30.0",
+      "otherconstraints": null,
+      "generationconstraint": "GREEN",
+      "generationconstraintlimitingfactor": "Thermal",
+      "past_connection_activity_total_demand_capacity": 5.0,
+      "past_connection_activity_total_generation_capacity": 8.0,
+      "past_connection_activity_total_demand_volume": 2,
+      "past_connection_activity_total_generation_volume": 3,
+      "grid_supply_point": "Strathaven",
+      "primary_substation": "Charlotte Street",
+      "proposed_connection_voltage_kv": 33.0,
+      "loadbudgetestimatesprovidedcount": 1.0,
+      "loadbudgetestimatesprovidedcapacity": 2.0,
+      "generationbudgetestimatesprovidedcount": 2.0,
+      "generationbudgetestimatesprovidedcapacity": 10.0,
+      "loadconnectionoffersmadecount": 1.0,
+      "loadconnectionoffersmadecapacity": 3.0,
+      "generationconnectionoffermadecount": 1.0,
+      "generationconnectionoffermadecapacity": 5.0,
+      "loadconnectionoffersacceptedcount": 1.0,
+      "loadconnectionoffersacceptedcapacity": 2.5,
+      "generationconnectionofferacceptedcount": 1.0,
+      "generationconnectionofferacceptedcapacity": 4.0,
+      "coordinates": {
+        "lon": -4.2415,
+        "lat": 55.8540
+      }
+    }
+  ]
+}

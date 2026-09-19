@@ -14,6 +14,7 @@ from bessible.api import (
     nged,
     planning_data,
     postcodes_io,
+    sp_energy,
     ssen_distribution,
     ukpn,
 )
@@ -263,6 +264,24 @@ def test_ssen_distribution_substations():
     assert all(s.gsp is None or not s.gsp.endswith("GSP") for s in subs)
 
 
+def test_sp_energy_substations():
+    spd_records = sp_energy.DATASETS["capacity_heatmap_spd"].parse(
+        load("sp_energy_capacity_heatmap_spd_glasgow")
+    ).results
+    spm_records = sp_energy.DATASETS["capacity_heatmap_spm"].parse(
+        load("sp_energy_capacity_heatmap_spm_chester")
+    ).results
+    subs = transform.sp_energy_substations(spd_records + spm_records, Site(Coordinates(lat=55.85, lon=-4.25)))
+    assert len(subs) == 2
+    assert subs[0].operator == "SP Energy Networks"
+    assert subs[0].name == "Charlotte Street 33kV"
+    assert subs[0].headroom.generation_mw == pytest.approx(22.5)
+    assert subs[0].headroom.demand == pytest.approx(16.5)
+    assert subs[0].gsp == "Strathaven"
+    assert subs[1].name == "Chester City 33kV"
+    assert subs[1].gsp == "Capenhurst"
+
+
 @pytest.mark.parametrize(
     ("operator", "records"),
     [
@@ -271,6 +290,12 @@ def test_ssen_distribution_substations():
         (
             "SSEN Distribution",
             lambda: ssen_distribution.EcrResponse.model_validate(load("ssen_distribution_ecr_westbury")).result.records,
+        ),
+        (
+            "SP Energy Networks",
+            lambda: sp_energy.DATASETS["embedded_capacity_register"]
+            .parse(load("sp_energy_embedded_capacity_register_glasgow"))
+            .results,
         ),
     ],
 )

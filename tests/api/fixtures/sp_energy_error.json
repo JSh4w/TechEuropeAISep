@@ -1,0 +1,4 @@
+{
+  "error_code": "ODSQLError",
+  "message": "Invalid query filter: syntax error in expression"
+}
