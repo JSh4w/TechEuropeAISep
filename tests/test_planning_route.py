@@ -157,7 +157,7 @@ async def test_stage_names_lpa_with_source():
 
 @pytest.mark.anyio
 async def test_stage_unknown_lpa(monkeypatch):
-    async def none(*_a: object, **_k: object) -> None:  # ruff: ignore[unused-async]
+    async def none(*_a: object, **_k: object) -> None:
         return None
 
     monkeypatch.setattr("bessible.stages.planning.lookup_lpa", none)
@@ -168,7 +168,7 @@ async def test_stage_unknown_lpa(monkeypatch):
 
 @pytest.mark.anyio
 async def test_stage_wales_flagged(monkeypatch):
-    async def wales(*_a: object, **_k: object) -> LpaLookup:  # ruff: ignore[unused-async]
+    async def wales(*_a: object, **_k: object) -> LpaLookup:
         return LpaLookup(entity=None, reference="W06000015", name="Cardiff", country="Wales")
 
     monkeypatch.setattr("bessible.stages.planning.lookup_lpa", wales)

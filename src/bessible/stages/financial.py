@@ -23,7 +23,7 @@ def _detect_crossings(inp: FinancialInput) -> bool:
     return False
 
 
-async def financial_model(inp: FinancialInput) -> FinancialOutput:  # ruff: ignore[too-many-locals]
+async def financial_model(inp: FinancialInput) -> FinancialOutput:
     """Evaluate financial returns across 2-hour, 4-hour, and 8-hour duration cases in plain code."""
     await asyncio.sleep(0)
     mw = inp.site.capacity_mw
@@ -125,4 +125,13 @@ async def financial_model(inp: FinancialInput) -> FinancialOutput:  # ruff: igno
         model_used="financial-model",
     )
 
-    return FinancialOutput(cases=cases, artifacts=[art_cost, art_curtailment, art_returns])
+    best_case = max((c for c in cases if c.irr is not None), key=lambda c: c.irr, default=None)
+    rec_h = best_case.duration_h if best_case else 4
+    rationale = f"Optimal returns at {rec_h}-hour duration based on financial model projections."
+
+    return FinancialOutput(
+        cases=cases,
+        recommended_h=rec_h,
+        rationale=rationale,
+        artifacts=[art_cost, art_curtailment, art_returns],
+    )

@@ -17,9 +17,12 @@ Notes (verified live 2026-09):
 from __future__ import annotations
 
 from datetime import date
-from typing import Any
+from typing import TYPE_CHECKING
 
 from pydantic import Field
+
+if TYPE_CHECKING:
+    from typing import Any
 
 from .base import ApiResponse
 from .opendatasoft import DatasetSpec, GeoPoint, GeoShape, RecordsResponse

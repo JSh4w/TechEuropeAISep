@@ -7,12 +7,13 @@ from pathlib import Path
 
 from bessible.guard import check_narration
 from bessible.models import Artifact, Finding, ReportOutput, SynthesisInput, Verdict
+from bessible.suitability.verdict import decide
 
 REFERENCE_DURATION_HOURS = 4
 
 
 def _write_report_file(run_id: str, file_name: str, content: str) -> None:
-    run_dir = Path(f"out/{run_id}")
+    run_dir = Path("out") / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
     (run_dir / file_name).write_text(content, encoding="utf-8")
 
@@ -42,9 +43,7 @@ def flatten_state(inp: SynthesisInput) -> dict[str, float]:
     return state
 
 
-def _build_findings(  # ruff: ignore[complex-structure]
-    inp: SynthesisInput, art_ids_by_stage: dict[str, list[str]]
-) -> list[Finding]:
+def _build_findings(inp: SynthesisInput, art_ids_by_stage: dict[str, list[str]]) -> list[Finding]:
     findings: list[Finding] = []
     if "capacity" in art_ids_by_stage:
         sub = inp.capacity.substation or "substation"
@@ -102,6 +101,21 @@ def _build_findings(  # ruff: ignore[complex-structure]
                 artifact_ids=art_ids_by_stage["planning"],
             )
         )
+    if "market" in art_ids_by_stage:
+        findings.append(
+            Finding(
+                text="Market revenue projected across storage durations.",
+                artifact_ids=art_ids_by_stage["market"],
+            )
+        )
+    if "sentiment" in art_ids_by_stage and inp.sentiment:
+        concerns = f" with key concerns: {', '.join(inp.sentiment.top_concerns)}" if inp.sentiment.top_concerns else ""
+        findings.append(
+            Finding(
+                text=f"Community sentiment analysis completed{concerns}.",
+                artifact_ids=art_ids_by_stage["sentiment"],
+            )
+        )
     if not findings:
         fallback_art_id = f"synthesis-{inp.run_id[:8]}"
         findings.append(
@@ -136,7 +150,7 @@ def _render_markdown(inp: SynthesisInput, verdict: Verdict, findings: list[Findi
     season = inp.capacity.binding_season or "N/A"
 
     lines = [
-        f"# Bessible Assessment Report — Run {inp.run_id}",
+        f"# Bessible BESS Suitability Assessment Report — Run {inp.run_id}",
         "",
         f"**Verdict:** `{verdict.upper()}`",
         "",
@@ -158,6 +172,20 @@ def _render_markdown(inp: SynthesisInput, verdict: Verdict, findings: list[Findi
         irr_str = f"{case.irr * 100:.1f}%" if case.irr is not None else "N/A"
         lines.append(f"| {case.duration_h} hours | £{case.capex_gbp:,.0f} | £{case.npv_gbp:,.0f} | {irr_str} |")
 
+    # Local Community Sentiment Section
+    if inp.sentiment is not None and inp.sentiment.opposition_index is not None:
+        idx = inp.sentiment.opposition_index
+        risk_level = (
+            "High Opposition" if idx >= 0.8 else ("Moderate Caution" if idx >= 0.5 else "Low Opposition / Supportive")
+        )
+        lines.extend([
+            "",
+            "## Local Community Sentiment & Opposition",
+            f"- **Opposition Index:** `{idx:.2f}` / 1.00 ({risk_level})",
+            f"- **Top Community Concerns:** {', '.join(inp.sentiment.top_concerns) if inp.sentiment.top_concerns else 'None specified'}",
+            f"- **Research Coverage:** {inp.sentiment.sources} local news sources, {inp.sentiment.paragraphs} classified paragraphs",
+        ])
+
     lines.extend(["", "## Key Findings"])
     for f in findings:
         cites = ", ".join(f"`{aid}`" for aid in f.artifact_ids)
@@ -177,6 +205,11 @@ def _render_markdown(inp: SynthesisInput, verdict: Verdict, findings: list[Findi
 async def synthesise(inp: SynthesisInput) -> ReportOutput:
     """Synthesise findings and duration returns into an explainable Markdown report."""
     verdict: Verdict = "go"
+    if inp.sentiment is not None:
+        try:
+            verdict, _rules = decide(inp.financial, inp.sentiment)
+        except Exception:
+            verdict = "go"
 
     art_ids_by_stage: dict[str, list[str]] = {}
     for art in inp.artifacts:
@@ -191,10 +224,10 @@ async def synthesise(inp: SynthesisInput) -> ReportOutput:
     art_synth = Artifact(
         id=f"synthesis-{inp.run_id[:8]}",
         stage="synthesis",
-        claim=f"Assessment report compiled with verdict '{verdict}' and duration comparison",
+        claim=f"Assessment report compiled with verdict '{verdict.upper()}' and duration comparison",
         file_path=report_file_name,
         confidence=0.95,
-        model_used="dummy",
+        model_used="deterministic",
     )
 
     return ReportOutput(

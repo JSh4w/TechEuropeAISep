@@ -1,6 +1,6 @@
 # Bessible — BESS Site Assessment Agent
 
-Bessible assesses real estate properties for Battery Energy Storage Systems (BESS) feasibility and suitability in the UK. Given a property link or postcode, it coordinates grid connection analysis, title boundaries, planning policy, market revenue, and financial returns with full explainability and durable human-in-the-loop orchestration.
+Bessible assesses real estate properties for Battery Energy Storage Systems (BESS) feasibility and suitability in the UK. Given a property link or postcode, it coordinates grid connection analysis, title boundaries, planning policy, market revenue, local sentiment, and financial returns with full explainability and durable human-in-the-loop orchestration.
 
 ---
 
@@ -36,6 +36,51 @@ uv run python -m bessible.worker
 > ```bash
 > BESSIBLE_DEMO_FAIL_ONCE=1 uv run python -m bessible.worker
 > ```
+
+### 4. Start the FastAPI HTTP Server
+
+To serve the web UI, SSE progress traces, and fast capacity checks:
+
+```bash
+uv run uvicorn bessible.api.app:app --host 0.0.0.0 --port 8000
+```
+
+---
+
+## Running the Frontend
+
+The web UI is a Next.js 16 application featuring an interactive MapLibre map, live SSE pipeline trace, human-in-the-loop decision controls, and synthesized report viewing.
+
+### 1. Prerequisites
+
+- **Node.js 20+** (`node -v` >= 20.9)
+- **FastAPI backend** running on `http://localhost:8000` (step 4 above)
+
+### 2. Install Dependencies
+
+Navigate to the `web/` directory and install the packages:
+
+```bash
+cd web
+npm install
+```
+
+### 3. Start the Development Server
+
+```bash
+npm run dev
+```
+
+* The frontend is accessible at **http://localhost:3000**.
+* By default, it communicates with the API at `http://localhost:8000`. If running on a different port or host, set `NEXT_PUBLIC_API_URL` (e.g. `NEXT_PUBLIC_API_URL=http://localhost:8080 npm run dev`).
+
+### Alternative: All-in-One Dev Script
+
+To start Temporal dev server, the Python worker, FastAPI API server, and the Next.js frontend all together in a single command:
+
+```bash
+./scripts/dev.sh
+```
 
 ---
 
@@ -125,7 +170,7 @@ The pipeline runs as a durable Temporal workflow (`AssessmentWorkflow`):
 
 1. **Sequential Front**: `resolve_location` &rarr; `propose_capacity` (with early stop for out-of-area/non-viable sites) &rarr; `find_title_boundaries`.
 2. **Human-in-the-Loop**: Pauses with `status="awaiting_confirmation"`. Validates user decision via `decide_site` update.
-3. **Parallel Group 1**: `grid_connection`, `site_land`, `market_revenue`.
+3. **Parallel Group 1**: `grid_connection`, `site_land`, `market_revenue`, `local_sentiment`.
 4. **Parallel Group 2**: `financial_model`, `regulatory_planning`.
 5. **Synthesis**: Compiles Markdown report and verifies that all claims cite evidence artifact IDs.
 
@@ -139,8 +184,8 @@ from bessible.models import (
     FinancialInput, FinancialOutput,
     GridOutput, LocationInput, LocationOutput,
     MarketOutput, NodeInput, PlanningInput,
-    PlanningOutput, ReportOutput, SiteLandOutput,
-    SynthesisInput, TitleInput, TitleOutput,
+    PlanningOutput, ReportOutput, SentimentOutput,
+    SiteLandOutput, SynthesisInput, TitleInput, TitleOutput,
 )
 
 # 1. Location (src/bessible/stages/location.py)
@@ -155,19 +200,22 @@ async def find_title_boundaries(inp: TitleInput) -> TitleOutput: ...
 # 4. Grid Connection (src/bessible/stages/grid.py)
 async def grid_connection(inp: NodeInput) -> GridOutput: ...
 
-# 5. Site & Land (src/bessible/stages/site_land.py)
+# 5. Site & Land Constraints (src/bessible/stages/site_land.py)
 async def site_land(inp: NodeInput) -> SiteLandOutput: ...
 
-# 6. Market Revenue (src/bessible/stages/market.py)
+# 6. Market Revenue Projections (src/bessible/stages/market.py)
 async def market_revenue(inp: NodeInput) -> MarketOutput: ...
 
-# 7. Financial Model (src/bessible/stages/financial.py)
+# 7. Local Community Sentiment (src/bessible/stages/sentiment.py)
+async def local_sentiment(inp: NodeInput) -> SentimentOutput: ...
+
+# 8. Financial Model (src/bessible/stages/financial.py)
 async def financial_model(inp: FinancialInput) -> FinancialOutput: ...
 
-# 8. Regulatory Planning (src/bessible/stages/planning.py)
+# 9. Regulatory & Planning (src/bessible/stages/planning.py)
 async def regulatory_planning(inp: PlanningInput) -> PlanningOutput: ...
 
-# 9. Synthesis (src/bessible/stages/synthesis.py)
+# 10. Synthesis & Report (src/bessible/stages/synthesis.py)
 async def synthesise(inp: SynthesisInput) -> ReportOutput: ...
 ```
 
