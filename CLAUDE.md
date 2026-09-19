@@ -34,7 +34,9 @@ model used); the report is built only from artifacts. CLI first; a web UI is opt
   Modal + model wiring, env setup.
 
 ## Setup & commands
-- `./scripts/setup.sh` — installs uv + Temporal CLI (Homebrew on Mac), `uv sync`, creates `.env`, Modal login.
+- `./scripts/setup.sh` — installs uv, Temporal CLI, Node (Homebrew on Mac), `uv sync`, web `npm ci`, `.env`, Modal login.
+- `./scripts/dev.sh` — starts Temporal (reuses a running one; persists to `out/temporal.db`), the map worker and web UI;
+  Ctrl+C stops what it started; logs in `out/logs/`. Must stay bash 3.2-compatible (macOS demo machine).
 - `temporal server start-dev` — local Temporal (UI http://localhost:8233). Linux CLI lives in `~/.temporalio/bin`.
 - `uv run python scripts/check_env.py [--live]` — checks keys, Temporal, Modal login; `--live` pings Gemini + Modal.
 - Python via **uv** only: `uv run ...`, `uv add <pkg>` (never pip). Python 3.13–3.14. Package code in `src/bessible/`.
