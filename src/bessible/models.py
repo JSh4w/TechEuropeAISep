@@ -1,0 +1,352 @@
+"""Pydantic data models for Bessible assessment stages and pipeline."""
+
+from __future__ import annotations
+
+from datetime import date
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field, HttpUrl, ValidationInfo, model_validator
+
+Stage = Literal[
+    "location",
+    "capacity",
+    "title",
+    "grid",
+    "site_land",
+    "market",
+    "financial",
+    "planning",
+    "synthesis",
+]
+
+Verdict = Literal["go", "maybe", "no_go"]
+
+
+class AssessmentRequest(BaseModel):
+    """User request to assess a site for BESS development."""
+
+    property_url: HttpUrl | None = None
+    postcode: str | None = None
+    battery_mw: float | None = None
+    budget_gbp: float | None = None
+    flexible_connection: bool = False
+
+    @model_validator(mode="after")
+    def validate_site_provided(self) -> AssessmentRequest:
+        """Ensure either a property URL or UK postcode is supplied."""
+        if self.property_url is None and not self.postcode:
+            msg = "Either property_url or postcode must be provided"
+            raise ValueError(msg)
+        return self
+
+
+class Position(BaseModel):
+    """Geographic coordinates in WGS84."""
+
+    lat: float
+    lon: float
+
+
+class Artifact(BaseModel):
+    """Explainable AI artifact supporting a claim or decision."""
+
+    id: str
+    stage: Stage
+    claim: str
+    source_url: HttpUrl | None = None
+    file_path: str | None = None
+    image_path: str | None = None
+    confidence: float = Field(ge=0.0, le=1.0)
+    model_used: str
+
+    @model_validator(mode="after")
+    def validate_evidence(self) -> Artifact:
+        """Ensure at least one piece of evidence is present."""
+        if not (self.source_url or self.file_path or self.image_path):
+            msg = "Artifact must include at least one evidence field: source_url, file_path, or image_path"
+            raise ValueError(msg)
+        return self
+
+
+class StageInput(BaseModel):
+    """Base input for all assessment stages."""
+
+    run_id: str
+    request: AssessmentRequest
+
+
+class LocationInput(StageInput):
+    """Input for location resolution."""
+
+
+class LocationOutput(BaseModel):
+    """Resolved location coordinates and postcode."""
+
+    postcode: str
+    position: Position
+    artifacts: list[Artifact] = Field(default_factory=list)
+
+
+class CapacityInput(StageInput):
+    """Input for capacity proposal stage."""
+
+    location: LocationOutput
+
+
+class AlternateOption(BaseModel):
+    """Another primary substation near the site, shown for comparison."""
+
+    substation: str
+    distance_km: float
+    size_mw: float
+    marginal: bool  # farther than 1 km: cable cost and losses make it a weak option
+
+
+class CapacityOutput(BaseModel):
+    """Grid capacity proposal and headroom assessment."""
+
+    viable: bool
+    message: str | None = None
+    out_of_area: bool = False
+    substation: str | None = None
+    connection_voltage_kv: float | None = None
+    firm_mw: float = 0.0
+    ceiling_mw: float = 0.0
+    recommended_mw: float = 0.0
+    binding_direction: Literal["import", "export"] | None = None
+    binding_season: Literal["winter", "summer"] | None = None
+    distance_km: float | None = None
+    alternates: list[AlternateOption] = Field(default_factory=list)
+    tia_threshold_mw: Literal[1, 5] | None = None
+    snapshot_date: date | None = None
+    artifacts: list[Artifact] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_capacity_consistency(self) -> CapacityOutput:
+        """Validate consistency of viability, out_of_area, and capacity bounds."""
+        if self.out_of_area and self.viable:
+            msg = "An out of area site cannot be viable"
+            raise ValueError(msg)
+        if not self.viable and not self.message:
+            msg = "A non-viable capacity output must include an explanatory message"
+            raise ValueError(msg)
+        if self.ceiling_mw < self.firm_mw:
+            msg = f"ceiling_mw ({self.ceiling_mw}) must be >= firm_mw ({self.firm_mw})"
+            raise ValueError(msg)
+        return self
+
+
+class TitleInput(StageInput):
+    """Input for title boundary lookup stage."""
+
+    location: LocationOutput
+    capacity: CapacityOutput
+
+
+class TitleOutput(BaseModel):
+    """Land registry title boundaries and area."""
+
+    title_number: str
+    boundary_geojson: dict[str, Any]
+    area_m2: float
+    artifacts: list[Artifact] = Field(default_factory=list)
+
+
+class SiteDecision(BaseModel):
+    """Decision submitted by human-in-the-loop."""
+
+    confirmed: bool
+    position: Position | None = None
+    capacity_mw: float | None = None
+
+
+class ConfirmedSite(BaseModel):
+    """Confirmed site parameters approved by the human operator."""
+
+    position: Position
+    capacity_mw: float
+    boundary: TitleOutput
+    footprint_geojson: dict[str, Any] | None = None
+    capacity: CapacityOutput | None = Field(default=None, repr=False)
+    flexible_connection: bool = Field(default=False, repr=False)
+
+    @model_validator(mode="after")
+    def validate_limits(self, info: ValidationInfo) -> ConfirmedSite:
+        """Validate capacity against ceiling and firm limits."""
+        cap = self.capacity
+        flex = self.flexible_connection
+        if info.context:
+            if "capacity" in info.context:
+                cap = info.context["capacity"]
+            if "flexible_connection" in info.context:
+                flex = info.context["flexible_connection"]
+        if cap is not None:
+            if self.capacity_mw > cap.ceiling_mw:
+                msg = f"Capacity {self.capacity_mw} MW exceeds ceiling {cap.ceiling_mw} MW"
+                raise ValueError(msg)
+            if not flex and self.capacity_mw > cap.firm_mw:
+                msg = (
+                    f"Capacity {self.capacity_mw} MW exceeds firm capacity {cap.firm_mw} MW without flexible connection"
+                )
+                raise ValueError(msg)
+            if self.capacity_mw <= 0:
+                msg = "Capacity must be positive"
+                raise ValueError(msg)
+        return self
+
+    @classmethod
+    def build(cls, *, capacity: CapacityOutput, flexible: bool = False, **fields: Any) -> ConfirmedSite:  # ruff: ignore[any-type]
+        """Construct and validate against the capacity proposal."""
+        return cls.model_validate(fields, context={"capacity": capacity, "flexible_connection": flexible})
+
+
+class NodeInput(StageInput):
+    """Input for downstream analysis stages following site confirmation."""
+
+    site: ConfirmedSite
+    capacity: CapacityOutput
+
+
+class GridOutput(BaseModel):
+    """Grid connection feasibility and queue position."""
+
+    gate2_queue_position: int | None = None
+    indicative_connection_months: int | None = None
+    artifacts: list[Artifact] = Field(default_factory=list)
+
+
+class SiteLandOutput(BaseModel):
+    """Site land use and planning constraints assessment."""
+
+    land_use: str
+    constraints: list[str] = Field(default_factory=list)
+    artifacts: list[Artifact] = Field(default_factory=list)
+
+
+class StreamValue(BaseModel):
+    """Revenue of one stream for one duration, with its source."""
+
+    stream: str
+    gbp_per_mw_year: float
+    source: str
+    source_url: HttpUrl
+    as_of: date
+    cached: bool
+    placeholder: bool = False
+    scheme: str | None = None
+
+
+class MarketOutput(BaseModel):
+    """Market revenue projections and value streams."""
+
+    revenue_gbp_per_mw_year: float
+    streams: dict[str, float] = Field(default_factory=dict)
+    by_duration: dict[int, list[StreamValue]] | None = None
+    artifacts: list[Artifact] = Field(default_factory=list)
+
+
+class FinancialInput(NodeInput):
+    """Input for financial model stage."""
+
+    grid: GridOutput
+    market: MarketOutput
+
+
+class DurationCase(BaseModel):
+    """Financial returns for a specific storage duration case."""
+
+    duration_h: Literal[2, 4, 8]
+    capex_gbp: float
+    npv_gbp: float
+    irr: float | None = None
+    over_budget: bool = False
+    curtailment_pct: float | None = None
+
+
+REQUIRED_DURATION_HOURS = (2, 4, 8)
+
+
+class FinancialOutput(BaseModel):
+    """Financial modeling outputs across storage durations."""
+
+    cases: list[DurationCase]
+    artifacts: list[Artifact] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_duration_cases(self) -> FinancialOutput:
+        """Ensure cases cover exactly durations 2, 4, and 8."""
+        durations = tuple(sorted(c.duration_h for c in self.cases))
+        if durations != REQUIRED_DURATION_HOURS or len(self.cases) != len(REQUIRED_DURATION_HOURS):
+            msg = "FinancialOutput must contain exactly three duration cases: 2h, 4h, and 8h"
+            raise ValueError(msg)
+        return self
+
+
+class PlanningInput(NodeInput):
+    """Input for regulatory and planning stage."""
+
+    grid: GridOutput
+    site_land: SiteLandOutput
+
+
+class PlanningOutput(BaseModel):
+    """Consenting pathway and regulatory risk assessment."""
+
+    consenting_route: str
+    risks: list[str] = Field(default_factory=list)
+    artifacts: list[Artifact] = Field(default_factory=list)
+
+
+class Finding(BaseModel):
+    """Synthesised finding citing evidence artifacts."""
+
+    text: str
+    artifact_ids: list[str] = Field(min_length=1)
+
+
+class SynthesisInput(NodeInput):
+    """Input for final report synthesis stage."""
+
+    grid: GridOutput
+    site_land: SiteLandOutput
+    market: MarketOutput
+    financial: FinancialOutput
+    planning: PlanningOutput
+    artifacts: list[Artifact] = Field(default_factory=list)
+
+
+class ReportOutput(BaseModel):
+    """Assessment report output and overall verdict."""
+
+    verdict: Verdict
+    findings: list[Finding] = Field(default_factory=list)
+    report_path: str
+    artifacts: list[Artifact] = Field(default_factory=list)
+
+
+class RunStatus(BaseModel):
+    """Current state of a workflow run queried by clients."""
+
+    status: Literal[
+        "running",
+        "awaiting_confirmation",
+        "completed",
+        "rejected",
+        "out_of_area",
+        "not_viable",
+        "failed",
+    ]
+    stages: list[Stage] = Field(default_factory=list)
+    capacity: CapacityOutput | None = None
+    boundary: TitleOutput | None = None
+
+
+class AssessmentResult(BaseModel):
+    """Final output of an assessment run."""
+
+    status: Literal["completed", "rejected", "out_of_area", "not_viable"]
+    message: str | None = None
+    report: ReportOutput | None = None
+    financial: FinancialOutput | None = None
+    artifacts: list[Artifact] = Field(default_factory=list)
+    run_dir: str

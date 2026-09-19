@@ -1,0 +1,9 @@
+{
+  "stream": "capacity_market",
+  "source": "Capacity Market clearing price (EMR Delivery Body), fixture",
+  "source_url": "https://www.emrdeliverybody.com/",
+  "as_of": "2026-09-19",
+  "status": "placeholder",
+  "note": "PLACEHOLDER price, written 2026-09-19 and not checked against the latest auction results. Value is per unit of de-rated capacity, so it is multiplied by the de-rating factor for the duration.",
+  "gbp_per_mw_year_by_duration": {"2": 60000, "4": 60000, "8": 60000}
+}

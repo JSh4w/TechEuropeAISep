@@ -1,0 +1,7 @@
+{
+  "source": "PLACEHOLDER - synthetic UK distribution demand shape (evening peak, overnight trough, winter-heavy); not an Elexon or UKPN profile",
+  "date": "2026-09-19",
+  "status": "placeholder",
+  "hourly": [0.55, 0.50, 0.47, 0.46, 0.48, 0.55, 0.68, 0.82, 0.88, 0.85, 0.83, 0.82, 0.82, 0.81, 0.82, 0.86, 0.95, 1.00, 0.97, 0.90, 0.80, 0.72, 0.65, 0.58],
+  "monthly": [1.00, 0.97, 0.92, 0.85, 0.80, 0.77, 0.76, 0.77, 0.81, 0.87, 0.94, 0.99]
+}

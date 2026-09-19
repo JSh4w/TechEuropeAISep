@@ -1,0 +1,5 @@
+{
+  "capacity_market_derating": {"value": {"2": 0.20, "4": 0.40, "8": 0.65}, "unit": "factor", "source": "PLACEHOLDER - illustrative de-rating factors, not agreed; check the current EMR de-rating table", "date": "2026-09-19", "status": "placeholder"},
+  "cap_and_floor": {"value": {"min_duration_h": 8, "min_mw": 100, "gbp_per_mw_year": 20000}, "unit": "rules and GBP/MW/year", "source": "PLACEHOLDER - qualifying rules and value not agreed; scheme: Ofgem LDES cap and floor", "date": "2026-09-19", "status": "placeholder"},
+  "ultra_lds": {"value": {"min_duration_h": 24, "min_mw": 50, "gbp_per_mw_year": 30000}, "unit": "rules and GBP/MW/year", "source": "PLACEHOLDER - qualifying rules and value not agreed; scheme: Ultra-LDES support", "date": "2026-09-19", "status": "placeholder"}
+}

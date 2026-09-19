@@ -1,3 +1,9 @@
+"""App configuration and settings."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -20,6 +26,8 @@ class Settings(BaseSettings):
     ukpn_api_key: SecretStr | None = None  # ukpowernetworks.opendatasoft.com
     ssen_api_key: SecretStr | None = None  # ssentransmission.opendatasoft.com
     nged_api_key: SecretStr | None = None  # connecteddata.nationalgrid.co.uk
+
+    data_dir: Path = Path(__file__).resolve().parents[2] / "data"  # committed fixtures and UKPN snapshot
 
     temporal_address: str = "localhost:7233"
     temporal_namespace: str = "default"

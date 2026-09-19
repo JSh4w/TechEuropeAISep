@@ -1,0 +1,6 @@
+{
+  "fetched_at": "2026-09-19",
+  "datasets": {"ukpn-capacity-heatmap": {"rows": 3, "file": "heatmap.json"}},
+  "partial": true,
+  "note": "Demo subset: 3 real Dorking primaries copied from the API test fixture. Run `uv run python -m bessible.ukpn.ingest` (needs UKPN_API_KEY) for the full dataset."
+}

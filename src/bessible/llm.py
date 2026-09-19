@@ -1,15 +1,20 @@
 """Model factories. Keys come from `settings` (.env), not the process environment."""
 
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 
 import logfire
 from openai.types.chat import ChatCompletion
 from pydantic_ai.models.google import GoogleModel
-from pydantic_ai.models.openai import OpenAIChatModel, _ChatCompletion
+from pydantic_ai.models.openai import OpenAIChatModel, _ChatCompletion  # ruff: ignore[import-private-name]
 from pydantic_ai.providers.gateway import gateway_provider
 from pydantic_ai.providers.google import GoogleProvider
 
 from bessible.config import settings
+
+if TYPE_CHECKING:
+    from pydantic import SecretStr
 
 # Modal returns `metadata.weight_versions` as a list, but the OpenAI schema types
 # `metadata` as `dict[str, str]`. Widen it on both models that see the payload.
@@ -18,9 +23,10 @@ for _model in (ChatCompletion, _ChatCompletion):
     _model.model_rebuild(force=True)
 
 
-def _secret(value, name: str) -> str:
+def _secret(value: SecretStr | None, name: str) -> str:
     if value is None:
-        raise RuntimeError(f"{name} is not set in .env")
+        msg = f"{name} is not set in .env"
+        raise RuntimeError(msg)
     return value.get_secret_value()
 
 
