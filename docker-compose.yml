@@ -1,0 +1,92 @@
+services:
+  temporal:
+    image: temporalio/auto-setup:latest
+    container_name: bessible-temporal
+    ports:
+      - "7233:7233"
+      - "8233:8233"
+    environment:
+      - DB=sqlite
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+    volumes:
+      - temporal-data:/etc/temporal/schema
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ghcr.io/${IMAGE_OWNER:-jsh4w}/bessible-backend:latest
+    container_name: bessible-api
+    ports:
+      - "8000:8000"
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_NAMESPACE=default
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - PYDANTIC_AI_GATEWAY_API_KEY=${PYDANTIC_AI_GATEWAY_API_KEY:-}
+      - PYDANTIC_AI_GATEWAY_BASE_URL=${PYDANTIC_AI_GATEWAY_BASE_URL:-https://gateway-eu.pydantic.dev/proxy}
+      - MODAL_GATEWAY_ROUTE=${MODAL_GATEWAY_ROUTE:-modal}
+      - MODAL_MODEL=${MODAL_MODEL:-google/gemma-4-31B-it}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.8-flash}
+      - LOGFIRE_TOKEN=${LOGFIRE_TOKEN:-}
+      - TYPESAFE_API_KEY=${TYPESAFE_API_KEY:-}
+      - UKPN_API_KEY=${UKPN_API_KEY:-}
+      - SSEN_API_KEY=${SSEN_API_KEY:-}
+      - NGED_API_KEY=${NGED_API_KEY:-}
+      - OS_API_KEY=${OS_API_KEY:-}
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      - temporal
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ghcr.io/${IMAGE_OWNER:-jsh4w}/bessible-backend:latest
+    container_name: bessible-worker
+    command: ["python", "-m", "bessible.worker"]
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_NAMESPACE=default
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - PYDANTIC_AI_GATEWAY_API_KEY=${PYDANTIC_AI_GATEWAY_API_KEY:-}
+      - PYDANTIC_AI_GATEWAY_BASE_URL=${PYDANTIC_AI_GATEWAY_BASE_URL:-https://gateway-eu.pydantic.dev/proxy}
+      - MODAL_GATEWAY_ROUTE=${MODAL_GATEWAY_ROUTE:-modal}
+      - MODAL_MODEL=${MODAL_MODEL:-google/gemma-4-31B-it}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.8-flash}
+      - LOGFIRE_TOKEN=${LOGFIRE_TOKEN:-}
+      - TYPESAFE_API_KEY=${TYPESAFE_API_KEY:-}
+      - UKPN_API_KEY=${UKPN_API_KEY:-}
+      - SSEN_API_KEY=${SSEN_API_KEY:-}
+      - NGED_API_KEY=${NGED_API_KEY:-}
+      - OS_API_KEY=${OS_API_KEY:-}
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      - temporal
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    image: ghcr.io/${IMAGE_OWNER:-jsh4w}/bessible-web:latest
+    container_name: bessible-web
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - BACKEND_URL=http://api:8000
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  temporal-data:
