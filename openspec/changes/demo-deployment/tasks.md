@@ -1,25 +1,49 @@
-## 1. Decouple Modal & Implement Pluggable Classifier
+## 1. Spike: per-run credentials with Temporal (do first, ~30 min)
 
-- [ ] 1.1 Implement structured LLM-based classification in `src/bessible/classifier.py` and verify with unit tests using a mock/test model
-- [ ] 1.2 Wire the offline heuristic classifier fallback into `src/bessible/classifier.py` and verify classification returns valid labels without Modal
-- [ ] 1.3 Remove `modal` import requirement and remove Modal login checks from `scripts/check_env.py`, verifying `uv run python scripts/check_env.py` passes
+- [ ] 1.1 Check whether `TemporalAgent` can use a per-run Gemini key (`models=` / provider factory); if not, decide to call `agent.run(model=...)` inside our own activities, and record the decision in `design.md`
+- [ ] 1.2 Create the Firebase project (Spark plan, Google sign-in) and verify one real ID token end to end with `google.oauth2.id_token.verify_firebase_token` and no service-account file (a forged token is already confirmed to reach the cert lookup)
 
-## 2. Multi-Provider BYOK Inference Backend
+## 2. Per-run model resolution and key isolation
 
-- [ ] 2.1 Implement `get_model(provider, api_key, model_name)` in `src/bessible/llm.py` supporting Google, OpenAI, Anthropic, and OpenRouter, verifying with unit tests
-- [ ] 2.2 Extend `AssessmentRequest` and workflow stage inputs with optional `llm_provider`, `llm_api_key`, and `llm_model` fields in `src/bessible/models.py`
-- [ ] 2.3 Update FastAPI `/runs` router in `src/bessible/api/runs.py` to extract `X-LLM-*` headers and payload credentials and forward them to the workflow
-- [ ] 2.4 Update agent runners in `research.py`, `analyst.py`, `evidence.py`, and `policy.py` to use the dynamic model and verify stage execution with pytest
+- [ ] 2.1 Replace `gemini_model()` with `gemini_model(api_key)` in `src/bessible/llm.py` (Google only, `settings.gemini_model`); remove the server-key fallback for real runs
+- [ ] 2.2 Remove import-time models: update `suitability/research.py`, `suitability/analyst.py`, `suitability/verdict.py`, `planning/evidence.py`, `possibility/policy.py`, `location/extract.py` to receive the model per run, per the task 1.1 decision; keep existing tests passing
+- [ ] 2.3 Add `EncryptedCredentials` (plain `str` ciphertext, no `SecretStr`) to the workflow input in `src/bessible/models.py` and thread it through workflow and activities
+- [ ] 2.4 Add the required concurrency test: two concurrent runs with `KEY_A` and `KEY_B` and a recording fake model; assert no cross-use, no key in workflow history, logs or API responses, and a keyless run fails without using a server key
+- [ ] 2.5 Add a guard test that fails on `os.environ` key writes and module-level `gemini_model()` calls
 
-## 3. Frontend BYOK Settings Interface
+## 3. Auth, key storage and run ownership (backend)
 
-- [ ] 3.1 Create `SettingsDialog.tsx` in `web/src/components/` with provider selection (OpenAI, Gemini, Anthropic, OpenRouter) and `localStorage` persistence
-- [ ] 3.2 Add a lightweight model test endpoint `POST /llm/test` in FastAPI and verify the UI "Test Key" button receives connection status
-- [ ] 3.3 Update `web/src/lib/api.ts` to attach stored BYOK credentials to `startRun` calls and verify via browser request headers
+- [ ] 3.1 Add the `current_user` dependency (`verify_firebase_token` from `google-auth` plus explicit `iss` and `sub` checks, `cachecontrol`-cached certs, verify run off the event loop, optional `ALLOWED_EMAILS`) and apply it to all non-demo routes; unit-test with a fake verifier
+- [ ] 3.2 Implement the SQLite key store (`/var/lib/bessible/keys.db`, `0600`) with AES-GCM, HKDF per-user keys, the `uid` as associated data, and a `key_id` for rotation; test round trip, wrong-`uid` failure and rotation
+- [ ] 3.3 Add `PUT/DELETE /me/key`, `GET /me/key` (last4 only), and `POST /me/key/test`; verify no endpoint ever returns a key
+- [ ] 3.4 Update `POST /runs` to use `bessible-<uuid4>` ids, store `owner_uid` in the workflow memo, attach `EncryptedCredentials`, and return `401 missing_google_key` when absent; enforce the owner check (404 otherwise) on `status`, `decision`, `result` and `events`
 
-## 4. Ubuntu Deployment Runtime & Scripts
+## 4. Classifier backends
 
-- [ ] 4.1 Configure `next.config.ts` for standalone output (`output: 'standalone'`) and verify `npm run build` produces `.next/standalone`
-- [ ] 4.2 Create systemd service templates for standalone `temporal server start-dev`, FastAPI, worker, and Next.js standalone server
-- [ ] 4.3 Create a `Caddyfile` with automatic HTTPS and unbuffered SSE proxying for `/runs/{id}/events`, verifying syntax with `caddy validate`
-- [ ] 4.4 Create an Ubuntu setup and run script `scripts/deploy_ubuntu.sh` that installs dependencies and launches the stack under 500 MB RAM
+- [ ] 4.1 Implement `classify(...)` with `modal | llm | heuristic` backends and `CLASSIFIER_BACKEND=auto|modal|llm|heuristic` (Modal only when the worker has a token) in `src/bessible/classifier.py`; lazy `import modal`; unit-test each backend with a mock or test model
+- [ ] 4.2 Move the keyword heuristic from `suitability/sentiment.py` into the `heuristic` backend and reuse it from `possibility/policy.py` `cross_check`
+- [ ] 4.3 Record the backend in `model_used`, mark `cross_check` non-independent (no confidence uplift) on `llm` and `heuristic`
+- [ ] 4.4 Move `modal` to an optional extra in `pyproject.toml`; make `scripts/check_env.py` check Modal login only when a server-side Modal token is configured; verify the app starts without `modal` installed
+
+## 5. Frontend: sign-in, key panel, demo button
+
+- [ ] 5.1 Add Firebase Auth (Google sign-in) to the Next.js app and attach the ID token to API calls in `web/src/lib/api.ts`
+- [ ] 5.2 Replace `EventSource` (`web/src/lib/api.ts`) with a `fetch`-based SSE reader that sends the bearer token
+- [ ] 5.3 Create the key panel in `web/src/components/` (Google key, "Test key", saved state shown as last4, delete)
+- [ ] 5.4 Add the first-load modal (Configure key / View demo run) and the signed-out landing with Sign in / View demo run; UI details to be configured later
+
+## 6. Demo mode
+
+- [ ] 6.1 Implement the recorder that saves a completed run to `data/demo/<slug>/` (request, timed events, status snapshots, decision, result) and a scan that fails if key material is present
+- [ ] 6.2 Implement public replay routes (`/demo/runs...`) with recorded pacing, a pause at the site-confirmation gate, and `demo-` ids that never resolve to real runs; no Temporal, auth or LLM
+- [ ] 6.3 Wire the **View demo run** button and a "recorded example" label in the UI
+- [ ] 6.4 Record one real run end to end and commit the recording
+
+## 7. Ubuntu deployment runtime, scripts and hardening
+
+- [ ] 7.1 Configure `next.config.ts` for standalone output (`output: 'standalone'`) and verify `npm run build` produces `.next/standalone`
+- [ ] 7.2 Create systemd units for `temporal server start-dev` (`127.0.0.1`), FastAPI, worker and Next.js, running as a non-root user with `NoNewPrivileges` and `ProtectSystem`; the master secret comes from a root-owned `0600` `EnvironmentFile`
+- [ ] 7.3 Create a `Caddyfile` with automatic HTTPS, unbuffered SSE for `/runs/{id}/events`, rate limiting and security headers, verified with `caddy validate`
+- [ ] 7.4 Create `scripts/deploy_ubuntu.sh` (installs dependencies, sets `ufw` for 80 and 443 only, SSH key-only, launches the stack); keep it idempotent
+- [ ] 7.5 Measure the resident memory of Temporal and the full stack on the VM and record the figures in `design.md`; confirm internal ports refuse outside connections
+- [ ] 7.6 Confirm no headers, request bodies or keys appear in logs or Logfire spans
