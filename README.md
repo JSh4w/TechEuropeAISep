@@ -12,14 +12,19 @@ Build an agent with >=2 tech partners from this event
 
 deepmind llama : do you save cache between those multiple models/ threads? Consumes a bunch of tokens
 
-## Setup
+## Setup (macOS or Linux)
 
 ```bash
-npm install -g @fission-ai/openspec@latest   # OpenSpec CLI, used by the /opsx commands
-python -m venv .venv && source .venv/bin/activate   # Python 3.14
-pip install -r requirements.txt
-modal setup                                   # log in to Modal (opens browser)
+./scripts/setup.sh    # installs uv + Temporal CLI (via Homebrew on Mac), Python deps, creates .env, logs in to Modal
 ```
+
+1. Fill in `.env` with the keys (get them from Josh privately, never commit `.env`).
+2. Accept the invite to Josh's Modal workspace, then `uv run modal profile activate <workspace>` if you're in more than one.
+3. Start Temporal in its own terminal: `temporal server start-dev` (UI at http://localhost:8233).
+4. Check everything: `uv run python scripts/check_env.py`
+
+Run Python with `uv run ...` (or `source .venv/bin/activate`). Add packages with `uv add <pkg>`, not pip.
+For OpenSpec's `/opsx` commands: `npm install -g @fission-ai/openspec@latest`.
 
 ## Workflow
 

@@ -1,0 +1,15 @@
+[project]
+name = "bessible"
+version = "0.1.0"
+description = "BESS site assessment agent"
+requires-python = ">=3.13,<3.15"
+dependencies = [
+    "modal>=1.5.5",
+    "pydantic-ai-slim[anthropic,google,logfire,openai,temporal,typesafe]>=2.46.0",
+    "pydantic-settings>=2.15.0",
+    "temporalio>=1.33.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.10,<0.11"]
+build-backend = "uv_build"
