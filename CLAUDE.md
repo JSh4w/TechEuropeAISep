@@ -46,6 +46,14 @@ model used); the report is built only from artifacts. CLI first; a web UI is opt
 - `src/bessible/llm.py` — `gemini_model()`, `modal_model()` (gateway route), `setup_logfire()`. Keys are passed from
   `settings` explicitly because `.env` is not loaded into `os.environ`.
 
+- `src/bessible/models.py` — Pydantic models; also the JSON contract with `web/lib/types.ts`.
+- `src/bessible/workflow.py` — `AssessWorkflow` (task queue `bessible-web`): AI suggests area → human edits on the map
+  (`submit_area` update, validated) → `confirm_area` update → engines. `state` query is polled by the web UI.
+  Workflow/query/update names are called as strings from `web/lib/temporal.ts`: don't rename one side only.
+- `src/bessible/activities.py` — dummy activities (`suggest_area`, `validate_area`, `run_feasibility`,
+  `run_suitability`); swap bodies for real ones, keep signatures. `src/bessible/worker.py` runs them.
+- `web/` — Next.js map UI; route handlers in `app/api/session/` are the only Temporal client. See `web/README.md`.
+
 ## Secrets
 - `.env` is gitignored; `.env.example` lists every key. Keys are Josh's accounts, shared privately — never commit,
   paste into chat, or print secret values. Teammates join Josh's Modal workspace rather than sharing a Modal token.
