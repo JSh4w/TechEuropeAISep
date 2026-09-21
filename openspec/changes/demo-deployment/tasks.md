@@ -21,8 +21,8 @@
 ## 4. Classifier backends
 
 - [ ] 4.1 Implement `classify(...)` with `modal | llm | heuristic` backends and `CLASSIFIER_BACKEND=auto|modal|llm|heuristic` (Modal only when the worker has a token) in `src/bessible/classifier.py`; lazy `import modal`; unit-test each backend with a mock or test model
-- [ ] 4.2 Move the keyword heuristic from `suitability/sentiment.py` into the `heuristic` backend and reuse it from `possibility/policy.py` `cross_check`
-- [ ] 4.3 Record the backend in `model_used`, mark `cross_check` non-independent (no confidence uplift) on `llm` and `heuristic`
+- [ ] 4.2 Move the keyword heuristic from `suitability/sentiment.py` into the `heuristic` backend (news-paragraph labels only), keeping its current labels and confidences unchanged
+- [ ] 4.3 Run policy `cross_check` only on the `modal` backend; when Modal is off or fails, skip it and leave the review's default confidence as is; test both paths
 - [ ] 4.4 Move `modal` to an optional extra in `pyproject.toml`; make `scripts/check_env.py` check Modal login only when a server-side Modal token is configured; verify the app starts without `modal` installed
 
 ## 5. Frontend: sign-in, key panel, demo button
