@@ -34,7 +34,7 @@ fi
 
 # 4. Python deps (uv downloads the right Python version if needed)
 echo "==> Installing Python dependencies"
-uv sync
+uv sync  # dev group includes the optional Modal classifier backend
 
 # 5. Secrets file
 if [ ! -f .env ]; then

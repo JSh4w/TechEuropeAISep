@@ -22,10 +22,11 @@
 
 ## 4. Classifier backends
 
-- [ ] 4.1 Implement `classify(...)` with `modal | llm | heuristic` backends and `CLASSIFIER_BACKEND=auto|modal|llm|heuristic` (Modal only when the worker has a token) in `src/bessible/classifier.py`; lazy `import modal`; unit-test each backend with a mock or test model
-- [ ] 4.2 Move the keyword heuristic from `suitability/sentiment.py` into the `heuristic` backend (news-paragraph labels only), keeping its current labels and confidences unchanged
-- [ ] 4.3 Run policy `cross_check` only on the `modal` backend; when Modal is off or fails, skip it and leave the review's default confidence as is; test both paths
-- [ ] 4.4 Move `modal` to an optional extra in `pyproject.toml`; make `scripts/check_env.py` check Modal login only when a server-side Modal token is configured; verify the app starts without `modal` installed
+- [x] 4.1 Implement `classify(...)` with `modal | llm | heuristic` backends and `CLASSIFIER_BACKEND=auto|modal|llm|heuristic` (Modal only when the worker has a token) in `src/bessible/classifier.py`; lazy `import modal`; unit-test each backend with a mock or test model
+- [x] 4.2 Move the keyword heuristic from `suitability/sentiment.py` into the `heuristic` backend (news-paragraph labels only), keeping its current labels and confidences unchanged
+- [x] 4.3 Run policy `cross_check` only on the `modal` backend; when Modal is off or fails, skip it and leave the review's default confidence as is; test both paths
+- [x] 4.4 Move `modal` to an optional extra in `pyproject.toml`; make `scripts/check_env.py` check Modal login only when a server-side Modal token is configured; verify the app starts without `modal` installed
+- [x] 4.5 Test the `llm` backend live against real Gemini with a valid Google key (structured batch output, the missing-row retry, confidences compared with Modal)
 
 ## 5. Frontend: sign-in, key panel, demo button
 

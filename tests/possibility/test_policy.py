@@ -83,7 +83,7 @@ def test_validator_rejects_unsupported_stances(bad):
 
 @pytest.mark.anyio
 async def test_cross_check_lowers_confidence_when_the_classifier_disagrees(monkeypatch):
-    async def fake_classify(quotes, _schema):
+    async def fake_classify(quotes, _schema, **_kwargs):
         return [
             Classified[QuoteLabels](text=q, labels=QuoteLabels(effect="prohibits"), confidence={"effect": 0.8})
             for q in quotes
@@ -94,6 +94,30 @@ async def test_cross_check_lowers_confidence_when_the_classifier_disagrees(monke
     checked = await policy.cross_check(review)
     assert (checked.confidence, checked.disputed_quotes) == (policy.UNVERIFIED_CONFIDENCE, [QUOTE])
     assert "Modal" in checked.model_used
+
+
+@pytest.mark.anyio
+async def test_cross_check_is_skipped_without_modal(monkeypatch):
+    monkeypatch.setattr("bessible.classifier.modal_enabled", lambda: False)
+    review = PolicyReview(brief=policy.brief_for(with_plan()), opinion=opinion(), model_used="gemini")
+    assert await policy.cross_check(review) == review  # default confidence, nothing disputed, no model added
+
+
+@pytest.mark.anyio
+async def test_cross_check_is_skipped_when_modal_fails(monkeypatch):
+    class Down:
+        classify = remote = property(lambda self: self)
+
+        async def aio(self, *_args):
+            msg = "modal is down"
+            raise RuntimeError(msg)
+
+    import modal
+
+    monkeypatch.setattr("bessible.classifier.modal_enabled", lambda: True)
+    monkeypatch.setattr(modal.Cls, "from_name", lambda *_a, **_k: Down)
+    review = PolicyReview(brief=policy.brief_for(with_plan()), opinion=opinion(), model_used="gemini")
+    assert await policy.cross_check(review) == review
 
 
 @pytest.mark.anyio

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
 from pydantic import AliasChoices, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -20,6 +21,10 @@ class Settings(BaseSettings):
     pydantic_ai_gateway_base_url: str = "https://gateway-eu.pydantic.dev/proxy"
     modal_gateway_route: str = "modal"
     modal_model: str = "google/gemma-4-31B-it"
+    # Operator-side Modal token for the classifier. Never per user, never in workflow input.
+    modal_token_id: SecretStr | None = None
+    modal_token_secret: SecretStr | None = None
+    classifier_backend: Literal["auto", "modal", "llm", "heuristic"] = "auto"
 
     logfire_token: SecretStr | None = None
     typesafe_api_key: SecretStr | None = None
