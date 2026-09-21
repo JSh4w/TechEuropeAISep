@@ -23,6 +23,14 @@ Stage = Literal[
 Verdict = Literal["go", "maybe", "no_go"]
 
 
+class EncryptedCredentials(BaseModel):
+    """A run owner's Google key as ciphertext. Plain `str`, never `SecretStr`: Temporal would store `**********`."""
+
+    uid: str
+    key_id: str
+    google_ct: str
+
+
 class AssessmentRequest(BaseModel):
     """User request to assess a site for BESS development."""
 
@@ -33,6 +41,7 @@ class AssessmentRequest(BaseModel):
     flexible_connection: bool = False
     link: str | HttpUrl | None = None
     target_mw: float | None = None
+    credentials: EncryptedCredentials | None = None  # set by the API or CLI from the caller's stored key
 
     @model_validator(mode="before")
     @classmethod

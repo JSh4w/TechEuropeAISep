@@ -63,7 +63,9 @@ Bessible was built to run locally on a Mac with Google Gemini for LLM reasoning,
   - **Real Gemini check (done, 3 small requests):** through `TemporalAgent` + `provider_factory` + `deps` with a run-time `google:<model>` string, `GoogleProvider` answered a plain prompt, native `WebSearch` returned a search-grounded answer, and native `WebFetch` fetched `example.com` correctly. The plaintext key was absent from history in all three runs. Two gotchas hit while testing: `result.usage` is a property, not a method; and a workflow-code exception makes Temporal retry the workflow task forever (it looks like a hang), so keep workflow code minimal.
   - Scratch code: `sandbox/spike_keys_wf.py` and `sandbox/spike_keys_run.py` (gitignored).
   - No deprecation warning was emitted for `TemporalAgent` in pydantic-ai 2.46.0, although its docstring points to a `TemporalDurability` capability. Migrating is out of scope for this change.
-  - The fallback (call `agent.run(model=...)` inside our own activities) is not needed.
+  - **Implemented (task 2.2) with the fallback, not `provider_factory`:** the pipeline calls each agent with `agent.run(..., model=...)` from inside our own activities. The `TemporalAgent` wrappers were only registered on the workflow and never run, so they were removed. Agents are module-level with no model (`defer_model_check=True`), and each activity builds the run's model with `llm.run_model(request.credentials)`. Use `provider_factory` + `deps` if agents ever run from workflow code.
+  - `gemini_model(api_key)` takes an explicit key. `llm.developer_model()` uses `GOOGLE_API_KEY` from `.env` for scripts and `possibility --policy` only; a guard test keeps the pipeline off it. The CLI seals that key into `EncryptedCredentials` for its own runs, so it needs `KEY_ENCRYPTION_SECRET` (`setup.sh` generates one).
+  - A run with no usable key fails in the first activity (`resolve_location`) with non-retryable `MissingGoogleKey` or `InvalidCredentials`.
 - **Required test:** two concurrent runs with `KEY_A` and `KEY_B` and a fake model that records the key it was built with. Assert each run saw only its own key, neither key appears in workflow history, logs or API responses, and a run with no key fails without using any server key.
 
 ### 5. Classifier backends
@@ -115,4 +117,5 @@ Hardening baseline:
 
 ## Open Questions
 
+- **Do we want per-model-call activities in the Temporal UI?** The `add-suitability-engine` design lists them as part of the demo story, and its tasks 2.4 and 3.4 are ticked as verified. Running the original code showed they never appeared: the workflow only registered the `TemporalAgent` wrappers and each stage activity ran the raw agent. Task 2.2 removed the unused wrappers. Restoring the behaviour means running agents from workflow code (about half a day, see task 2.6); otherwise correct the earlier design. Needs Josh's call.
 - **Should the public VM demo turn Modal on?** It costs the operator (Josh) GPU time (likely inside Modal's $30/month free credit at demo traffic, unmeasured) and adds cold-start latency, but keeps the independent cross-check and the Modal partner story. Decide at deploy time; the code path works either way via `CLASSIFIER_BACKEND`.

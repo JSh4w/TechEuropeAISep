@@ -13,6 +13,7 @@ from temporalio.client import Client, WorkflowFailureError
 from temporalio.contrib.pydantic import pydantic_data_converter
 
 from bessible.config import settings
+from bessible.credentials import CredentialsError, encrypt_google_key
 from bessible.footprint import footprint_polygon, reserved_acres, reserved_acres_by_duration
 from bessible.models import AssessmentRequest, AssessmentResult, Position, RunStatus, SiteDecision
 from bessible.ukpn import SnapshotNotFoundError, get_snapshot, snapshot_age_days
@@ -207,12 +208,24 @@ async def _watch_workflow(handle: WorkflowHandle[Any, Any], *, auto_yes: bool) -
         sys.exit(1)
 
 
+LOCAL_UID = "local-cli"
+
+
 async def cmd_start(args: argparse.Namespace) -> None:
     """Start an assessment workflow."""
     check_snapshot_age_warning()
     property_url = HttpUrl(args.url) if args.url else None
+    if settings.google_api_key is None:
+        print("GOOGLE_API_KEY is not set in .env: a run needs your Gemini key.", file=sys.stderr)  # ruff: ignore[print]
+        sys.exit(1)
+    try:
+        credentials = encrypt_google_key(LOCAL_UID, settings.google_api_key.get_secret_value())
+    except CredentialsError as err:
+        print(f"Cannot seal your Google key: {err}", file=sys.stderr)  # ruff: ignore[print]
+        sys.exit(1)
     try:
         req = AssessmentRequest(
+            credentials=credentials,
             property_url=property_url,
             postcode=args.postcode,
             battery_mw=args.battery_mw,

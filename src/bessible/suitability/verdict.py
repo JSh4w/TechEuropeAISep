@@ -6,8 +6,8 @@ import re
 
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
+from pydantic_ai.models import Model
 
-from bessible.llm import gemini_model
 from bessible.models import (
     FinancialOutput,
     Finding,
@@ -304,8 +304,11 @@ class FindingsList(BaseModel):
     findings: list[Finding] = Field(description="Key synthesised findings, each citing at least one valid artifact ID")
 
 
-async def generate_findings(inp: SynthesisInput) -> list[Finding]:
-    """Generate narrated findings with Gemini, validate citations and numbers with rewrite fallback."""
+async def generate_findings(inp: SynthesisInput, model: Model | None = None) -> list[Finding]:
+    """Generate narrated findings with the run's `model`, validate citations and numbers with rewrite fallback.
+
+    Without a model the deterministic template findings are returned.
+    """
     art_ids_by_stage: dict[str, list[str]] = {}
     valid_ids: set[str] = set()
     for art in inp.artifacts:
@@ -317,8 +320,11 @@ async def generate_findings(inp: SynthesisInput) -> list[Finding]:
     # Prepare available artifacts context
     art_summary = "\n".join(f"- [{art.id}] ({art.stage}): {art.claim}" for art in inp.artifacts[:25])
 
+    if model is None:
+        return build_template_findings(inp, art_ids_by_stage)
+
     agent: Agent[None, FindingsList] = Agent(
-        gemini_model(),
+        model,
         output_type=FindingsList,
         system_prompt=(
             "You are a senior energy infrastructure consultant writing executive findings for a BESS assessment.\n"

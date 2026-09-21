@@ -39,7 +39,9 @@ uv sync
 # 5. Secrets file
 if [ ! -f .env ]; then
   cp .env.example .env
-  echo "==> Created .env — fill in the keys (ask Josh)"
+  secret="$(uv run python -c 'import secrets; print(secrets.token_urlsafe(32))')"
+  sed -i.bak "s|^KEY_ENCRYPTION_SECRET=.*|KEY_ENCRYPTION_SECRET=$secret|" .env && rm -f .env.bak
+  echo "==> Created .env with a fresh KEY_ENCRYPTION_SECRET — fill in the keys (ask Josh)"
 fi
 
 # 6. Modal login (opens a browser; skipped if already logged in)

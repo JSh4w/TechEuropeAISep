@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from pydantic import HttpUrl
 
 from bessible.geocode import format_postcode, geocode_postcode
@@ -9,14 +11,17 @@ from bessible.location.extract import LocationNotFound, resolve_from_link
 from bessible.models import Artifact, LocationInput, LocationOutput, Position
 
 POSTCODES_IO_URL = "https://api.postcodes.io/postcodes/"
+if TYPE_CHECKING:
+    from pydantic_ai.models import Model
+
 QUALITY_CONFIDENCE_LIMIT = 4  # postcodes.io positional quality 1-4 is a unit-postcode centroid or better
 
 
-async def resolve_location(inp: LocationInput) -> LocationOutput:
+async def resolve_location(inp: LocationInput, *, model: Model | None = None) -> LocationOutput:
     """Resolve a postcode or property link to coordinates and canonical postcode.
 
     If a postcode is provided in the request, it wins and no page is fetched.
-    Otherwise, the property link is fetched and location details are extracted.
+    Otherwise, the property link is fetched and the run's `model` extracts location details.
 
     Raises:
         LocationNotFound: if extraction fails, no address exists, non-UK, or postcode invalid.
@@ -44,4 +49,4 @@ async def resolve_location(inp: LocationInput) -> LocationOutput:
         msg = "No property link or postcode was provided. Please pass --postcode."
         raise LocationNotFound(msg)
 
-    return await resolve_from_link(str(target_url), inp.run_id)
+    return await resolve_from_link(str(target_url), inp.run_id, model=model)

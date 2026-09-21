@@ -21,7 +21,7 @@ from pydantic_ai.capabilities import WebFetch, WebSearch
 
 from bessible.classifier import MODEL_NAME as CLASSIFIER_NAME
 from bessible.classifier import classify
-from bessible.llm import gemini_model
+from bessible.credentials import MissingGoogleKeyError
 from bessible.location.models import SourceDocument
 
 from .hard import assess
@@ -129,7 +129,7 @@ def _policy_reader(*, web: bool) -> Agent[None, PolicyOpinion]:
         output_type=PolicyOpinion,
         instructions=INSTRUCTIONS,
         capabilities=[WebSearch(), WebFetch()] if web else [],
-        defer_model_check=True,  # the model needs a key from settings, so it is supplied per run
+        defer_model_check=True,  # the model needs the run owner's key, so it is supplied per run
     )
     agent.output_validator(stance_matches_findings)
     return agent
@@ -161,7 +161,10 @@ async def read_policy(brief: PolicyBrief, model: Model | None = None, *, web: bo
     if not brief.planning_authority and not brief.documents:
         nothing_to_read = PolicyOpinion(stance="silent", summary="No planning authority or plan document is known.")
         return PolicyReview(brief=brief, opinion=nothing_to_read, model_used="none")
-    reader, model = policy_reader if web else offline_policy_reader, model or gemini_model()
+    if model is None:
+        msg = "Reading policy needs the run's model"
+        raise MissingGoogleKeyError(msg)
+    reader = policy_reader if web else offline_policy_reader
     run = await reader.run(brief.model_dump_json(indent=1, exclude_none=True), model=model)
     return PolicyReview(brief=brief, opinion=run.output, model_used=model.model_name)
 

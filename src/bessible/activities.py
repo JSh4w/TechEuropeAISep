@@ -2,15 +2,20 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from pydantic import ValidationError
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
 from bessible import events, stages
+from bessible.credentials import InvalidCredentialsError, MissingGoogleKeyError
 from bessible.geocode import PostcodeNotFoundError
+from bessible.llm import run_model
 from bessible.location.extract import LocationNotFound
 from bessible.location.fetch import PageUnavailable
 from bessible.models import (
+    AssessmentRequest,
     CapacityInput,
     CapacityOutput,
     FinancialInput,
@@ -31,13 +36,27 @@ from bessible.models import (
 )
 from bessible.ukpn.snapshot import SnapshotNotFoundError
 
+if TYPE_CHECKING:
+    from pydantic_ai.models import Model
+
+
+def _model_for(request: AssessmentRequest) -> Model:
+    """Build the run owner's Gemini for this activity. A run without a usable key fails here and is not retried."""
+    try:
+        return run_model(request.credentials)
+    except MissingGoogleKeyError as exc:
+        raise ApplicationError(str(exc), type="MissingGoogleKey", non_retryable=True) from exc
+    except InvalidCredentialsError as exc:
+        raise ApplicationError(str(exc), type="InvalidCredentials", non_retryable=True) from exc
+
 
 @activity.defn
 async def resolve_location(inp: LocationInput) -> LocationOutput:
     """Temporal activity for location resolution stage."""
     events.emit(inp.run_id, "location", "Resolving site location and postcode")
+    model = _model_for(inp.request)  # first activity: a keyless run stops here, before any later stage
     try:
-        res = await stages.location.resolve_location(inp)
+        res = await stages.location.resolve_location(inp, model=model)
     except ValidationError as exc:
         raise ApplicationError(str(exc), type="ValidationError", non_retryable=True) from exc
     except PostcodeNotFoundError as exc:
@@ -164,8 +183,9 @@ async def financial_model(inp: FinancialInput) -> FinancialOutput:
 async def regulatory_planning(inp: PlanningInput) -> PlanningOutput:
     """Temporal activity for regulatory and planning stage."""
     events.emit(inp.run_id, "planning", "Evaluating consenting routes and planning risk profile")
+    model = _model_for(inp.request)
     try:
-        res = await stages.planning.regulatory_planning(inp)
+        res = await stages.planning.regulatory_planning(inp, summary_model=model)
     except ValidationError as exc:
         raise ApplicationError(str(exc), type="ValidationError", non_retryable=True) from exc
     else:
@@ -198,8 +218,9 @@ async def synthesise(inp: SynthesisInput) -> ReportOutput:
 async def local_sentiment(inp: NodeInput) -> SentimentOutput:
     """Temporal activity for local community sentiment analysis stage."""
     events.emit(inp.run_id, "sentiment", "Analyzing local community sentiment and planning records")
+    model = _model_for(inp.request)
     try:
-        res = await stages.sentiment.local_sentiment(inp)
+        res = await stages.sentiment.local_sentiment(inp, model=model)
     except ValidationError as exc:
         raise ApplicationError(str(exc), type="ValidationError", non_retryable=True) from exc
     else:

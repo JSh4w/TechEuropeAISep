@@ -10,9 +10,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field, HttpUrl
 from pydantic_ai import Agent
 from pydantic_ai.capabilities import WebSearch
-from pydantic_ai.durable_exec.temporal import TemporalAgent
-
-from bessible.llm import gemini_model
+from pydantic_ai.models import Model
 
 DATA_DIR = Path(__file__).resolve().parents[3] / "data"
 NEWS_FIXTURES_DIR = DATA_DIR / "fixtures" / "news"
@@ -45,10 +43,10 @@ def _site_key(lat: float, lon: float, postcode: str | None = None) -> str:
     return f"{lat:.4f}_{lon:.4f}".replace("-", "m").replace(".", "_")
 
 
-def _create_raw_research_agent() -> Agent[None, Research]:
+def _create_research_agent() -> Agent[None, Research]:
     return Agent(
-        gemini_model(),
         name="news_researcher",
+        defer_model_check=True,  # no key at import time: the run's model is supplied per call
         capabilities=[WebSearch()],
         output_type=Research,
         system_prompt=(
@@ -64,8 +62,7 @@ def _create_raw_research_agent() -> Agent[None, Research]:
     )
 
 
-research_agent = _create_raw_research_agent()
-temporal_research_agent = TemporalAgent(research_agent)
+research_agent = _create_research_agent()
 
 
 def load_cached_research(key: str) -> Research | None:
@@ -96,8 +93,9 @@ async def research_local_news(
     lon: float,
     postcode: str | None = None,
     lpa: str | None = None,
+    model: Model | None = None,
 ) -> Research:
-    """Find local energy and planning news, checking cache first."""
+    """Find local energy and planning news, checking cache first. Without a `model` there is no live search."""
     key = _site_key(lat, lon, postcode)
 
     # 1. Check primary key
@@ -119,14 +117,15 @@ async def research_local_news(
         f"near {place}{lpa_str} (coordinates: {lat:.4f}, {lon:.4f}{f', postcode: {postcode}' if postcode else ''})."
     )
 
-    try:
-        res = await research_agent.run(prompt)
-        output = res.output
-        if isinstance(output, Research):
-            save_cached_research(key, output)
-            return output
-    except Exception:
-        pass
+    if model is not None:
+        try:
+            res = await research_agent.run(prompt, model=model)
+            output = res.output
+            if isinstance(output, Research):
+                save_cached_research(key, output)
+                return output
+        except Exception:
+            pass
 
     # 4. Fallback if search fails / offline
     return Research(

@@ -13,9 +13,12 @@ from pydantic_ai.providers.gateway import gateway_provider
 from pydantic_ai.providers.google import GoogleProvider
 
 from bessible.config import settings
+from bessible.credentials import decrypt_google_key
 
 if TYPE_CHECKING:
     from pydantic import SecretStr
+
+    from bessible.models import EncryptedCredentials
 
 # Modal returns `metadata.weight_versions` as a list, but the OpenAI schema types
 # `metadata` as `dict[str, str]`. Widen it on both models that see the payload.
@@ -41,11 +44,19 @@ def setup_logfire() -> None:
         logging.getLogger(__name__).warning("Logfire setup failed; continuing without Logfire: %s", exc)
 
 
-def gemini_model() -> GoogleModel:
-    """Gemini, called directly with the DeepMind API key. For reasoning calls."""
-    return GoogleModel(
-        settings.gemini_model, provider=GoogleProvider(api_key=_secret(settings.google_api_key, "GOOGLE_API_KEY"))
-    )
+def gemini_model(api_key: str) -> GoogleModel:
+    """Gemini with an explicit key, for reasoning calls. Build one per run and drop it: never cache or store."""
+    return GoogleModel(settings.gemini_model, provider=GoogleProvider(api_key=api_key))
+
+
+def run_model(credentials: EncryptedCredentials | None) -> GoogleModel:
+    """The run owner's Gemini. Raises `MissingGoogleKeyError` without a key, and never falls back to a server key."""
+    return gemini_model(decrypt_google_key(credentials))
+
+
+def developer_model() -> GoogleModel:
+    """Gemini on the developer's own GOOGLE_API_KEY from .env. For scripts and local CLIs only, never for a run."""
+    return gemini_model(_secret(settings.google_api_key, "GOOGLE_API_KEY"))
 
 
 def modal_model() -> OpenAIChatModel:

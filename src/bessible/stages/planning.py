@@ -146,10 +146,10 @@ async def regulatory_planning(
 
     artifacts = [planning_art, tia_art, repd_art]
 
-    # Summarise with Gemini if key is available or explicit model passed
+    # Summarise with the run's model, when the activity supplies one
     policy = load_policy()
     summary = None
-    if settings.google_api_key or summary_model is not None:
+    if summary_model is not None:
         try:
             summary = await summarise(nearby, policy, model=summary_model)
         except Exception:

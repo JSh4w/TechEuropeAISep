@@ -9,10 +9,8 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field, HttpUrl
 from pydantic_ai import Agent
-from pydantic_ai.durable_exec.temporal import TemporalAgent
 
 from bessible.config import settings
-from bessible.llm import gemini_model
 from bessible.models import NearbyProject
 
 if TYPE_CHECKING:
@@ -117,11 +115,10 @@ def build_evidence_prompt(projects: list[NearbyProject], policy: list[PolicyItem
     return "\n".join(lines)
 
 
-def create_summary_agent(model: Model | str | None = None) -> Agent[None, PlanningSummary]:
+def create_summary_agent(model: Model | str) -> Agent[None, PlanningSummary]:
     """Create a Pydantic AI agent configured for planning evidence summarisation."""
-    chosen_model = model or (gemini_model() if settings.google_api_key else "test")
     return Agent(
-        chosen_model,
+        model,
         name="planning_evidence_summariser",
         output_type=PlanningSummary,
         system_prompt=(
@@ -132,16 +129,12 @@ def create_summary_agent(model: Model | str | None = None) -> Agent[None, Planni
     )
 
 
-raw_summary_agent = create_summary_agent()
-temporal_summary_agent = TemporalAgent(raw_summary_agent)
-
-
 async def summarise(
     projects: list[NearbyProject],
     policy: list[PolicyItem],
-    model: Model | str | None = None,
+    model: Model | str,
 ) -> PlanningSummary | None:
-    """Summarise planning evidence using Gemini with strict citation validation.
+    """Summarise planning evidence with the run's `model` and strict citation validation.
 
     If any statement is uncited or cites an invalid ID, the summary is rejected and None is returned.
     """

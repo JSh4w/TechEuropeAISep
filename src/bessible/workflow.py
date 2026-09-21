@@ -37,15 +37,19 @@ with workflow.unsafe.imports_passed_through():
         TitleInput,
         TitleOutput,
     )
-    from bessible.planning.evidence import temporal_summary_agent
-    from bessible.suitability.analyst import temporal_analyst_agent
-    from bessible.suitability.research import temporal_research_agent
 
 TASK_QUEUE = "bessible"
 
 RETRY_POLICY = RetryPolicy(
     maximum_attempts=3,
-    non_retryable_error_types=["ValidationError", "LocationNotFound", "PageUnavailable", "PostcodeNotFound"],
+    non_retryable_error_types=[
+        "ValidationError",
+        "LocationNotFound",
+        "PageUnavailable",
+        "PostcodeNotFound",
+        "MissingGoogleKey",
+        "InvalidCredentials",
+    ],
 )
 
 DEFAULT_OPTS = {
@@ -62,8 +66,6 @@ AGENT_OPTS = {
 @workflow.defn
 class AssessmentWorkflow:
     """Orchestrates an end-to-end BESS site assessment."""
-
-    __pydantic_ai_agents__ = [temporal_research_agent, temporal_analyst_agent, temporal_summary_agent]
 
     def __init__(self) -> None:
         """Initialize workflow state."""
