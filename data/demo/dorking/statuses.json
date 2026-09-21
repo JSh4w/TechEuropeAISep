@@ -1,0 +1,652 @@
+[
+  {
+    "stage": "location",
+    "status": {
+      "run_id": null,
+      "status": "running",
+      "stages": [
+        "location"
+      ],
+      "capacity": null,
+      "boundary": null,
+      "position": null,
+      "message": null
+    }
+  },
+  {
+    "stage": "awaiting_confirmation",
+    "status": {
+      "run_id": null,
+      "status": "awaiting_confirmation",
+      "stages": [],
+      "capacity": {
+        "viable": true,
+        "message": null,
+        "out_of_area": false,
+        "substation": "Dorking Town 11kV",
+        "connection_voltage_kv": 11.0,
+        "firm_mw": 8.0,
+        "ceiling_mw": 8.0,
+        "recommended_mw": 8.0,
+        "binding_direction": "import",
+        "binding_season": null,
+        "distance_km": 0.58,
+        "alternates": [
+          {
+            "substation": "Betchworth 11kV",
+            "distance_km": 4.69,
+            "size_mw": 2.2,
+            "marginal": true
+          }
+        ],
+        "tia_threshold_mw": 1,
+        "snapshot_date": "2026-09-19",
+        "competition": {
+          "offers_not_accepted_mw": 2.6,
+          "budget_estimates_mw": 1.5,
+          "enquiries_mw": 4.0,
+          "weighted_mw": 2.08,
+          "pressure": "low"
+        },
+        "export_ceiling_mw": 60.0,
+        "gsp": "West Weybridge",
+        "artifacts": [
+          {
+            "id": "capacity-substation-bessible",
+            "stage": "capacity",
+            "claim": "Predicted point of connection: Dorking Town 11kV (11 kV), 0.58 km away. Nearest primary substation by distance (distribution-area polygons not in the snapshot) [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-headroom-bessible",
+            "stage": "capacity",
+            "claim": "Effective headroom at Dorking Town 11kV: import 14.7 MW, export 30.9 MW (available capacity minus accepted offers; export adds reverse power flow when minimum demand is negative) [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-range-bessible",
+            "stage": "capacity",
+            "claim": "Firm 8.0 MW, ceiling 8.0 MW, limited by import; 11 kV caps size at 8 MW. Ceiling = lower of import-side formula and Table 2a export ceiling (60 MW). No seasonal split in this dataset [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-context-bessible",
+            "stage": "capacity",
+            "claim": "Context only, not used in the verdict: RAG demand GREEN, generation GREEN; parent GSP West Weybridge; TIA threshold 1 MW [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-competition-bessible",
+            "stage": "capacity",
+            "claim": "Connection competition at Dorking Town 11kV: 2.6 MW offers not accepted, 1.5 MW budget estimates, 4.0 MW enquiries; weighted total 2.1 MW (pressure: low). Context only; not subtracted from effective headroom [ltds-table-6-interest-connections, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ltds-table-6-interest-connections/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-caveat-bessible",
+            "stage": "capacity",
+            "claim": "Effective headroom subtracts the current accepted connection queue; this may be pessimistic if speculative projects leave the queue under proposed Ofgem reforms [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          }
+        ]
+      },
+      "boundary": {
+        "title_number": "BK123456",
+        "boundary_geojson": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  -0.332207,
+                  51.230881999999994
+                ],
+                [
+                  -0.32820699999999997,
+                  51.230881999999994
+                ],
+                [
+                  -0.32820699999999997,
+                  51.234882
+                ],
+                [
+                  -0.332207,
+                  51.234882
+                ],
+                [
+                  -0.332207,
+                  51.230881999999994
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "title_number": "BK123456",
+            "area_m2": 25000.0
+          }
+        },
+        "area_m2": 25000.0,
+        "artifacts": [
+          {
+            "id": "title-bessible",
+            "stage": "title",
+            "claim": "HM Land Registry title BK123456 boundary confirmed covering 25,000 m\u00b2",
+            "source_url": null,
+            "file_path": "boundary.geojson",
+            "image_path": null,
+            "confidence": 0.96,
+            "model_used": "dummy"
+          }
+        ]
+      },
+      "position": {
+        "lat": 51.232882,
+        "lon": -0.330207
+      },
+      "message": null
+    }
+  },
+  {
+    "stage": "grid",
+    "status": {
+      "run_id": null,
+      "status": "running",
+      "stages": [
+        "grid",
+        "site_land",
+        "market",
+        "sentiment"
+      ],
+      "capacity": {
+        "viable": true,
+        "message": null,
+        "out_of_area": false,
+        "substation": "Dorking Town 11kV",
+        "connection_voltage_kv": 11.0,
+        "firm_mw": 8.0,
+        "ceiling_mw": 8.0,
+        "recommended_mw": 8.0,
+        "binding_direction": "import",
+        "binding_season": null,
+        "distance_km": 0.58,
+        "alternates": [
+          {
+            "substation": "Betchworth 11kV",
+            "distance_km": 4.69,
+            "size_mw": 2.2,
+            "marginal": true
+          }
+        ],
+        "tia_threshold_mw": 1,
+        "snapshot_date": "2026-09-19",
+        "competition": {
+          "offers_not_accepted_mw": 2.6,
+          "budget_estimates_mw": 1.5,
+          "enquiries_mw": 4.0,
+          "weighted_mw": 2.08,
+          "pressure": "low"
+        },
+        "export_ceiling_mw": 60.0,
+        "gsp": "West Weybridge",
+        "artifacts": [
+          {
+            "id": "capacity-substation-bessible",
+            "stage": "capacity",
+            "claim": "Predicted point of connection: Dorking Town 11kV (11 kV), 0.58 km away. Nearest primary substation by distance (distribution-area polygons not in the snapshot) [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-headroom-bessible",
+            "stage": "capacity",
+            "claim": "Effective headroom at Dorking Town 11kV: import 14.7 MW, export 30.9 MW (available capacity minus accepted offers; export adds reverse power flow when minimum demand is negative) [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-range-bessible",
+            "stage": "capacity",
+            "claim": "Firm 8.0 MW, ceiling 8.0 MW, limited by import; 11 kV caps size at 8 MW. Ceiling = lower of import-side formula and Table 2a export ceiling (60 MW). No seasonal split in this dataset [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-context-bessible",
+            "stage": "capacity",
+            "claim": "Context only, not used in the verdict: RAG demand GREEN, generation GREEN; parent GSP West Weybridge; TIA threshold 1 MW [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-competition-bessible",
+            "stage": "capacity",
+            "claim": "Connection competition at Dorking Town 11kV: 2.6 MW offers not accepted, 1.5 MW budget estimates, 4.0 MW enquiries; weighted total 2.1 MW (pressure: low). Context only; not subtracted from effective headroom [ltds-table-6-interest-connections, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ltds-table-6-interest-connections/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-caveat-bessible",
+            "stage": "capacity",
+            "claim": "Effective headroom subtracts the current accepted connection queue; this may be pessimistic if speculative projects leave the queue under proposed Ofgem reforms [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          }
+        ]
+      },
+      "boundary": {
+        "title_number": "BK123456",
+        "boundary_geojson": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  -0.332207,
+                  51.230881999999994
+                ],
+                [
+                  -0.32820699999999997,
+                  51.230881999999994
+                ],
+                [
+                  -0.32820699999999997,
+                  51.234882
+                ],
+                [
+                  -0.332207,
+                  51.234882
+                ],
+                [
+                  -0.332207,
+                  51.230881999999994
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "title_number": "BK123456",
+            "area_m2": 25000.0
+          }
+        },
+        "area_m2": 25000.0,
+        "artifacts": [
+          {
+            "id": "title-bessible",
+            "stage": "title",
+            "claim": "HM Land Registry title BK123456 boundary confirmed covering 25,000 m\u00b2",
+            "source_url": null,
+            "file_path": "boundary.geojson",
+            "image_path": null,
+            "confidence": 0.96,
+            "model_used": "dummy"
+          }
+        ]
+      },
+      "position": {
+        "lat": 51.232882,
+        "lon": -0.330207
+      },
+      "message": null
+    }
+  },
+  {
+    "stage": "financial",
+    "status": {
+      "run_id": null,
+      "status": "running",
+      "stages": [
+        "financial",
+        "planning"
+      ],
+      "capacity": {
+        "viable": true,
+        "message": null,
+        "out_of_area": false,
+        "substation": "Dorking Town 11kV",
+        "connection_voltage_kv": 11.0,
+        "firm_mw": 8.0,
+        "ceiling_mw": 8.0,
+        "recommended_mw": 8.0,
+        "binding_direction": "import",
+        "binding_season": null,
+        "distance_km": 0.58,
+        "alternates": [
+          {
+            "substation": "Betchworth 11kV",
+            "distance_km": 4.69,
+            "size_mw": 2.2,
+            "marginal": true
+          }
+        ],
+        "tia_threshold_mw": 1,
+        "snapshot_date": "2026-09-19",
+        "competition": {
+          "offers_not_accepted_mw": 2.6,
+          "budget_estimates_mw": 1.5,
+          "enquiries_mw": 4.0,
+          "weighted_mw": 2.08,
+          "pressure": "low"
+        },
+        "export_ceiling_mw": 60.0,
+        "gsp": "West Weybridge",
+        "artifacts": [
+          {
+            "id": "capacity-substation-bessible",
+            "stage": "capacity",
+            "claim": "Predicted point of connection: Dorking Town 11kV (11 kV), 0.58 km away. Nearest primary substation by distance (distribution-area polygons not in the snapshot) [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-headroom-bessible",
+            "stage": "capacity",
+            "claim": "Effective headroom at Dorking Town 11kV: import 14.7 MW, export 30.9 MW (available capacity minus accepted offers; export adds reverse power flow when minimum demand is negative) [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-range-bessible",
+            "stage": "capacity",
+            "claim": "Firm 8.0 MW, ceiling 8.0 MW, limited by import; 11 kV caps size at 8 MW. Ceiling = lower of import-side formula and Table 2a export ceiling (60 MW). No seasonal split in this dataset [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-context-bessible",
+            "stage": "capacity",
+            "claim": "Context only, not used in the verdict: RAG demand GREEN, generation GREEN; parent GSP West Weybridge; TIA threshold 1 MW [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-competition-bessible",
+            "stage": "capacity",
+            "claim": "Connection competition at Dorking Town 11kV: 2.6 MW offers not accepted, 1.5 MW budget estimates, 4.0 MW enquiries; weighted total 2.1 MW (pressure: low). Context only; not subtracted from effective headroom [ltds-table-6-interest-connections, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ltds-table-6-interest-connections/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-caveat-bessible",
+            "stage": "capacity",
+            "claim": "Effective headroom subtracts the current accepted connection queue; this may be pessimistic if speculative projects leave the queue under proposed Ofgem reforms [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          }
+        ]
+      },
+      "boundary": {
+        "title_number": "BK123456",
+        "boundary_geojson": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  -0.332207,
+                  51.230881999999994
+                ],
+                [
+                  -0.32820699999999997,
+                  51.230881999999994
+                ],
+                [
+                  -0.32820699999999997,
+                  51.234882
+                ],
+                [
+                  -0.332207,
+                  51.234882
+                ],
+                [
+                  -0.332207,
+                  51.230881999999994
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "title_number": "BK123456",
+            "area_m2": 25000.0
+          }
+        },
+        "area_m2": 25000.0,
+        "artifacts": [
+          {
+            "id": "title-bessible",
+            "stage": "title",
+            "claim": "HM Land Registry title BK123456 boundary confirmed covering 25,000 m\u00b2",
+            "source_url": null,
+            "file_path": "boundary.geojson",
+            "image_path": null,
+            "confidence": 0.96,
+            "model_used": "dummy"
+          }
+        ]
+      },
+      "position": {
+        "lat": 51.232882,
+        "lon": -0.330207
+      },
+      "message": null
+    }
+  },
+  {
+    "stage": "completed",
+    "status": {
+      "run_id": null,
+      "status": "completed",
+      "stages": [],
+      "capacity": {
+        "viable": true,
+        "message": null,
+        "out_of_area": false,
+        "substation": "Dorking Town 11kV",
+        "connection_voltage_kv": 11.0,
+        "firm_mw": 8.0,
+        "ceiling_mw": 8.0,
+        "recommended_mw": 8.0,
+        "binding_direction": "import",
+        "binding_season": null,
+        "distance_km": 0.58,
+        "alternates": [
+          {
+            "substation": "Betchworth 11kV",
+            "distance_km": 4.69,
+            "size_mw": 2.2,
+            "marginal": true
+          }
+        ],
+        "tia_threshold_mw": 1,
+        "snapshot_date": "2026-09-19",
+        "competition": {
+          "offers_not_accepted_mw": 2.6,
+          "budget_estimates_mw": 1.5,
+          "enquiries_mw": 4.0,
+          "weighted_mw": 2.08,
+          "pressure": "low"
+        },
+        "export_ceiling_mw": 60.0,
+        "gsp": "West Weybridge",
+        "artifacts": [
+          {
+            "id": "capacity-substation-bessible",
+            "stage": "capacity",
+            "claim": "Predicted point of connection: Dorking Town 11kV (11 kV), 0.58 km away. Nearest primary substation by distance (distribution-area polygons not in the snapshot) [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-headroom-bessible",
+            "stage": "capacity",
+            "claim": "Effective headroom at Dorking Town 11kV: import 14.7 MW, export 30.9 MW (available capacity minus accepted offers; export adds reverse power flow when minimum demand is negative) [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-range-bessible",
+            "stage": "capacity",
+            "claim": "Firm 8.0 MW, ceiling 8.0 MW, limited by import; 11 kV caps size at 8 MW. Ceiling = lower of import-side formula and Table 2a export ceiling (60 MW). No seasonal split in this dataset [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-context-bessible",
+            "stage": "capacity",
+            "claim": "Context only, not used in the verdict: RAG demand GREEN, generation GREEN; parent GSP West Weybridge; TIA threshold 1 MW [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-competition-bessible",
+            "stage": "capacity",
+            "claim": "Connection competition at Dorking Town 11kV: 2.6 MW offers not accepted, 1.5 MW budget estimates, 4.0 MW enquiries; weighted total 2.1 MW (pressure: low). Context only; not subtracted from effective headroom [ltds-table-6-interest-connections, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ltds-table-6-interest-connections/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          },
+          {
+            "id": "capacity-caveat-bessible",
+            "stage": "capacity",
+            "claim": "Effective headroom subtracts the current accepted connection queue; this may be pessimistic if speculative projects leave the queue under proposed Ofgem reforms [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+            "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+            "file_path": null,
+            "image_path": null,
+            "confidence": 0.9,
+            "model_used": "ukpn-snapshot"
+          }
+        ]
+      },
+      "boundary": {
+        "title_number": "BK123456",
+        "boundary_geojson": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  -0.332207,
+                  51.230881999999994
+                ],
+                [
+                  -0.32820699999999997,
+                  51.230881999999994
+                ],
+                [
+                  -0.32820699999999997,
+                  51.234882
+                ],
+                [
+                  -0.332207,
+                  51.234882
+                ],
+                [
+                  -0.332207,
+                  51.230881999999994
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "title_number": "BK123456",
+            "area_m2": 25000.0
+          }
+        },
+        "area_m2": 25000.0,
+        "artifacts": [
+          {
+            "id": "title-bessible",
+            "stage": "title",
+            "claim": "HM Land Registry title BK123456 boundary confirmed covering 25,000 m\u00b2",
+            "source_url": null,
+            "file_path": "boundary.geojson",
+            "image_path": null,
+            "confidence": 0.96,
+            "model_used": "dummy"
+          }
+        ]
+      },
+      "position": {
+        "lat": 51.232882,
+        "lon": -0.330207
+      },
+      "message": null
+    }
+  }
+]
