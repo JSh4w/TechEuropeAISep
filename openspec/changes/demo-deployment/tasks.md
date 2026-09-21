@@ -30,16 +30,16 @@
 
 ## 5. Frontend: sign-in, key panel, demo button
 
-- [ ] 5.1 Add Firebase Auth (Google sign-in) to the Next.js app and attach the ID token to API calls in `web/src/lib/api.ts`
-- [ ] 5.2 Replace `EventSource` (`web/src/lib/api.ts`) with a `fetch`-based SSE reader that sends the bearer token
-- [ ] 5.3 Create the key panel in `web/src/components/` (Google key, "Test key", saved state shown as last4, delete)
-- [ ] 5.4 Add the first-load modal (Configure key / View demo run) and the signed-out landing with Sign in / View demo run; UI details to be configured later
+- [x] 5.1 Add Firebase Auth (Google sign-in) to the Next.js app and attach the ID token to API calls in `web/src/lib/api.ts`
+- [x] 5.2 Replace `EventSource` (`web/src/lib/api.ts`) with a `fetch`-based SSE reader that sends the bearer token
+- [x] 5.3 Create the key panel in `web/src/components/` (Google key, "Test key", saved state shown as last4, delete)
+- [x] 5.4 Add the first-load modal (Configure key / View demo run) and the signed-out landing with Sign in / View demo run; UI details to be configured later
 
 ## 6. Demo mode
 
 - [ ] 6.1 Implement the recorder that saves a completed run to `data/demo/<slug>/` (request, timed events, status snapshots, decision, result) and a scan that fails if key material is present
 - [ ] 6.2 Implement public replay routes (`/demo/runs...`) with recorded pacing, a pause at the site-confirmation gate, and `demo-` ids that never resolve to real runs; no Temporal, auth or LLM
-- [ ] 6.3 Wire the **View demo run** button and a "recorded example" label in the UI
+- [x] 6.3 Wire the **View demo run** button and a "recorded example" label in the UI
 - [ ] 6.4 Record one real run end to end and commit the recording
 
 ## 7. Ubuntu deployment runtime, scripts and hardening

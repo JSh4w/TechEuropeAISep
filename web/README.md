@@ -20,6 +20,27 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Sign-in, Google key and demo replay
+
+Set these in `web/.env.local` to turn on Google sign-in (Firebase Auth). Leave them unset for local mode: no sign-in,
+no bearer token, no key prompts.
+
+```
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+With Firebase on, every non-demo API call carries `Authorization: Bearer <ID token>` (`src/lib/api.ts`), and the run
+event stream is read with `fetch` (`EventSource` cannot send headers). Signed-out visitors see a landing page with
+**View demo run**, which uses the public `/demo/runs` routes (run ids start with `demo-`) and is labelled a recorded example.
+
+Endpoints the UI expects from the API: `GET/PUT/DELETE /me/key` (`PUT` body `{"google_key": "..."}`),
+`POST /me/key/test` (body `{"google_key": "..."}` or empty to use the stored key), `POST /demo/runs`, and
+`/demo/runs/{id}/status|events|decision|result`. A `401` whose body contains `missing_google_key` opens the key panel.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
