@@ -10,7 +10,7 @@ We want to deploy a standalone demo version of Bessible on an Ubuntu VM where ea
 - **Firebase Auth (Google sign-in) on the free Spark plan** gates the config panel and every run endpoint. Runs are owned by the signed-in `uid`.
 - **Encrypted key storage in SQLite on the VM**: keys are encrypted (AES-GCM, per-user key derived from a server master secret, `uid` bound as associated data) and never returned to the browser.
 - **Per-run key isolation**: a run only ever uses its own owner's key, resolved at run time. No module-level models, no shared key state, no server-key fallback for real runs.
-- **Switchable classifier backends** (`modal | llm | heuristic`): Modal stays as an optional, operator-configured backend (server-side token, independent second opinion for policy `cross_check`); when the operator has not enabled it, classification falls back to Gemini structured output using the run owner's key, then to the offline heuristic. `modal` becomes an optional dependency instead of being removed.
+- **Switchable classifier backends** (`modal | llm | heuristic`): Modal stays as an optional, operator-configured backend (server-side token, independent second opinion for policy `cross_check`); when the operator has not enabled it, news sentiment uses Gemini structured output with the run owner's key and policy `cross_check` is skipped rather than checked by the same Gemini model. The existing offline keyword heuristic stays as the last resort if the model backends fail. `modal` becomes an optional dependency instead of being removed.
 - **Demo mode**: record one real run (request, trace events, status snapshots, HITL decision, result) and replay it with no keys, no auth and no LLM calls. A first-load modal offers "Configure keys" or "View demo run" when no keys are configured (UI details to be configured later).
 - **Lightweight VM deployment**: single Ubuntu VM with the standalone Temporal dev server (SQLite), Next.js standalone build, Caddy with automatic HTTPS, and a hardening baseline (firewall, loopback-only internals, non-root systemd units).
 
@@ -26,7 +26,7 @@ We want to deploy a standalone demo version of Bessible on an Ubuntu VM where ea
 ### New Capabilities
 
 - `byok-inference`: Google-key BYOK, Firebase-authenticated encrypted key storage, per-run key isolation.
-- `classifier-backends`: Switchable `modal | llm | heuristic` text classification with recorded provenance.
+- `classifier-backends`: Switchable `modal | llm | heuristic` text classification.
 - `demo-mode`: Record a real run and replay it keyless.
 - `vm-deployment-runtime`: Lightweight single-VM orchestration, reverse proxy, and hardening baseline.
 

@@ -13,7 +13,7 @@ Bessible was built to run locally on a Mac with Google Gemini for LLM reasoning,
 - Firebase Auth (Google sign-in, free Spark plan) identifies users; runs and stored keys are owned by `uid`.
 - Keys encrypted at rest in SQLite on the VM, never returned to the browser, never plaintext in Temporal history.
 - Structural guarantee of per-run key isolation, proven by a concurrency test.
-- Switchable classifier backend (`modal | llm | heuristic`) with provenance in `model_used`.
+- Switchable classifier backend (`modal | llm | heuristic`).
 - Record a real run once, replay it with no keys, auth, Temporal, or LLM.
 - Single-VM runtime: standalone `temporal server start-dev` (SQLite), systemd, Caddy, hardened baseline.
 
@@ -67,10 +67,13 @@ Bessible was built to run locally on a Mac with Google Gemini for LLM reasoning,
 - **Required test:** two concurrent runs with `KEY_A` and `KEY_B` and a fake model that records the key it was built with. Assert each run saw only its own key, neither key appears in workflow history, logs or API responses, and a run with no key fails without using any server key.
 
 ### 5. Classifier backends
-**Decision:** `classify[T](paragraphs, schema, credentials)` in `src/bessible/classifier.py` chooses a backend: `modal` if the **operator** has enabled it (the worker has `MODAL_TOKEN_ID` and `MODAL_TOKEN_SECRET`, and `CLASSIFIER_BACKEND` is `auto` or `modal`), else `llm` (Gemini structured output with the same Pydantic schemas, using the run owner's key) if a Google key exists, else `heuristic` (the keyword rules currently inline in `suitability/sentiment.py`, moved here so `cross_check` and sentiment share them). `CLASSIFIER_BACKEND=auto|modal|llm|heuristic` (default `auto`) can force one. Any backend error steps down to the next.
-- Modal usage is billed to the operator's workspace and is not per-user. It is only reachable by signed-in users (rate-limited at the proxy), and demo replays never call it. For the public VM demo the operator can leave Modal off; the `llm` backend still gives a second label, just not an independent one.
+**Decision:** `classify[T](paragraphs, schema, credentials)` in `src/bessible/classifier.py` chooses a backend: `modal` if the **operator** has enabled it (the worker has `MODAL_TOKEN_ID` and `MODAL_TOKEN_SECRET`, and `CLASSIFIER_BACKEND` is `auto` or `modal`), else `llm` (Gemini structured output with the same Pydantic schemas, using the run owner's key) if a Google key exists, else `heuristic` (the keyword rules currently inline in `suitability/sentiment.py`, moved into the classifier module; news-paragraph labels only). `CLASSIFIER_BACKEND=auto|modal|llm|heuristic` (default `auto`) can force one. Any backend error steps down to the next.
+- Modal usage is billed to the operator's workspace and is not per-user. It is only reachable by signed-in users (rate-limited at the proxy), and demo replays never call it. For the public VM demo the operator can leave Modal off; news sentiment then uses `llm`, and policy `cross_check` is skipped (see Independent cross-check).
+- **Cost of leaving Modal on (not measured):** Modal's Starter plan lists $30/month of free compute and L4 GPUs at about $0.000222/s (about $0.80/hour), so light demo traffic is likely to fit inside the free credit. Confirm cold-start time and billed seconds per call in task 7.5.
 - `import modal` moves inside the `modal` backend so the app starts without the optional dependency.
-- **Provenance:** `model_used` and the confidence note the backend. Policy `cross_check` is an *independent* second opinion only on `modal`. On `llm` or `heuristic` the result is labelled non-independent and confidence is not uplifted.
+- **Independent cross-check:** policy `cross_check` runs **only on `modal`**, because Gemini checking a Gemini finding is not independent. Without Modal (or if it fails) the check is skipped and the review keeps the default confidence it already has before any cross-check. No labels or fields are renamed or added.
+- **`heuristic` is the existing keyword fallback, unchanged, and not a keyless mode.** It runs only when `modal` and `llm` both fail during a real run (real runs require a Google key, so a keyless visitor uses the demo replay instead). It covers news-paragraph labels only, and its labels and confidences stay exactly as they are today.
+- *Alternative considered and dropped:* a Gemini-embeddings `embed` backend (nearest-neighbour over hand-written exemplars) to keep `cross_check` independent without Modal. It is weakest on `stance` and on `effect`, the label `cross_check` checks, needs authored exemplars per schema, and is unproven on our data. Revisit only if independent verification is required with Modal off.
 - `scripts/check_env.py` checks the Modal login only when a server-side Modal token is configured.
 
 ### 6. Demo mode (record and replay)
@@ -112,4 +115,4 @@ Hardening baseline:
 
 ## Open Questions
 
-- **Should the public VM demo turn Modal on?** It costs the operator (Josh) GPU time and adds cold-start latency, but keeps the independent cross-check and the Modal partner story. Decide at deploy time; the code path works either way via `CLASSIFIER_BACKEND`.
+- **Should the public VM demo turn Modal on?** It costs the operator (Josh) GPU time (likely inside Modal's $30/month free credit at demo traffic, unmeasured) and adds cold-start latency, but keeps the independent cross-check and the Modal partner story. Decide at deploy time; the code path works either way via `CLASSIFIER_BACKEND`.
