@@ -5,6 +5,9 @@ import SiteMap from '../components/SiteMap';
 import SiteControls from '../components/SiteControls';
 import LiveTrace from '../components/LiveTrace';
 import ReportView from '../components/ReportView';
+import KeyPanel from '../components/KeyPanel';
+import FirstLoadModal from '../components/FirstLoadModal';
+import SignedOutLanding from '../components/SignedOutLanding';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -27,7 +30,13 @@ import {
   checkCapacity,
   subscribeEvents,
   getSiteData,
+  getKeyStatus,
+  startDemoRun,
+  isDemoRun,
+  ApiError,
+  KeyStatus,
 } from '../lib/api';
+import { useAuth } from '../lib/auth';
 import {
   BatteryCharging,
   Search,
@@ -35,6 +44,10 @@ import {
   AlertCircle,
   RotateCcw,
   Sparkles,
+  KeyRound,
+  LogOut,
+  PlayCircle,
+  Film,
 } from 'lucide-react';
 
 // Demo Presets for Hackathon Testing
@@ -60,6 +73,7 @@ const DEMO_PRESETS = [
 ];
 
 export default function Home() {
+  const auth = useAuth();
   const [postcode, setPostcode] = useState('SE1 7PB');
   const [propertyLink, setPropertyLink] = useState('');
   const [loading, setLoading] = useState(false);
@@ -84,6 +98,33 @@ export default function Home() {
   const [inspireGeoJson, setInspireGeoJson] = useState<GeoJSON.GeoJSON | null>(null);
   const [siteData, setSiteData] = useState<any>(null);
   const [siteDataLoading, setSiteDataLoading] = useState(false);
+
+  // Google key (BYOK): loaded once the user is signed in. Local mode (no Firebase config) skips all of this.
+  const [keyState, setKeyState] = useState<{ uid: string; status: KeyStatus } | null>(null);
+  const [keyPanelOpen, setKeyPanelOpen] = useState(false);
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+  const [signInError, setSignInError] = useState<string | null>(null);
+  const [signingIn, setSigningIn] = useState(false);
+  const signedInUid = auth.user?.uid;
+  // Key state is tagged with its owner so a previous user's key never shows for the next sign-in.
+  const currentKeyStatus = keyState && keyState.uid === signedInUid ? keyState.status : null;
+  const setKeyStatus = (status: KeyStatus) => {
+    if (signedInUid) setKeyState({ uid: signedInUid, status });
+  };
+
+  useEffect(() => {
+    if (!signedInUid) return;
+    let stale = false;
+    getKeyStatus()
+      .then((status) => !stale && setKeyState({ uid: signedInUid, status }))
+      .catch(
+        () =>
+          !stale && setKeyState({ uid: signedInUid, status: { configured: false, last4: null, updated_at: null } })
+      );
+    return () => {
+      stale = true;
+    };
+  }, [signedInUid]);
 
   // Real data for wherever the pin is: coordinate -> location.collate -> LocationData
   useEffect(() => {
@@ -380,6 +421,10 @@ export default function Home() {
     overrideCoords?: [number, number],
     overrideFlexible?: boolean
   ) => {
+    if (auth.enabled && !auth.user) {
+      setErrorMsg('Sign in to run a real assessment, or keep exploring the recorded example.');
+      return;
+    }
     const targetInput = (overridePostcode || postcode).trim();
     const isUrl = targetInput.startsWith('http://') || targetInput.startsWith('https://');
     let targetPostcode = isUrl ? 'SE1 7PB' : targetInput;
@@ -430,8 +475,19 @@ export default function Home() {
       const res = await startRun(payload);
       setRunId(res.run_id);
       setRunStatus({ run_id: res.run_id, status: 'running' });
-    } catch {
-      activateFallbackFlow(targetPostcode, centerCoords);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        // Auth failures are real: do not hide them behind the offline simulation.
+        if (JSON.stringify(err.data).includes('missing_google_key')) {
+          setKeyStatus({ configured: false, last4: null, updated_at: null });
+          setKeyPanelOpen(true);
+          setErrorMsg('Add your Google AI key to start a real assessment.');
+        } else {
+          setErrorMsg('Your session has expired. Sign in again to continue.');
+        }
+      } else {
+        activateFallbackFlow(targetPostcode, centerCoords);
+      }
     } finally {
       setLoading(false);
     }
@@ -587,6 +643,40 @@ export default function Home() {
     }
   };
 
+  // Recorded example run: public replay, no sign-in, keys, Temporal or live model calls.
+  const handleStartDemo = async () => {
+    setKeyPanelOpen(false);
+    setErrorMsg(null);
+    setLoading(true);
+    setResult(null);
+    setEvents([]);
+    setCapacityProposal(null);
+    try {
+      const res = await startDemoRun();
+      setRunId(res.run_id);
+      setRunStatus({ run_id: res.run_id, status: 'running' });
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Could not start the demo run.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignIn = async () => {
+    setSigningIn(true);
+    setSignInError(null);
+    try {
+      await auth.signIn();
+    } catch (err) {
+      const code = (err as { code?: string })?.code;
+      if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
+        setSignInError('Sign-in failed. Try again.');
+      }
+    } finally {
+      setSigningIn(false);
+    }
+  };
+
   const handleReset = () => {
     setRunId(null);
     setRunStatus(null);
@@ -595,8 +685,41 @@ export default function Home() {
     setEvents([]);
   };
 
+  const isDemo = isDemoRun(runId);
+
+  if (auth.enabled && auth.loading) {
+    return <div className="min-h-screen bg-background" />;
+  }
+  // No session: landing page, until the visitor starts the demo replay.
+  if (auth.enabled && !auth.user && !isDemo) {
+    return (
+      <SignedOutLanding
+        onSignIn={handleSignIn}
+        onViewDemo={handleStartDemo}
+        signingIn={signingIn}
+        error={signInError ?? errorMsg}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
+      <KeyPanel
+        open={keyPanelOpen}
+        onOpenChange={setKeyPanelOpen}
+        status={currentKeyStatus}
+        onStatusChange={setKeyStatus}
+      />
+      <FirstLoadModal
+        open={!!auth.user && currentKeyStatus?.configured === false && !welcomeDismissed && !keyPanelOpen && !isDemo}
+        onConfigureKey={() => setKeyPanelOpen(true)}
+        onViewDemo={() => {
+          setWelcomeDismissed(true);
+          void handleStartDemo();
+        }}
+        onDismiss={() => setWelcomeDismissed(true)}
+      />
+
       {/* Top Header */}
       <header className="bg-card/90 backdrop-blur-md border-b border-border/80 px-6 py-3.5 flex items-center justify-between shadow-xs sticky top-0 z-30">
         <div className="flex items-center gap-3">
@@ -626,6 +749,41 @@ export default function Home() {
               Temporal Engine
             </span>
           </div>
+
+          {isDemo && (
+            <Badge variant="outline" className="gap-1 text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30">
+              <Film className="w-3 h-3" /> Recorded example
+            </Badge>
+          )}
+
+          {auth.enabled && auth.user && (
+            <div className="flex items-center gap-2 text-xs">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setKeyPanelOpen(true)}
+                className="gap-1.5 text-xs h-8 px-3 rounded-xl border-border"
+              >
+                <KeyRound className="w-3.5 h-3.5" />
+                <span>{currentKeyStatus?.configured ? `Key ••••${currentKeyStatus.last4}` : 'Add key'}</span>
+              </Button>
+              <span className="text-muted-foreground hidden lg:inline max-w-[160px] truncate" title={auth.user.email ?? undefined}>
+                {auth.user.email}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => {
+                  handleReset();
+                  void auth.signOut();
+                }}
+                aria-label="Sign out"
+                title="Sign out"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          )}
 
           {runId && (
             <div className="flex items-center gap-2.5 text-xs">
@@ -704,6 +862,16 @@ export default function Home() {
             </div>
           </CardContent>
         </Card>
+
+        {isDemo && (
+          <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-900 dark:text-amber-200 flex items-center gap-2">
+            <PlayCircle className="w-4 h-4 shrink-0" />
+            <span>
+              This is a <strong>recorded example</strong> replayed from a saved run, not live output. Nothing here calls a
+              model or uses a key.
+            </span>
+          </div>
+        )}
 
         {/* Error / Not Viable Notice */}
         {runStatus?.status === 'not_viable' && (
