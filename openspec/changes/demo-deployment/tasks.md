@@ -11,7 +11,7 @@
 - [x] 2.4 Add the required concurrency test: two concurrent runs with `KEY_A` and `KEY_B` and a recording fake model; assert no cross-use, no key in workflow history, logs or API responses, and a keyless run fails without using a server key
 - [x] 2.5 Add a guard test that fails on `os.environ` key writes and module-level `gemini_model()` calls
 - [ ] 2.6 Address the `TemporalAgent` gap (needs a decision from Josh): the `add-suitability-engine` design promises per-model-call and per-tool-call activities in the Temporal UI, but the pipeline never ran the wrappers (activities call the raw agents, so history shows one activity per stage). Either run the agents from workflow code with `TemporalAgent` + `provider_factory` + `deps` (per-run key path proven in the task 1.1 spike; stages that mix an agent with cache or file I/O must be split), or edit that design and its tasks 2.4 and 3.4 to say one activity per stage
-- [ ] 2.7 Fix the one new `mypy` error from task 2.2 at `src/bessible/suitability/analyst.py:131` (`fallback_recommendation` gets `cases` typed `dict | None`; same cause as the existing error at line 149)
+- [x] 2.7 Fix the one new `mypy` error from task 2.2 at `src/bessible/suitability/analyst.py:131` (`fallback_recommendation` gets `cases` typed `dict | None`; same cause as the existing error at line 149)
 
 ## 3. Auth, key storage and run ownership (backend)
 
