@@ -63,6 +63,8 @@ async def start_run(
 @router.get("/{run_id}/status", response_model=RunStatus)
 async def get_run_status(run_id: str, user: Annotated[User, Depends(current_user)]) -> RunStatus:
     """Get the current execution status and stage state for a run."""
+    if run_id.startswith("demo-"):
+        raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
     try:
         client = await get_temporal_client()
         handle = client.get_workflow_handle(run_id, result_type=AssessmentResult)
@@ -80,6 +82,8 @@ async def submit_site_decision(
     run_id: str, decision: SiteDecision, user: Annotated[User, Depends(current_user)]
 ) -> Response:
     """Submit a human-in-the-loop site confirmation or rejection decision."""
+    if run_id.startswith("demo-"):
+        raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
     try:
         client = await get_temporal_client()
         handle = client.get_workflow_handle(run_id, result_type=AssessmentResult)
@@ -143,6 +147,8 @@ async def _running_response(handle: WorkflowHandle[AssessmentWorkflow, Assessmen
 @router.get("/{run_id}/result", response_model=AssessmentResult)
 async def get_run_result(run_id: str, user: Annotated[User, Depends(current_user)]) -> AssessmentResult | Response:
     """Get the final assessment result if completed, or 409 if still in progress."""
+    if run_id.startswith("demo-"):
+        raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
     try:
         client = await get_temporal_client()
         handle = client.get_workflow_handle(run_id, result_type=AssessmentResult)

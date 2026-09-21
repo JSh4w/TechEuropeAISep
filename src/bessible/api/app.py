@@ -8,7 +8,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from bessible.api import capacity, events, me, runs
+from bessible.api import capacity, demo, events, me, runs
 from bessible.auth import current_user
 from bessible.config import settings
 from bessible.keystore import KeyStoreError
@@ -30,6 +30,7 @@ app.add_middleware(
 
 # Include route modules
 app.include_router(runs.router)
+app.include_router(demo.router)
 app.include_router(capacity.router, dependencies=[Depends(current_user)])
 app.include_router(events.router)
 app.include_router(me.router)

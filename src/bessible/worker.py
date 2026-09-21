@@ -8,7 +8,7 @@ import contextlib
 from pydantic_ai.durable_exec.temporal import PydanticAIPlugin
 from temporalio.client import Client
 from temporalio.contrib.pydantic import pydantic_data_converter
-from temporalio.worker import Worker
+from temporalio.worker import UnsandboxedWorkflowRunner, Worker
 
 from bessible.activities import ALL_ACTIVITIES
 from bessible.config import settings
@@ -28,6 +28,7 @@ async def run_worker() -> None:
         task_queue=TASK_QUEUE,
         workflows=[AssessmentWorkflow],
         activities=ALL_ACTIVITIES,
+        workflow_runner=UnsandboxedWorkflowRunner(),
     )
     print(f"Worker listening on task queue '{TASK_QUEUE}' at {settings.temporal_address}...")  # ruff: ignore[print]
     await worker.run()

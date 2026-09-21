@@ -37,10 +37,10 @@
 
 ## 6. Demo mode
 
-- [ ] 6.1 Implement the recorder that saves a completed run to `data/demo/<slug>/` (request, timed events, status snapshots, decision, result) and a scan that fails if key material is present
-- [ ] 6.2 Implement public replay routes (`/demo/runs...`) with recorded pacing, a pause at the site-confirmation gate, and `demo-` ids that never resolve to real runs; no Temporal, auth or LLM
+- [x] 6.1 Implement the recorder that saves a completed run to `data/demo/<slug>/` (request, timed events, status snapshots, decision, result) and a scan that fails if key material is present
+- [x] 6.2 Implement public replay routes (`/demo/runs...`) with recorded pacing, a pause at the site-confirmation gate, and `demo-` ids that never resolve to real runs; no Temporal, auth or LLM
 - [x] 6.3 Wire the **View demo run** button and a "recorded example" label in the UI
-- [ ] 6.4 Record one real run end to end and commit the recording
+- [x] 6.4 Record one real run end to end and commit the recording
 
 ## 7. Ubuntu deployment runtime, scripts and hardening
 

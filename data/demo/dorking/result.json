@@ -1,0 +1,561 @@
+{
+  "status": "completed",
+  "message": null,
+  "report": {
+    "verdict": "go",
+    "findings": [
+      {
+        "text": "Grid capacity confirmed: 8 MW firm connection (8 MW ceiling) at Dorking Town 11kV.",
+        "artifact_ids": [
+          "capacity-substation-bessible",
+          "capacity-headroom-bessible",
+          "capacity-range-bessible",
+          "capacity-context-bessible",
+          "capacity-competition-bessible",
+          "capacity-caveat-bessible"
+        ]
+      },
+      {
+        "text": "Gate 2 queue position 28 with indicative connection timescale of 36 months.",
+        "artifact_ids": [
+          "grid-queue-bessible",
+          "grid-timescale-bessible"
+        ]
+      },
+      {
+        "text": "Feasibility criteria satisfied across grid, land, and market models.",
+        "artifact_ids": [
+          "site_land-title_found-bessible",
+          "site_land-enough_area-bessible",
+          "site_land-buildable_slope-bessible",
+          "site_land-outside_flood_zone_3-bessible",
+          "site_land-outside_green_belt-bessible",
+          "site_land-avoids_best_farmland-bessible",
+          "site_land-clear_of_protected_ecology-bessible",
+          "site_land-clear_of_protected_heritage-bessible",
+          "site_land-clear_of_protected_landscape-bessible",
+          "site_land-substation_within_reach-bessible",
+          "site_land-grid_headroom-bessible",
+          "site_land-clear_of_overhead_lines-bessible"
+        ]
+      },
+      {
+        "text": "Feasibility criteria satisfied across grid, land, and market models.",
+        "artifact_ids": [
+          "financial-cost-bessible",
+          "financial-curtailment-bessible",
+          "financial-returns-bessible"
+        ]
+      },
+      {
+        "text": "Feasibility criteria satisfied across grid, land, and market models.",
+        "artifact_ids": [
+          "planning-bessible",
+          "planning-tia-bessible",
+          "planning-repd-bessible",
+          "planning-summary-bessible"
+        ]
+      },
+      {
+        "text": "Market revenue projected across storage durations.",
+        "artifact_ids": [
+          "market-capacity_market-bessible",
+          "market-balancing_ancillary-bessible",
+          "market-wholesale-bessible"
+        ]
+      },
+      {
+        "text": "Community sentiment analysis completed with key concerns: fire safety, noise.",
+        "artifact_ids": [
+          "sentiment-p1-bessible",
+          "sentiment-p2-bessible",
+          "sentiment-p3-bessible",
+          "sentiment-index-bessible"
+        ]
+      },
+      {
+        "text": "Reserved area requirement: 1.6 to 2.4 acres for 8 MW (planning-grade estimate at 4-hour duration).",
+        "artifact_ids": [
+          "title-bessible"
+        ]
+      }
+    ],
+    "report_path": "report.md",
+    "artifacts": [
+      {
+        "id": "synthesis-bessible",
+        "stage": "synthesis",
+        "claim": "Assessment report compiled with verdict 'GO' and duration comparison",
+        "source_url": null,
+        "file_path": "report.md",
+        "image_path": null,
+        "confidence": 0.95,
+        "model_used": "deterministic"
+      },
+      {
+        "id": "footprint-bessible",
+        "stage": "synthesis",
+        "claim": "Planning-grade reserved area estimate: 1.6 to 2.4 acres for 8 MW (4-hour duration)",
+        "source_url": null,
+        "file_path": "footprint.json",
+        "image_path": null,
+        "confidence": 0.95,
+        "model_used": "deterministic"
+      }
+    ]
+  },
+  "financial": {
+    "cases": [
+      {
+        "duration_h": 2,
+        "capex_gbp": 5148000.0,
+        "npv_gbp": 618097.68,
+        "irr": 0.10472740173819994,
+        "over_budget": false,
+        "curtailment_pct": 0.0,
+        "low": null,
+        "high": null,
+        "payback_years": null
+      },
+      {
+        "duration_h": 4,
+        "capex_gbp": 9148000.0,
+        "npv_gbp": -1335920.23,
+        "irr": 0.049674874769794486,
+        "over_budget": false,
+        "curtailment_pct": 0.0,
+        "low": null,
+        "high": null,
+        "payback_years": null
+      },
+      {
+        "duration_h": 8,
+        "capex_gbp": 17148000.0,
+        "npv_gbp": -7720504.1,
+        "irr": null,
+        "over_budget": false,
+        "curtailment_pct": 0.0,
+        "low": null,
+        "high": null,
+        "payback_years": null
+      }
+    ],
+    "recommended_h": 2,
+    "rationale": "Optimal returns at 2-hour duration based on financial model projections.",
+    "artifacts": [
+      {
+        "id": "financial-cost-bessible",
+        "stage": "financial",
+        "claim": "Financing terms: interest rate 6.5%, arrangement fee 2%, discount rate 8%, debt share 60%, loan term 15 years. 11 kV connection (£500k-£700k/km over 0.58 km): £290,000 - £406,000 (no crossing uplift applied). OTCF fee: inactive (oversubscription 30% is between 25% and 50%).",
+        "source_url": "https://www.ofgem.gov.uk/",
+        "file_path": null,
+        "image_path": null,
+        "confidence": 0.9,
+        "model_used": "financial-model"
+      },
+      {
+        "id": "financial-curtailment-bessible",
+        "stage": "financial",
+        "claim": "Curtailment estimate (documented assumption, not measured data): 2h: 0.0%, 4h: 0.0%, 8h: 0.0%. Demand profile: PLACEHOLDER - synthetic UK distribution demand shape (evening peak, overnight trough, winter-heavy); not an Elexon or UKPN profile (2026-09-19), scaled between 10 MW and 40 MW. Applied to overlap between dispatch hours and grid constraints above firm capacity (8 MW).",
+        "source_url": "https://www.elexon.co.uk/",
+        "file_path": null,
+        "image_path": null,
+        "confidence": 0.85,
+        "model_used": "financial-model"
+      },
+      {
+        "id": "financial-returns-bessible",
+        "stage": "financial",
+        "claim": "25-year returns: 2h (CAPEX £5,148,000, NPV £618,098, IRR 10.5%); 4h (CAPEX £9,148,000, NPV £-1,335,920, IRR 5.0%); 8h (CAPEX £17,148,000, NPV £-7,720,504, IRR N/A). Cases with N/A IRR do not pay back equity over project life.",
+        "source_url": "https://www.ofgem.gov.uk/",
+        "file_path": null,
+        "image_path": null,
+        "confidence": 0.9,
+        "model_used": "financial-model"
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "id": "location-bessible",
+      "stage": "location",
+      "claim": "Postcode RH4 1AD geocodes to (51.2329, -0.3302) in Mole Valley",
+      "source_url": "https://api.postcodes.io/postcodes/RH41AD",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "postcodes.io"
+    },
+    {
+      "id": "capacity-substation-bessible",
+      "stage": "capacity",
+      "claim": "Predicted point of connection: Dorking Town 11kV (11 kV), 0.58 km away. Nearest primary substation by distance (distribution-area polygons not in the snapshot) [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "ukpn-snapshot"
+    },
+    {
+      "id": "capacity-headroom-bessible",
+      "stage": "capacity",
+      "claim": "Effective headroom at Dorking Town 11kV: import 14.7 MW, export 30.9 MW (available capacity minus accepted offers; export adds reverse power flow when minimum demand is negative) [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "ukpn-snapshot"
+    },
+    {
+      "id": "capacity-range-bessible",
+      "stage": "capacity",
+      "claim": "Firm 8.0 MW, ceiling 8.0 MW, limited by import; 11 kV caps size at 8 MW. Ceiling = lower of import-side formula and Table 2a export ceiling (60 MW). No seasonal split in this dataset [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "ukpn-snapshot"
+    },
+    {
+      "id": "capacity-context-bessible",
+      "stage": "capacity",
+      "claim": "Context only, not used in the verdict: RAG demand GREEN, generation GREEN; parent GSP West Weybridge; TIA threshold 1 MW [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "ukpn-snapshot"
+    },
+    {
+      "id": "capacity-competition-bessible",
+      "stage": "capacity",
+      "claim": "Connection competition at Dorking Town 11kV: 2.6 MW offers not accepted, 1.5 MW budget estimates, 4.0 MW enquiries; weighted total 2.1 MW (pressure: low). Context only; not subtracted from effective headroom [ltds-table-6-interest-connections, snapshot 2026-09-19]",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ltds-table-6-interest-connections/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "ukpn-snapshot"
+    },
+    {
+      "id": "capacity-caveat-bessible",
+      "stage": "capacity",
+      "claim": "Effective headroom subtracts the current accepted connection queue; this may be pessimistic if speculative projects leave the queue under proposed Ofgem reforms [ukpn-capacity-heatmap, snapshot 2026-09-19]",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "ukpn-snapshot"
+    },
+    {
+      "id": "title-bessible",
+      "stage": "title",
+      "claim": "HM Land Registry title BK123456 boundary confirmed covering 25,000 m²",
+      "source_url": null,
+      "file_path": "boundary.geojson",
+      "image_path": null,
+      "confidence": 0.96,
+      "model_used": "dummy"
+    },
+    {
+      "id": "grid-queue-bessible",
+      "stage": "grid",
+      "claim": "Parent GSP West Weybridge has 27 queued projects (670.0 MW); new application estimated position 28 [ukpn-gsp-project-status, snapshot 2026-09-19]",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-gsp-project-status/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.88,
+      "model_used": "ukpn-snapshot"
+    },
+    {
+      "id": "grid-timescale-bessible",
+      "stage": "grid",
+      "claim": "Indicative connection timescale at West Weybridge: median 36 months (interquartile range 27-45 months across 5 records, standard confidence) [ukpn-gsp-project-status, snapshot 2026-09-19]",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-gsp-project-status/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.88,
+      "model_used": "ukpn-snapshot"
+    },
+    {
+      "id": "site_land-title_found-bessible",
+      "stage": "site_land",
+      "claim": "OK: Title 55889853 covers 0.02 ha.",
+      "source_url": "https://www.planning.data.gov.uk/entity.geojson?dataset=title-boundary&longitude=-0.330207&latitude=51.232882&geometry_relation=intersects",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-enough_area-bessible",
+      "stage": "site_land",
+      "claim": "Blocker: 32 MWh needs 0.65-0.97 ha; the title has 0.02.",
+      "source_url": "https://www.planning.data.gov.uk/entity.geojson?dataset=title-boundary&longitude=-0.330207&latitude=51.232882&geometry_relation=intersects",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-buildable_slope-bessible",
+      "stage": "site_land",
+      "claim": "Caveat: Median slope 6.8% (limit 10%), relief 1.65 m.",
+      "source_url": "https://environment.data.gov.uk/spatialdata/lidar-composite-digital-terrain-model-dtm-1m/wcs?service=WCS&version=2.0.1&request=GetCoverage&coverageId=13787b9a-26a4-4775-8523-806d13af58fc__Lidar_Composite_Elevation_DTM_1m&format=image%2Ftiff&subset=Lat%2851.232787%2C51.233049%29&subset=Long%28-0.330376%2C-0.330095%29&subsettingCrs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F4326",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-outside_flood_zone_3-bessible",
+      "stage": "site_land",
+      "claim": "OK: 0.0% of the title is in Flood Zone 3, 0.0% in Zone 2 (limit 80%).",
+      "source_url": "https://environment.data.gov.uk/spatialdata/flood-map-for-planning-flood-zones/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=dataset-04532375-a198-476e-985e-0579a0a11b47%3AFlood_Zones_2_3_Rivers_and_Sea&outputFormat=application%2Fjson&count=200&cql_filter=BBOX%28shape%2C-0.3339626115312275%2C51.23052537524878%2C-0.3265083884687725%2C51.23531062475122%2C%27EPSG%3A4326%27%29&srsName=EPSG%3A4326",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-outside_green_belt-bessible",
+      "stage": "site_land",
+      "claim": "OK: Not in the green belt.",
+      "source_url": "https://www.planning.data.gov.uk/entity.json?dataset=green-belt&dataset=flood-risk-zone&dataset=flood-storage-area&dataset=agricultural-land-classification&dataset=conservation-area&dataset=listed-building&dataset=listed-building-outline&dataset=scheduled-monument&dataset=heritage-at-risk&dataset=park-and-garden&dataset=battlefield&dataset=world-heritage-site&dataset=world-heritage-site-buffer-zone&dataset=archaeological-priority-area&dataset=area-of-outstanding-natural-beauty&dataset=national-park&dataset=heritage-coast&dataset=site-of-special-scientific-interest&dataset=special-area-of-conservation&dataset=special-protection-area&dataset=ramsar&dataset=ancient-woodland&dataset=local-nature-reserve&dataset=national-nature-reserve&dataset=tree-preservation-zone&dataset=article-4-direction-area&dataset=brownfield-land&dataset=built-up-area&dataset=central-activities-zone&dataset=infrastructure-project&dataset=planning-application&dataset=local-planning-authority&dataset=local-authority-district&dataset=parish&dataset=ward&dataset=region&dataset=local-plan-boundary&geometry=POLYGON+%28%28-0.330376+51.233008%2C+-0.330281+51.233049%2C+-0.330095+51.232813%2C+-0.330171+51.232787%2C+-0.330376+51.233008%29%29&geometry_relation=intersects&limit=500&exclude_field=geometry",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-avoids_best_farmland-bessible",
+      "stage": "site_land",
+      "claim": "OK: No best and most versatile farmland (Urban 100%).",
+      "source_url": "https://www.planning.data.gov.uk/entity.json?dataset=green-belt&dataset=flood-risk-zone&dataset=flood-storage-area&dataset=agricultural-land-classification&dataset=conservation-area&dataset=listed-building&dataset=listed-building-outline&dataset=scheduled-monument&dataset=heritage-at-risk&dataset=park-and-garden&dataset=battlefield&dataset=world-heritage-site&dataset=world-heritage-site-buffer-zone&dataset=archaeological-priority-area&dataset=area-of-outstanding-natural-beauty&dataset=national-park&dataset=heritage-coast&dataset=site-of-special-scientific-interest&dataset=special-area-of-conservation&dataset=special-protection-area&dataset=ramsar&dataset=ancient-woodland&dataset=local-nature-reserve&dataset=national-nature-reserve&dataset=tree-preservation-zone&dataset=article-4-direction-area&dataset=brownfield-land&dataset=built-up-area&dataset=central-activities-zone&dataset=infrastructure-project&dataset=planning-application&dataset=local-planning-authority&dataset=local-authority-district&dataset=parish&dataset=ward&dataset=region&dataset=local-plan-boundary&geometry=POLYGON+%28%28-0.330376+51.233008%2C+-0.330281+51.233049%2C+-0.330095+51.232813%2C+-0.330171+51.232787%2C+-0.330376+51.233008%29%29&geometry_relation=intersects&limit=500&exclude_field=geometry",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-clear_of_protected_ecology-bessible",
+      "stage": "site_land",
+      "claim": "OK: None on the title (sssi, sac, spa, ramsar, national_nature_reserve, ancient_woodland).",
+      "source_url": "https://www.planning.data.gov.uk/entity.json?dataset=green-belt&dataset=flood-risk-zone&dataset=flood-storage-area&dataset=agricultural-land-classification&dataset=conservation-area&dataset=listed-building&dataset=listed-building-outline&dataset=scheduled-monument&dataset=heritage-at-risk&dataset=park-and-garden&dataset=battlefield&dataset=world-heritage-site&dataset=world-heritage-site-buffer-zone&dataset=archaeological-priority-area&dataset=area-of-outstanding-natural-beauty&dataset=national-park&dataset=heritage-coast&dataset=site-of-special-scientific-interest&dataset=special-area-of-conservation&dataset=special-protection-area&dataset=ramsar&dataset=ancient-woodland&dataset=local-nature-reserve&dataset=national-nature-reserve&dataset=tree-preservation-zone&dataset=article-4-direction-area&dataset=brownfield-land&dataset=built-up-area&dataset=central-activities-zone&dataset=infrastructure-project&dataset=planning-application&dataset=local-planning-authority&dataset=local-authority-district&dataset=parish&dataset=ward&dataset=region&dataset=local-plan-boundary&geometry=POLYGON+%28%28-0.330376+51.233008%2C+-0.330281+51.233049%2C+-0.330095+51.232813%2C+-0.330171+51.232787%2C+-0.330376+51.233008%29%29&geometry_relation=intersects&limit=500&exclude_field=geometry",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-clear_of_protected_heritage-bessible",
+      "stage": "site_land",
+      "claim": "OK: None on the title (scheduled_monument, registered_park_or_garden, registered_battlefield, world_heritage_site).",
+      "source_url": "https://www.planning.data.gov.uk/entity.json?dataset=green-belt&dataset=flood-risk-zone&dataset=flood-storage-area&dataset=agricultural-land-classification&dataset=conservation-area&dataset=listed-building&dataset=listed-building-outline&dataset=scheduled-monument&dataset=heritage-at-risk&dataset=park-and-garden&dataset=battlefield&dataset=world-heritage-site&dataset=world-heritage-site-buffer-zone&dataset=archaeological-priority-area&dataset=area-of-outstanding-natural-beauty&dataset=national-park&dataset=heritage-coast&dataset=site-of-special-scientific-interest&dataset=special-area-of-conservation&dataset=special-protection-area&dataset=ramsar&dataset=ancient-woodland&dataset=local-nature-reserve&dataset=national-nature-reserve&dataset=tree-preservation-zone&dataset=article-4-direction-area&dataset=brownfield-land&dataset=built-up-area&dataset=central-activities-zone&dataset=infrastructure-project&dataset=planning-application&dataset=local-planning-authority&dataset=local-authority-district&dataset=parish&dataset=ward&dataset=region&dataset=local-plan-boundary&geometry=POLYGON+%28%28-0.330376+51.233008%2C+-0.330281+51.233049%2C+-0.330095+51.232813%2C+-0.330171+51.232787%2C+-0.330376+51.233008%29%29&geometry_relation=intersects&limit=500&exclude_field=geometry",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-clear_of_protected_landscape-bessible",
+      "stage": "site_land",
+      "claim": "OK: None on the title (national_park, national_landscape).",
+      "source_url": "https://www.planning.data.gov.uk/entity.json?dataset=green-belt&dataset=flood-risk-zone&dataset=flood-storage-area&dataset=agricultural-land-classification&dataset=conservation-area&dataset=listed-building&dataset=listed-building-outline&dataset=scheduled-monument&dataset=heritage-at-risk&dataset=park-and-garden&dataset=battlefield&dataset=world-heritage-site&dataset=world-heritage-site-buffer-zone&dataset=archaeological-priority-area&dataset=area-of-outstanding-natural-beauty&dataset=national-park&dataset=heritage-coast&dataset=site-of-special-scientific-interest&dataset=special-area-of-conservation&dataset=special-protection-area&dataset=ramsar&dataset=ancient-woodland&dataset=local-nature-reserve&dataset=national-nature-reserve&dataset=tree-preservation-zone&dataset=article-4-direction-area&dataset=brownfield-land&dataset=built-up-area&dataset=central-activities-zone&dataset=infrastructure-project&dataset=planning-application&dataset=local-planning-authority&dataset=local-authority-district&dataset=parish&dataset=ward&dataset=region&dataset=local-plan-boundary&geometry=POLYGON+%28%28-0.330376+51.233008%2C+-0.330281+51.233049%2C+-0.330095+51.232813%2C+-0.330171+51.232787%2C+-0.330376+51.233008%29%29&geometry_relation=intersects&limit=500&exclude_field=geometry",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-substation_within_reach-bessible",
+      "stage": "site_land",
+      "claim": "OK: Dorking Town 11kV (UKPN, 33.0 kV) is 0.57 km away.",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/api/explore/v2.1/catalog/datasets/ukpn-capacity-heatmap/records?where=within_distance%28geo_point_2d%2C+geom%27POINT%28-0.330207+51.232882%29%27%2C+10000.0m%29&order_by=distance%28geo_point_2d%2C+geom%27POINT%28-0.330207+51.232882%29%27%29&limit=100",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-grid_headroom-bessible",
+      "stage": "site_land",
+      "claim": "OK: Best two-way headroom in reach: 14.7 MW at Dorking Town 11kV, for a 8 MW battery.",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/api/explore/v2.1/catalog/datasets/ukpn-capacity-heatmap/records?where=within_distance%28geo_point_2d%2C+geom%27POINT%28-0.330207+51.232882%29%27%2C+10000.0m%29&order_by=distance%28geo_point_2d%2C+geom%27POINT%28-0.330207+51.232882%29%27%29&limit=100",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-clear_of_overhead_lines-bessible",
+      "stage": "site_land",
+      "claim": "OK: No overhead line of 22 kV or above crosses the title.",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/api/explore/v2.1/catalog/datasets/ukpn-capacity-heatmap/records?where=within_distance%28geo_point_2d%2C+geom%27POINT%28-0.330207+51.232882%29%27%2C+10000.0m%29&order_by=distance%28geo_point_2d%2C+geom%27POINT%28-0.330207+51.232882%29%27%29&limit=100",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "market-capacity_market-bessible",
+      "stage": "market",
+      "claim": "Capacity Market: estimated £24,000/MW/year (4h basis) from Capacity Market clearing price (EMR Delivery Body), fixture (cached fixture as of 2026-09-19)",
+      "source_url": "https://www.emrdeliverybody.com/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.85,
+      "model_used": "market-assumptions"
+    },
+    {
+      "id": "market-balancing_ancillary-bessible",
+      "stage": "market",
+      "claim": "Balancing Ancillary: estimated £25,000/MW/year (4h basis) from Balancing mechanism and ancillary services (NESO), fixture (cached fixture as of 2026-09-19)",
+      "source_url": "https://www.neso.energy/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.85,
+      "model_used": "market-assumptions"
+    },
+    {
+      "id": "market-wholesale-bessible",
+      "stage": "market",
+      "claim": "Wholesale: estimated £45,000/MW/year (4h basis) from Wholesale arbitrage (Elexon market index prices), fixture (cached fixture as of 2026-09-19)",
+      "source_url": "https://www.elexon.co.uk/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.85,
+      "model_used": "market-assumptions"
+    },
+    {
+      "id": "sentiment-p1-bessible",
+      "stage": "sentiment",
+      "claim": "Against (fire safety): \"More than forty local residents attended the Mole Valley planning consultation meeting to voice concerns over the pro...\"",
+      "source_url": "https://www.getsurrey.co.uk/news/surrey-news/dorking-bess-battery-storage-plans-29871123",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.59,
+      "model_used": "open-jev-deberta-v3-large (Modal)"
+    },
+    {
+      "id": "sentiment-p2-bessible",
+      "stage": "sentiment",
+      "claim": "Supportive (fire safety): \"A spokesperson for the developer noted that the facility utilizes modern lithium iron phosphate chemistry with automa...\"",
+      "source_url": "https://www.getsurrey.co.uk/news/surrey-news/dorking-bess-battery-storage-plans-29871123",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.75,
+      "model_used": "open-jev-deberta-v3-large (Modal)"
+    },
+    {
+      "id": "sentiment-p3-bessible",
+      "stage": "sentiment",
+      "claim": "Neutral (noise): \"The local parish council voted to submit neutral comments subject to comprehensive acoustic screening, noting that in...\"",
+      "source_url": "https://www.surreylive.com/news/surrey-planning-substation-battery-greenbelt-29844011",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.75,
+      "model_used": "open-jev-deberta-v3-large (Modal)"
+    },
+    {
+      "id": "sentiment-index-bessible",
+      "stage": "sentiment",
+      "claim": "Community opposition index 0.47 based on 3 relevant local paragraphs. Top concerns: fire safety, noise.",
+      "source_url": "https://www.getsurrey.co.uk/news/surrey-news/dorking-bess-battery-storage-plans-29871123",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.88,
+      "model_used": "gemini-3.8-flash"
+    },
+    {
+      "id": "financial-cost-bessible",
+      "stage": "financial",
+      "claim": "Financing terms: interest rate 6.5%, arrangement fee 2%, discount rate 8%, debt share 60%, loan term 15 years. 11 kV connection (£500k-£700k/km over 0.58 km): £290,000 - £406,000 (no crossing uplift applied). OTCF fee: inactive (oversubscription 30% is between 25% and 50%).",
+      "source_url": "https://www.ofgem.gov.uk/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "financial-model"
+    },
+    {
+      "id": "financial-curtailment-bessible",
+      "stage": "financial",
+      "claim": "Curtailment estimate (documented assumption, not measured data): 2h: 0.0%, 4h: 0.0%, 8h: 0.0%. Demand profile: PLACEHOLDER - synthetic UK distribution demand shape (evening peak, overnight trough, winter-heavy); not an Elexon or UKPN profile (2026-09-19), scaled between 10 MW and 40 MW. Applied to overlap between dispatch hours and grid constraints above firm capacity (8 MW).",
+      "source_url": "https://www.elexon.co.uk/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.85,
+      "model_used": "financial-model"
+    },
+    {
+      "id": "financial-returns-bessible",
+      "stage": "financial",
+      "claim": "25-year returns: 2h (CAPEX £5,148,000, NPV £618,098, IRR 10.5%); 4h (CAPEX £9,148,000, NPV £-1,335,920, IRR 5.0%); 8h (CAPEX £17,148,000, NPV £-7,720,504, IRR N/A). Cases with N/A IRR do not pay back equity over project life.",
+      "source_url": "https://www.ofgem.gov.uk/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "financial-model"
+    },
+    {
+      "id": "planning-bessible",
+      "stage": "planning",
+      "claim": "Local planning authority consent (Town and Country Planning Act 1990). Authority: Mole Valley LPA (E60000273). Standalone battery storage was removed from the Nationally Significant Infrastructure regime in England in 2020, so any size is consented by the local planning authority and no Development Consent Order threshold applies.",
+      "source_url": "https://www.planning.data.gov.uk/entity/626273",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "none (planning.data.gov.uk lookup)"
+    },
+    {
+      "id": "planning-tia-bessible",
+      "stage": "planning",
+      "claim": "Transmission Impact Assessment (TIA) triggered: confirmed capacity (8 MW) is at or above the serving substation's 1 MW threshold (from UKPN capacity snapshot). NESO involvement and Gate 2 timescales apply.",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "none (deterministic rule)"
+    },
+    {
+      "id": "planning-repd-bessible",
+      "stage": "planning",
+      "claim": "Found 3 battery storage project(s) within 5 km from DESNZ REPD snapshot (dated 2026-09-19): Dorking BESS Facility (49.5 MW, Application Approved, 1.24 km); Brockham Battery Energy Storage (20 MW, Awaiting Construction, 1.84 km); Mole Valley Energy Reserve (100 MW, Application Submitted, 3.7 km)",
+      "source_url": "https://www.gov.uk/government/publications/renewable-energy-planning-database-monthly-extract",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "none (DESNZ REPD snapshot)"
+    },
+    {
+      "id": "planning-summary-bessible",
+      "stage": "planning",
+      "claim": "National policy establishes a strong presumption in favour of energy storage to support grid resilience and decarbonisation under NPPF Chapter 14 and NPS EN-1, with local planning authorities retaining jurisdiction over standalone battery schemes of any capacity following the 2020 NSIP carve-out. Local planning precedent within 5 km demonstrates active BESS deployment, including the approved 49.5 MW Dorking BESS Facility at 1.24 km, the 20 MW Brockham facility awaiting construction at 1.84 km, and the 100 MW Mole Valley Energy Reserve application under consideration at 3.7 km. Proposals must incorporate environmental screening, acoustic fencing, and proximity to existing grid infrastructure in accordance with Planning Practice Guidance, alongside a Battery Safety Management Plan addressing thermal runaway mitigation under NFCC guidance.",
+      "source_url": "https://www.gov.uk/government/publications/renewable-energy-planning-database-monthly-extract",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "gemini-3.8-flash"
+    },
+    {
+      "id": "synthesis-bessible",
+      "stage": "synthesis",
+      "claim": "Assessment report compiled with verdict 'GO' and duration comparison",
+      "source_url": null,
+      "file_path": "report.md",
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic"
+    },
+    {
+      "id": "footprint-bessible",
+      "stage": "synthesis",
+      "claim": "Planning-grade reserved area estimate: 1.6 to 2.4 acres for 8 MW (4-hour duration)",
+      "source_url": null,
+      "file_path": "footprint.json",
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic"
+    }
+  ],
+  "run_dir": "out/bessible-record-dorking"
+}

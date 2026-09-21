@@ -8,7 +8,7 @@ import json
 import logging
 from typing import TYPE_CHECKING, Annotated
 
-from fastapi import APIRouter, Depends, Header, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from temporalio.client import WorkflowExecutionStatus
 
@@ -117,6 +117,8 @@ async def stream_run_events(
     last_event_id_query: Annotated[int | None, Query(alias="last_event_id")] = None,
 ) -> StreamingResponse:
     """Stream live trace events for a run using Server-Sent Events, to the run's owner only."""
+    if run_id.startswith("demo-"):
+        raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
     try:
         client = await get_temporal_client()
         await assert_owner(client.get_workflow_handle(run_id), run_id, user)
