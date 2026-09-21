@@ -24,11 +24,11 @@ confirm ─┬─ grid_connection (placeholder) ─┐
 
 The skeleton gains `"sentiment"` in `Stage` and a `local_sentiment` activity in the first parallel group. `SynthesisInput` gains `sentiment: SentimentOutput`. Both are additions made in the skeleton change by Josh.
 
-### Durable agents
+### Durable agents / Activity execution
 
-Each agent is a Pydantic AI `Agent` wrapped in `TemporalAgent`, registered on the worker through `PydanticAIPlugin` (the skeleton's client already uses it). Every model request and tool call becomes its own activity, with retries and a visible step in the Temporal UI. That's part of the demo story.
+Each agent is a Pydantic AI `Agent` executed inside its respective stage activity (`local_sentiment`, `financial_model`). Each stage runs as a discrete Temporal activity with configured retry policies and timeouts (`AGENT_OPTS`), cleanly encapsulating local caching (news fixtures), data transformations, tool calls, and model invocations.
 
-**Alternative rejected:** calling the agent inside one plain activity. It's simpler, but a failed tool call reruns the whole agent, and the UI shows one opaque step.
+*Note on TemporalAgent:* An earlier draft considered wrapping agents in `TemporalAgent` to register individual model and tool calls as separate Temporal activities. In practice, running coarse-grained stage activities keeps workflow orchestration pure, avoids splitting fixture caching and I/O across micro-activities, and avoids reliance on the deprecated `TemporalAgent` wrapper.
 
 ### Layout
 
@@ -128,7 +128,7 @@ Gemini writes the findings from the typed values with `output_type=list[Finding]
 - [Search returns national or irrelevant news] → The prompt restricts by place, and the classifier's `relevant` label filters. With no relevant paragraphs, the index is `None` and the verdict uses finances only.
 - [Modal cold start (~20 s) during the demo] → Set `min_containers=1` before presenting. The cache makes reruns instant.
 - [Assumption values are wrong or disputed] → They are all in one file with sources, shown in the report, and labelled a screening estimate. Changing them needs no code.
-- [Agent loops or exceeds time] → `TemporalAgent` activity timeout of 120 s and a small request limit per agent run.
+- [Agent loops or exceeds time] → Activity timeout of 180 s (`AGENT_OPTS`) and a small request limit per agent run.
 
 ## Open Questions
 
