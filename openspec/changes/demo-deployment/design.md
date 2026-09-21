@@ -28,7 +28,7 @@ Bessible was built to run locally on a Mac with Google Gemini for LLM reasoning,
 **Decision:** The web app signs users in with the Firebase JS SDK. Every non-demo request carries `Authorization: Bearer <Firebase ID token>`. FastAPI verifies it with `google-auth` (see below) in a `current_user` dependency and yields `uid` (and email). An optional `ALLOWED_EMAILS` env list restricts who may sign in for the demo.
 - Free tier: Google sign-in is covered by the Spark plan (50K monthly users). Avoid Identity Platform features (MFA, blocking functions), which need an upgrade.
 - **Verify with `google-auth`, not `firebase-admin`.** Tested: `firebase-admin` (7.6.0) initializes Application Default Credentials and raises `DefaultCredentialsError` on `verify_id_token` when none exist, so it would need a service-account file on the VM. `google.oauth2.id_token.verify_firebase_token(token, request, audience=<project id>)` needs no credentials: it fetches Google's public certs and checks signature, expiry and audience. `google-auth` and `requests` are already installed. Add an explicit `iss == https://securetoken.google.com/<project id>` check (the library does not check it) and a non-empty `sub`. Wrap the request in a `cachecontrol` session so Google's certs are cached instead of fetched on every call, and run the sync verify off the event loop.
-- Test coverage so far: a forged token reaches Google's cert lookup without any credentials and fails only on the unknown key id. A real Firebase token has not been verified end to end; do that once in the auth task.
+- **Verified end to end (task 1.2, done):** a real Firebase ID token from Google sign-in passed `verify_firebase_token` with no service-account file (issuer `https://securetoken.google.com/<project id>`, audience the project ID, provider `google.com`).
 - `EventSource` cannot set headers, so the SSE client switches to a `fetch`-based stream that sends the bearer token. ID tokens are re-checked per request; the Firebase SDK refreshes them.
 - Demo replay routes are **public** (no sign-in) so visitors can see the product first.
 *Alternatives considered:* per-run bearer token / cookie (no accounts, but no key persistence and more bespoke code); Caddy basic auth (10 minutes, no per-user ownership).
@@ -55,7 +55,15 @@ Bessible was built to run locally on a Mac with Google Gemini for LLM reasoning,
   4. No server-key fallback for real runs: no stored Google key returns `401 missing_google_key`.
   5. Logging and Logfire spans exclude credentials and request headers.
 - Model construction: `gemini_model(api_key)` builds `GoogleModel` from an explicit key and `settings.gemini_model` (no OpenAI, Anthropic, or OpenRouter). Google models support native `WebSearch` and `WebFetch`, so the earlier multi-provider tool-support risk disappears.
-- **Spike first:** `TemporalAgent` registers models at worker start (`models=`), which may not allow per-run credentials. If a per-run model cannot be supplied cleanly, call `agent.run(..., model=...)` inside our own activities instead of `TemporalAgent`. Decide before rewriting the agent sites.
+- **Spike result (task 1.1, done): keep `TemporalAgent` and use `provider_factory` with `deps`.** Verified locally in Temporal's dev server with fake keys and a mock HTTP transport (no real API calls, no credits):
+  1. Each agent keeps a harmless placeholder model (constructing `TemporalAgent` requires one `Model` instance). Real runs pass a model **string** per run, e.g. `google:<settings.gemini_model>` (pydantic-ai 2.46 uses the `google:` prefix; `google-gla:` is rejected as an unknown model).
+  2. `deps` carries `EncryptedCredentials` (ciphertext only). `provider_factory(run_context, provider_name)` runs inside the model-request activity on the worker, decrypts `run_context.deps`, and returns `GoogleProvider(api_key=...)`.
+  3. Two concurrent runs with different keys each used only their own key; neither plaintext key appeared in workflow history (payloads base64-decoded before searching), and the ciphertext did (so `deps` does travel).
+  4. A run with no key failed inside the factory and made no provider request. Set `model_activity_config` so a missing or invalid key is **non-retryable** (the spike used `maximum_attempts=1`; the default retries forever).
+  - **Real Gemini check (done, 3 small requests):** through `TemporalAgent` + `provider_factory` + `deps` with a run-time `google:<model>` string, `GoogleProvider` answered a plain prompt, native `WebSearch` returned a search-grounded answer, and native `WebFetch` fetched `example.com` correctly. The plaintext key was absent from history in all three runs. Two gotchas hit while testing: `result.usage` is a property, not a method; and a workflow-code exception makes Temporal retry the workflow task forever (it looks like a hang), so keep workflow code minimal.
+  - Scratch code: `sandbox/spike_keys_wf.py` and `sandbox/spike_keys_run.py` (gitignored).
+  - No deprecation warning was emitted for `TemporalAgent` in pydantic-ai 2.46.0, although its docstring points to a `TemporalDurability` capability. Migrating is out of scope for this change.
+  - The fallback (call `agent.run(model=...)` inside our own activities) is not needed.
 - **Required test:** two concurrent runs with `KEY_A` and `KEY_B` and a fake model that records the key it was built with. Assert each run saw only its own key, neither key appears in workflow history, logs or API responses, and a run with no key fails without using any server key.
 
 ### 5. Classifier backends
@@ -95,7 +103,7 @@ Hardening baseline:
 ## Risks / Trade-offs
 
 - **[Risk] VM compromise exposes all stored keys** (master secret and DB on one host) → *Mitigation*: file modes and non-root units, restricted-key warning in the UI, delete-key button, master-secret rotation. Accepted limit on the free plan.
-- **[Risk] `TemporalAgent` cannot take per-run credentials** → *Mitigation*: task 1 spike; fall back to `agent.run(model=...)` in activities.
+- **[Risk] `TemporalAgent` may be removed in a future pydantic-ai release** (its docstring marks it deprecated for a `TemporalDurability` capability) → *Mitigation*: pin pydantic-ai; the per-run key design (deps + provider factory) carries over to `ResolveModelId`.
 - **[Risk] Operator's Modal usage is unmetered per user** → *Mitigation*: default `CLASSIFIER_BACKEND=auto` only uses Modal when the operator sets a token; auth plus proxy rate limits bound usage; demo replays never call Modal.
 - **[Risk] Recorded demo goes stale or leaks data** → *Mitigation*: re-record after pipeline changes, review recorded artifacts for secrets, label replays in the UI.
 - **[Risk] Invalid Google key** → *Mitigation*: "Test key" pings Gemini before a run starts.
@@ -105,4 +113,3 @@ Hardening baseline:
 ## Open Questions
 
 - **Should the public VM demo turn Modal on?** It costs the operator (Josh) GPU time and adds cold-start latency, but keeps the independent cross-check and the Modal partner story. Decide at deploy time; the code path works either way via `CLASSIFIER_BACKEND`.
-- **Real Firebase token check.** Verify one real ID token end to end (task 1.2); only a forged token has been tested.
