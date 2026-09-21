@@ -116,8 +116,11 @@ async def run_analyst(
 ) -> Recommendation:
     """Run the analyst agent with the run's `model`; without one, or on error, use the deterministic fallback."""
     assump = assumptions or load_finance_assumptions()
-    if cases is None:
-        cases = {d: evaluate(mw, d, distance_km, firm_mw, budget_gbp, assump) for d in (2, 4, 8)}
+    evaluated_cases = (
+        cases
+        if cases is not None
+        else {d: evaluate(mw, d, distance_km, firm_mw, budget_gbp, assump) for d in (2, 4, 8)}
+    )
 
     deps = AnalystDeps(
         mw=mw,
@@ -128,7 +131,7 @@ async def run_analyst(
     )
 
     if model is None:
-        return fallback_recommendation(cases, budget_gbp)
+        return fallback_recommendation(evaluated_cases, budget_gbp)
 
     try:
         # Prompt the analyst agent
@@ -146,4 +149,4 @@ async def run_analyst(
     except Exception:
         pass
 
-    return fallback_recommendation(cases, budget_gbp)
+    return fallback_recommendation(evaluated_cases, budget_gbp)
