@@ -5,13 +5,17 @@ from __future__ import annotations
 import asyncio
 from collections import Counter
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from pydantic import HttpUrl
 
-from bessible.classifier import MODEL_NAME, Classified, classify
+from bessible.classifier import Classified, classify
 from bessible.models import Artifact, SentimentOutput
 from bessible.suitability.labels import ParagraphLabels
 from bessible.suitability.research import Research, Source
+
+if TYPE_CHECKING:
+    from pydantic_ai.models import Model
 
 STANCE_SCORES = {
     "against": 1.0,
@@ -66,45 +70,18 @@ def compute_opposition_index(
     return opposition_index, top_concerns
 
 
-async def classify_source(source: Source) -> list[Classified[ParagraphLabels]]:
-    """Classify all paragraphs for a single news source."""
+async def classify_source(source: Source, model: Model | None = None) -> list[Classified[ParagraphLabels]]:
+    """Classify all paragraphs for a single news source (modal, then llm, then the keyword heuristic)."""
     if not source.paragraphs:
         return []
-    try:
-        return await classify(source.paragraphs, ParagraphLabels)
-    except Exception:
-        # Fallback offline heuristic classifier if Modal unavailable
-        fallback_results: list[Classified[ParagraphLabels]] = []
-        for p in source.paragraphs:
-            low = p.lower()
-            is_relevant = any(w in low for w in ("battery", "bess", "solar", "substation", "storage", "energy"))
-            is_against = any(w in low for w in ("object", "concern", "oppose", "fire", "danger", "noise", "traffic"))
-            is_support = any(w in low for w in ("support", "welcome", "approve", "green", "net zero", "essential"))
-
-            stance = "against" if is_against else ("supportive" if is_support else "neutral")
-            concern = (
-                "fire safety"
-                if "fire" in low
-                else ("noise" if "noise" in low else ("traffic" if "traffic" in low else "land use"))
-            )
-            labels = ParagraphLabels(
-                relevant=is_relevant,
-                stance=stance,
-                concern=concern,
-                mentions_risk="fire" in low or "danger" in low or "runaway" in low,
-            )
-            fallback_results.append(
-                Classified[ParagraphLabels](
-                    text=p,
-                    labels=labels,
-                    confidence={"relevant": 0.85, "stance": 0.80, "concern": 0.70, "mentions_risk": 0.75},
-                )
-            )
-        return fallback_results
+    return await classify(source.paragraphs, ParagraphLabels, model=model)
 
 
-async def process_sentiment(run_id: str, research: Research) -> SentimentOutput:
-    """Classify sources concurrently, compute opposition index, and produce artifacts."""
+async def process_sentiment(run_id: str, research: Research, model: Model | None = None) -> SentimentOutput:
+    """Classify sources concurrently, compute opposition index, and produce artifacts.
+
+    `model` is the run owner's model for the `llm` classifier backend.
+    """
     if not research.sources:
         empty_art = Artifact(
             id=f"sentiment-none-{run_id[:8]}",
@@ -123,7 +100,7 @@ async def process_sentiment(run_id: str, research: Research) -> SentimentOutput:
         )
 
     # Classify sources concurrently
-    source_results = await asyncio.gather(*(classify_source(src) for src in research.sources))
+    source_results = await asyncio.gather(*(classify_source(src, model) for src in research.sources))
 
     all_classified: list[tuple[Source, Classified[ParagraphLabels]]] = []
     for src, items in zip(research.sources, source_results, strict=True):
@@ -150,7 +127,7 @@ async def process_sentiment(run_id: str, research: Research) -> SentimentOutput:
                 claim=claim,
                 source_url=src.url,
                 confidence=round(conf, 2),
-                model_used=MODEL_NAME,
+                model_used=item.model,
             )
         )
 

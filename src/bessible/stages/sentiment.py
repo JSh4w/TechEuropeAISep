@@ -34,4 +34,4 @@ async def local_sentiment(inp: NodeInput, *, model: Model | None = None) -> Sent
 
     events.emit(inp.run_id, "sentiment", f"Retrieved {len(research.sources)} sources; analyzing planning sentiment")
 
-    return await process_sentiment(inp.run_id, research)
+    return await process_sentiment(inp.run_id, research, model=model)

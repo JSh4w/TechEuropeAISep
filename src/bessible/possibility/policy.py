@@ -7,7 +7,7 @@
 Councils block plain downloads of their plans (403 / SharePoint logins), so the documents in `Agentic` are given to
 the model as URLs and read with its native web tools rather than fetched by us. That also means the quotes cannot be
 checked against the source here: `cross_check` asks the typed classifier on Modal to label each quote independently,
-and disagreement lowers the confidence.
+and disagreement lowers the confidence. Only Modal counts as independent, so without it the check is skipped.
 """
 
 from __future__ import annotations
@@ -19,8 +19,7 @@ from pydantic import BaseModel, Field
 from pydantic_ai import Agent, ModelRetry
 from pydantic_ai.capabilities import WebFetch, WebSearch
 
-from bessible.classifier import MODEL_NAME as CLASSIFIER_NAME
-from bessible.classifier import classify
+from bessible.classifier import ClassifierError, classify
 from bessible.credentials import MissingGoogleKeyError
 from bessible.location.models import SourceDocument
 
@@ -170,18 +169,25 @@ async def read_policy(brief: PolicyBrief, model: Model | None = None, *, web: bo
 
 
 async def cross_check(review: PolicyReview) -> PolicyReview:
-    """A second, independent label for every quote from the typed classifier on Modal."""
+    """A second, independent label for every quote from the typed classifier on Modal.
+
+    Skipped (the review is returned unchanged, with its default confidence) when Modal is not enabled or fails:
+    a Gemini check of a Gemini finding would not be independent.
+    """
     findings = review.opinion.findings
     if not findings:
         return review
-    labelled = await classify([f.quote for f in findings], QuoteLabels)
+    try:
+        labelled = await classify([f.quote for f in findings], QuoteLabels, backends=("modal",))
+    except ClassifierError:
+        return review
     disputed = [f.quote for f, second in zip(findings, labelled, strict=True) if second.labels.effect != f.effect]
     agreement = 1 - len(disputed) / len(findings)
     return review.model_copy(
         update={
             "confidence": round(UNVERIFIED_CONFIDENCE + (0.9 - UNVERIFIED_CONFIDENCE) * agreement, 2),
             "disputed_quotes": disputed,
-            "model_used": f"{review.model_used} + {CLASSIFIER_NAME}",
+            "model_used": f"{review.model_used} + {labelled[0].model}",
         }
     )
 

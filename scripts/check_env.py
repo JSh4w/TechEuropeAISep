@@ -8,12 +8,13 @@ from __future__ import annotations
 
 import asyncio
 import sys
+from importlib.util import find_spec
 
-from modal.config import config as modal_config
 from pydantic_ai import Agent
 from temporalio.client import Client
 
 from bessible import llm
+from bessible.classifier import modal_enabled
 from bessible.config import settings
 
 
@@ -41,6 +42,15 @@ def ping(name: str, make_model) -> bool:
         return check(f"{name} replies", False, f"{type(e).__name__}: {str(e)[:120]}")
 
 
+def modal_checks() -> list[bool]:
+    """Modal is the classifier's optional second opinion: only check the login when a token is configured."""
+    if find_spec("modal") is None:
+        return [check("Modal classifier", False, "optional: `modal` not installed, classifying with Gemini", False)]
+    if (settings.modal_token_id is None) != (settings.modal_token_secret is None):
+        return [check("MODAL_TOKEN_ID + MODAL_TOKEN_SECRET", False, "set both or neither")]
+    return [check("Modal login", modal_enabled(), "optional: set the Modal token or run `uv run modal setup`", False)]
+
+
 def main() -> None:
     results = [
         check("GOOGLE_API_KEY", settings.google_api_key is not None, "set it in .env"),
@@ -53,11 +63,7 @@ def main() -> None:
             asyncio.run(temporal_reachable()),
             "run `temporal server start-dev` in another terminal",
         ),
-        check(
-            "Modal login",
-            bool(modal_config.get("token_id")),
-            "run `uv run modal setup`",
-        ),
+        *modal_checks(),
     ]
     if "--live" in sys.argv:
         llm.setup_logfire()
