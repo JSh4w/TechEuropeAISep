@@ -15,10 +15,10 @@
 
 ## 3. Auth, key storage and run ownership (backend)
 
-- [ ] 3.1 Add the `current_user` dependency (`verify_firebase_token` from `google-auth` plus explicit `iss` and `sub` checks, `cachecontrol`-cached certs, verify run off the event loop, optional `ALLOWED_EMAILS`) and apply it to all non-demo routes; unit-test with a fake verifier
-- [ ] 3.2 Implement the SQLite key store (`/var/lib/bessible/keys.db`, `0600`) with AES-GCM, HKDF per-user keys, the `uid` as associated data, and a `key_id` for rotation; test round trip, wrong-`uid` failure and rotation
-- [ ] 3.3 Add `PUT/DELETE /me/key`, `GET /me/key` (last4 only), and `POST /me/key/test`; verify no endpoint ever returns a key
-- [ ] 3.4 Update `POST /runs` to use `bessible-<uuid4>` ids, store `owner_uid` in the workflow memo, attach `EncryptedCredentials`, and return `401 missing_google_key` when absent; enforce the owner check (404 otherwise) on `status`, `decision`, `result` and `events`
+- [x] 3.1 Add the `current_user` dependency (`verify_firebase_token` from `google-auth` plus explicit `iss` and `sub` checks, `cachecontrol`-cached certs, verify run off the event loop, optional `ALLOWED_EMAILS`) and apply it to all non-demo routes; unit-test with a fake verifier
+- [x] 3.2 Implement the SQLite key store (`/var/lib/bessible/keys.db`, `0600`) with AES-GCM, HKDF per-user keys, the `uid` as associated data, and a `key_id` for rotation; test round trip, wrong-`uid` failure and rotation
+- [x] 3.3 Add `PUT/DELETE /me/key`, `GET /me/key` (last4 only), and `POST /me/key/test`; verify no endpoint ever returns a key
+- [x] 3.4 Update `POST /runs` to use `bessible-<uuid4>` ids, store `owner_uid` in the workflow memo, attach `EncryptedCredentials`, and return `401 missing_google_key` when absent; enforce the owner check (404 otherwise) on `status`, `decision`, `result` and `events`
 
 ## 4. Classifier backends
 

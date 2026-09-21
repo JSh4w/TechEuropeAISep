@@ -8,16 +8,19 @@ import json
 import logging
 from typing import TYPE_CHECKING, Annotated
 
-from fastapi import APIRouter, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, Query
 from fastapi.responses import StreamingResponse
 from temporalio.client import WorkflowExecutionStatus
 
-from bessible.api.temporal import get_temporal_client
+from bessible.api.ownership import assert_owner
+from bessible.api.temporal import get_temporal_client, handle_temporal_error
+from bessible.auth import User, current_user
 from bessible.events import get_events_path
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
     from pathlib import Path
+    from typing import Any
 
     from temporalio.client import WorkflowHandle
 
@@ -52,7 +55,7 @@ def _read_new_events(events_file: Path, after_id: int) -> list[tuple[int, str]]:
     return results
 
 
-async def _check_workflow_completed(handle: WorkflowHandle | None) -> bool:
+async def _check_workflow_completed(handle: WorkflowHandle[Any, Any] | None) -> bool:
     """Return True if the workflow handle indicates execution has finished."""
     if handle is None:
         return False
@@ -73,7 +76,7 @@ async def event_generator(run_id: str, last_event_id: int) -> AsyncGenerator[str
     events_file = get_events_path(run_id)
     last_id = last_event_id
 
-    handle: WorkflowHandle | None = None
+    handle: WorkflowHandle[Any, Any] | None = None
     try:
         client = await get_temporal_client()
         handle = client.get_workflow_handle(run_id)
@@ -109,19 +112,17 @@ async def event_generator(run_id: str, last_event_id: int) -> AsyncGenerator[str
 @router.get("/runs/{run_id}/events")
 async def stream_run_events(
     run_id: str,
+    user: Annotated[User, Depends(current_user)],
     last_event_id_header: Annotated[str | None, Header(alias="Last-Event-ID")] = None,
     last_event_id_query: Annotated[int | None, Query(alias="last_event_id")] = None,
 ) -> StreamingResponse:
-    """Stream live trace events for a run using Server-Sent Events."""
-    events_file = get_events_path(run_id)
-
-    if not events_file.exists():
-        try:
-            client = await get_temporal_client()
-            handle = client.get_workflow_handle(run_id)
-            await handle.describe()
-        except Exception as exc:
-            raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found") from exc
+    """Stream live trace events for a run using Server-Sent Events, to the run's owner only."""
+    try:
+        client = await get_temporal_client()
+        await assert_owner(client.get_workflow_handle(run_id), run_id, user)
+    except Exception as exc:
+        handle_temporal_error(exc, run_id)
+        raise
 
     start_id = 0
     if last_event_id_header is not None and last_event_id_header.isdigit():

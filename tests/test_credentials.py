@@ -42,6 +42,19 @@ def test_tampered_or_unknown_key_id_fails(seal: Callable[[str, str], EncryptedCr
         decrypt_google_key(sealed.model_copy(update={"key_id": "v0"}))
 
 
+def test_previous_key_id_decrypts_when_configured(
+    seal: Callable[[str, str], EncryptedCredentials], monkeypatch: pytest.MonkeyPatch
+):
+    sealed = seal("user-a", KEY).model_copy(update={"key_id": "old-key"})
+    with pytest.raises(InvalidCredentialsError):
+        decrypt_google_key(sealed)
+    monkeypatch.setattr(
+        "bessible.config.settings.key_encryption_previous",
+        {"old-key": SecretStr("test-master-secret")},
+    )
+    assert decrypt_google_key(sealed) == KEY
+
+
 @pytest.mark.parametrize("credentials", [None, "empty"])
 def test_no_key_raises_and_never_falls_back(
     credentials: str | None, seal: Callable[[str, str], EncryptedCredentials], monkeypatch: pytest.MonkeyPatch

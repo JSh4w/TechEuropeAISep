@@ -24,7 +24,7 @@ Verdict = Literal["go", "maybe", "no_go"]
 
 
 class EncryptedCredentials(BaseModel):
-    """A run owner's Google key as ciphertext. Plain `str`, never `SecretStr`: Temporal would store `**********`."""
+    """The run owner's Google key as ciphertext (plain `str`, never `SecretStr`: Temporal would mask or store it)."""
 
     uid: str
     key_id: str
@@ -41,7 +41,8 @@ class AssessmentRequest(BaseModel):
     flexible_connection: bool = False
     link: str | HttpUrl | None = None
     target_mw: float | None = None
-    credentials: EncryptedCredentials | None = None  # set by the API or CLI from the caller's stored key
+    # Set by the API or CLI from the key store; client values are ignored
+    credentials: EncryptedCredentials | None = None
 
     @model_validator(mode="before")
     @classmethod

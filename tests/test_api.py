@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import time
+from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -12,6 +13,8 @@ from temporalio.client import RPCError, RPCStatusCode, WorkflowExecutionStatus
 
 from bessible import events
 from bessible.api.app import app
+from bessible.auth import User, current_user
+from bessible.keystore import Keyring, KeyStore, get_key_store
 from bessible.llm import setup_logfire
 from bessible.models import (
     AssessmentResult,
@@ -19,11 +22,22 @@ from bessible.models import (
     RunStatus,
 )
 
+USER = User(uid="user-a", email="a@example.com")
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+    from pathlib import Path
+
 
 @pytest.fixture
-def client() -> TestClient:
-    """FastAPI TestClient fixture."""
-    return TestClient(app)
+def client(tmp_path: Path) -> Iterator[TestClient]:
+    """Yield a FastAPI TestClient signed in as USER, who has a stored key."""
+    store = KeyStore(tmp_path / "keys.db", Keyring("k1", {"k1": b"test-master-secret"}))
+    store.put(USER.uid, "AIza" + "a" * 35)
+    app.dependency_overrides[current_user] = lambda: USER
+    app.dependency_overrides[get_key_store] = lambda: store
+    yield TestClient(app)
+    app.dependency_overrides.clear()
 
 
 def test_capacity_check_direct(client: TestClient) -> None:
@@ -121,6 +135,7 @@ def test_mocked_workflow_endpoints(client: TestClient) -> None:
 
     mock_desc_running = MagicMock()
     mock_desc_running.status = WorkflowExecutionStatus.RUNNING
+    mock_desc_running.memo_value = AsyncMock(return_value=USER.uid)
     mock_handle.describe = AsyncMock(return_value=mock_desc_running)
 
     with patch("bessible.api.runs.get_temporal_client", AsyncMock(return_value=mock_client)):
@@ -180,6 +195,7 @@ def test_mocked_workflow_endpoints(client: TestClient) -> None:
         # 7. Completed result returns 200
         mock_desc_completed = MagicMock()
         mock_desc_completed.status = WorkflowExecutionStatus.COMPLETED
+        mock_desc_completed.memo_value = AsyncMock(return_value=USER.uid)
         mock_handle.describe = AsyncMock(return_value=mock_desc_completed)
         mock_result = AssessmentResult(
             status="completed",
@@ -210,8 +226,25 @@ def test_unknown_run_returns_404(client: TestClient) -> None:
         assert res.status_code == 404
 
 
+def _owned_temporal(owner: str | None) -> AsyncMock:
+    """A patched `get_temporal_client` whose only run is owned by `owner` and already finished."""
+    desc = MagicMock()
+    desc.status = WorkflowExecutionStatus.COMPLETED
+    desc.memo_value = AsyncMock(return_value=owner)
+    handle = MagicMock()
+    handle.describe = AsyncMock(return_value=desc)
+    temporal = MagicMock()
+    temporal.get_workflow_handle.return_value = handle
+    return AsyncMock(return_value=temporal)
+
+
 def test_events_emission_and_sse_streaming(client: TestClient) -> None:
     """Test append-only event logging, Last-Event-ID, and SSE streaming."""
+    with patch("bessible.api.events.get_temporal_client", _owned_temporal(USER.uid)):
+        _check_events_emission_and_sse_streaming(client)
+
+
+def _check_events_emission_and_sse_streaming(client: TestClient) -> None:
     run_id = f"test-events-{int(time.time())}"
 
     # Verify emit appends increasing IDs

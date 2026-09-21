@@ -1,0 +1,113 @@
+"""The signed-in user's Google key: save, delete, show `last4`, test. The key is never returned once saved."""
+
+from __future__ import annotations
+
+import asyncio
+import re
+from typing import Annotated, Any  # ruff: ignore[typing-only-standard-library-import]
+
+import httpx
+from fastapi import APIRouter, Body, Depends, HTTPException, Response
+from pydantic import BaseModel
+
+from bessible.auth import User, current_user
+from bessible.config import settings
+from bessible.keystore import KeyMeta, KeyStore, KeyStoreError, get_key_store
+
+router = APIRouter(prefix="/me", tags=["me"])
+
+GOOGLE_KEY = re.compile(r"^AIza[0-9A-Za-z_-]{30,}$")
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+FIELD = "google_api_key"
+
+
+class KeyTestResult(BaseModel):
+    """Outcome of the Gemini ping. `error` is a short code, never provider text (which could echo the key)."""
+
+    ok: bool
+    error: str | None = None
+
+
+def _google_key(body: dict[str, Any]) -> str:
+    """Accept exactly one credential, a Google AI key. Errors never echo the submitted value."""
+    if set(body) != {FIELD}:
+        raise HTTPException(
+            status_code=422, detail=f"Send exactly one field, {FIELD}. No other provider or token is accepted."
+        )
+    value = body[FIELD]
+    if not isinstance(value, str) or not GOOGLE_KEY.fullmatch(value.strip()):
+        raise HTTPException(status_code=422, detail=f"{FIELD} is not a Google AI API key (it starts with AIza).")
+    return value.strip()
+
+
+async def ping_gemini(api_key: str) -> KeyTestResult:
+    """Cheapest real call: one output token. The key goes in a header, not the URL."""
+    try:
+        async with httpx.AsyncClient(timeout=10) as http:
+            res = await http.post(
+                GEMINI_URL.format(model=settings.gemini_model),
+                headers={"x-goog-api-key": api_key},
+                json={
+                    "contents": [{"parts": [{"text": "ping"}]}],
+                    "generationConfig": {"maxOutputTokens": 1},
+                },
+            )
+    except httpx.HTTPError:
+        return KeyTestResult(ok=False, error="unreachable")
+    if res.is_success:
+        return KeyTestResult(ok=True)
+    if res.status_code == httpx.codes.TOO_MANY_REQUESTS:
+        return KeyTestResult(ok=False, error="rate_limited")  # the key is valid but out of quota
+    if res.status_code in {httpx.codes.BAD_REQUEST, httpx.codes.UNAUTHORIZED, httpx.codes.FORBIDDEN}:
+        return KeyTestResult(ok=False, error="invalid_key")
+    return KeyTestResult(ok=False, error="provider_error")
+
+
+@router.get("/key", response_model=KeyMeta)
+def get_key(
+    user: Annotated[User, Depends(current_user)], store: Annotated[KeyStore, Depends(get_key_store)]
+) -> KeyMeta:
+    """Return `last4` and the update time. 404 if the user has no key."""
+    meta = store.meta(user.uid)
+    if meta is None:
+        raise HTTPException(status_code=404, detail="no_key")
+    return meta
+
+
+@router.put("/key", response_model=KeyMeta)
+def put_key(
+    body: Annotated[dict[str, Any], Body()],
+    user: Annotated[User, Depends(current_user)],
+    store: Annotated[KeyStore, Depends(get_key_store)],
+) -> KeyMeta:
+    """Encrypt and store the user's Google key, replacing any earlier one."""
+    return store.put(user.uid, _google_key(body))
+
+
+@router.delete("/key", status_code=204)
+def delete_key(
+    user: Annotated[User, Depends(current_user)], store: Annotated[KeyStore, Depends(get_key_store)]
+) -> Response:
+    """Delete the stored key. Later runs return `401 missing_google_key`."""
+    store.delete(user.uid)
+    return Response(status_code=204)
+
+
+@router.post("/key/test", response_model=KeyTestResult)
+async def check_key(
+    user: Annotated[User, Depends(current_user)],
+    store: Annotated[KeyStore, Depends(get_key_store)],
+    body: Annotated[dict[str, Any] | None, Body()] = None,
+) -> KeyTestResult:
+    """Ping Gemini with the key in the body (before saving) or, with no body, the stored key."""
+    api_key: str | None
+    if body:
+        api_key = _google_key(body)
+    else:
+        try:
+            api_key = await asyncio.to_thread(store.reveal, user.uid)
+        except KeyStoreError as exc:
+            raise HTTPException(status_code=409, detail="stored_key_unreadable") from exc
+        if api_key is None:
+            raise HTTPException(status_code=404, detail="no_key")
+    return await ping_gemini(api_key)
