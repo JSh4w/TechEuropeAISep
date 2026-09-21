@@ -46,7 +46,7 @@ The source proposal suggests the DESNZ Renewable Energy Planning Database plus a
 
 ### Model use
 
-F3 uses `gemini_model()` through a Pydantic AI agent with `output_type=PlanningSummary`. The schema is shallow, as Gemini rejects deep nesting. A post-check rejects any statement whose `cites` ids are not in the supplied records or policy. Wrap the agent with `TemporalAgent` when it is called from the activity.
+F3 uses `gemini_model()` through a Pydantic AI agent with `output_type=PlanningSummary`. The schema is shallow, as Gemini rejects deep nesting. A post-check rejects any statement whose `cites` ids are not in the supplied records or policy. Call the agent directly from within the `regulatory_planning` activity.
 
 ## Risks / Trade-offs
 

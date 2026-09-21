@@ -12,7 +12,7 @@ Runs after the human confirms the site, inside the skeleton's workflow. Four sta
 - **market-revenue (simplified):** revenue per MW per year for 2, 4 and 8 hours from a committed, sourced assumptions file. No live feeds.
 - **financial-analysis:** deterministic CAPEX, OPEX, financing, NPV, IRR, payback and a low/mid/high range for 2, 4 and 8 hours, plus a budget check. A Gemini analyst agent can only call these functions as tools, picks the recommended duration, and explains why. It never writes a figure itself.
 - **suitability-verdict:** rules turn the figures and the opposition index into go / maybe / no-go. Gemini writes the findings. Every finding cites artifact ids, and a guard rejects any number that is not in the computed results.
-- Agents run as durable Temporal activities through Pydantic AI's Temporal integration, so each model and tool call is retried and shows in the Temporal UI.
+- Agents run within their respective stage activities (`local_sentiment`, `financial_model`), each managed as a durable Temporal activity with retries and timeouts.
 
 ## Capabilities
 
