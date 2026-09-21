@@ -11,7 +11,7 @@
 - [x] 2.4 Add the required concurrency test: two concurrent runs with `KEY_A` and `KEY_B` and a recording fake model; assert no cross-use, no key in workflow history, logs or API responses, and a keyless run fails without using a server key
 - [x] 2.5 Add a guard test that fails on `os.environ` key writes and module-level `gemini_model()` calls
 - [x] 2.6 Address the `TemporalAgent` gap: resolved to keep one activity per stage and updated earlier design docs (`add-suitability-engine`, `add-regulatory-planning`). Stages encapsulate their caching, I/O, fallbacks, and agent runs cleanly within worker activities; `TemporalAgent` wrappers were dead code and are deprecated upstream
-- [ ] 2.7 Fix the one new `mypy` error from task 2.2 at `src/bessible/suitability/analyst.py:131` (`fallback_recommendation` gets `cases` typed `dict | None`; same cause as the existing error at line 149)
+- [x] 2.7 Fix the one new `mypy` error from task 2.2 at `src/bessible/suitability/analyst.py:131` (`fallback_recommendation` gets `cases` typed `dict | None`; same cause as the existing error at line 149)
 
 ## 3. Auth, key storage and run ownership (backend)
 
