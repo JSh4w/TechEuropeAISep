@@ -29,12 +29,16 @@ class InvalidCredentialsError(CredentialsError):
 
 
 def _cipher(uid: str, key_id: str) -> AESGCM:
-    secret = settings.key_encryption_secret
+    secret = (
+        settings.key_encryption_secret
+        if key_id == settings.key_encryption_key_id
+        else settings.key_encryption_previous.get(key_id)
+    )
     if secret is None:
-        msg = "KEY_ENCRYPTION_SECRET is not set"
-        raise InvalidCredentialsError(msg)
-    if key_id != settings.key_encryption_key_id:
-        msg = f"Unknown key id {key_id!r}"
+        if settings.key_encryption_secret is None:
+            msg = "KEY_ENCRYPTION_SECRET is not set"
+        else:
+            msg = f"Unknown key id {key_id!r}"
         raise InvalidCredentialsError(msg)
     derived = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=uid.encode()).derive(
         secret.get_secret_value().encode()

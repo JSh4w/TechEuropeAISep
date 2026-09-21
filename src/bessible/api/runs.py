@@ -2,15 +2,23 @@
 
 from __future__ import annotations
 
+import asyncio
 import uuid
+from typing import TYPE_CHECKING, Annotated
 
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.responses import JSONResponse
 from temporalio.client import WorkflowExecutionStatus
 
+from bessible.api.ownership import OWNER_MEMO, assert_owner
 from bessible.api.temporal import get_temporal_client, handle_temporal_error
+from bessible.auth import User, current_user
+from bessible.keystore import KeyStore, KeyStoreError, get_key_store
 from bessible.models import AssessmentRequest, AssessmentResult, RunStatus, SiteDecision
 from bessible.workflow import TASK_QUEUE, AssessmentWorkflow
+
+if TYPE_CHECKING:
+    from temporalio.client import WorkflowHandle
 
 router = APIRouter(prefix="/runs", tags=["runs"])
 
@@ -19,16 +27,31 @@ FLOOR_MW = 5.0
 
 
 @router.post("", status_code=200)
-async def start_run(req: AssessmentRequest) -> dict[str, str]:
-    """Start an assessment workflow run and return its id."""
-    run_id = f"bessible-{uuid.uuid4().hex[:8]}"
+async def start_run(
+    req: AssessmentRequest,
+    user: Annotated[User, Depends(current_user)],
+    store: Annotated[KeyStore, Depends(get_key_store)],
+) -> dict[str, str]:
+    """Start an assessment workflow run owned by the caller and return its id.
+
+    The run carries the caller's stored Google key as ciphertext only. There is no server-key fallback.
+    """
+    try:
+        creds = await asyncio.to_thread(store.checked_credentials, user.uid)
+    except KeyStoreError as exc:
+        raise HTTPException(status_code=409, detail="stored_key_unreadable") from exc
+    if creds is None:
+        raise HTTPException(status_code=401, detail="missing_google_key")
+
+    run_id = f"bessible-{uuid.uuid4()}"
     try:
         client = await get_temporal_client()
         await client.start_workflow(
             AssessmentWorkflow.run,
-            req,
+            req.model_copy(update={"credentials": creds}),  # always ours: a client-supplied value is overwritten
             id=run_id,
             task_queue=TASK_QUEUE,
+            memo={OWNER_MEMO: user.uid},
         )
     except Exception as exc:
         handle_temporal_error(exc, run_id)
@@ -38,11 +61,12 @@ async def start_run(req: AssessmentRequest) -> dict[str, str]:
 
 
 @router.get("/{run_id}/status", response_model=RunStatus)
-async def get_run_status(run_id: str) -> RunStatus:
+async def get_run_status(run_id: str, user: Annotated[User, Depends(current_user)]) -> RunStatus:
     """Get the current execution status and stage state for a run."""
     try:
         client = await get_temporal_client()
         handle = client.get_workflow_handle(run_id, result_type=AssessmentResult)
+        await assert_owner(handle, run_id, user)
         status: RunStatus = await handle.query(AssessmentWorkflow.status)
     except Exception as exc:
         handle_temporal_error(exc, run_id)
@@ -52,11 +76,14 @@ async def get_run_status(run_id: str) -> RunStatus:
 
 
 @router.post("/{run_id}/decision", status_code=204)
-async def submit_site_decision(run_id: str, decision: SiteDecision) -> Response:
+async def submit_site_decision(
+    run_id: str, decision: SiteDecision, user: Annotated[User, Depends(current_user)]
+) -> Response:
     """Submit a human-in-the-loop site confirmation or rejection decision."""
     try:
         client = await get_temporal_client()
         handle = client.get_workflow_handle(run_id, result_type=AssessmentResult)
+        await assert_owner(handle, run_id, user)
         status: RunStatus = await handle.query(AssessmentWorkflow.status)
     except Exception as exc:
         handle_temporal_error(exc, run_id)
@@ -102,24 +129,29 @@ async def submit_site_decision(run_id: str, decision: SiteDecision) -> Response:
     return Response(status_code=204)
 
 
+async def _running_response(handle: WorkflowHandle[AssessmentWorkflow, AssessmentResult]) -> Response:
+    status: RunStatus = await handle.query(AssessmentWorkflow.status)
+    return JSONResponse(
+        status_code=409,
+        content={
+            "detail": f"Run is not finished yet (current status: {status.status})",
+            "status": status.status,
+        },
+    )
+
+
 @router.get("/{run_id}/result", response_model=AssessmentResult)
-async def get_run_result(run_id: str) -> AssessmentResult | Response:
+async def get_run_result(run_id: str, user: Annotated[User, Depends(current_user)]) -> AssessmentResult | Response:
     """Get the final assessment result if completed, or 409 if still in progress."""
     try:
         client = await get_temporal_client()
         handle = client.get_workflow_handle(run_id, result_type=AssessmentResult)
-        desc = await handle.describe()
+        desc = await assert_owner(handle, run_id, user)
         if desc.status == WorkflowExecutionStatus.RUNNING:
-            status: RunStatus = await handle.query(AssessmentWorkflow.status)
-            return JSONResponse(
-                status_code=409,
-                content={
-                    "detail": f"Run is not finished yet (current status: {status.status})",
-                    "status": status.status,
-                },
-            )
-
-        return await handle.result()
+            return await _running_response(handle)
+        result: AssessmentResult = await handle.result()
     except Exception as exc:
         handle_temporal_error(exc, run_id)
         raise
+    else:
+        return result

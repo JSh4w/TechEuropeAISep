@@ -36,6 +36,8 @@ Bessible was built to run locally on a Mac with Google Gemini for LLM reasoning,
 ### 2. Run ownership
 **Decision:** `POST /runs` creates the workflow with id `bessible-<uuid4>` (full 122-bit UUID, not 8 hex) and stores `owner_uid` in the workflow memo. Every `/runs/{id}/status|decision|result|events` handler loads the owner and returns 404 (not 403) if it differs from the caller's `uid`. Event files stay in `out/<run_id>/`, gated by the same check.
 
+**Implemented (tasks 3.1 and 3.4):** `current_user` also guards `/capacity`, `/site-data` and `/inspire` (they call upstream APIs); `/health` and `/data/areas.geojson` stay public. A wrong token gives 401; a valid token whose email is not in `ALLOWED_EMAILS` (or is unverified) gives 403; a missing `FIREBASE_PROJECT_ID` fails closed with 503. `/me` validation errors never echo the submitted input, since it may be a key. `POST /runs` also proves the stored ciphertext decrypts before it starts a workflow (409 `stored_key_unreadable`), and `/runs/{id}/events` now needs Temporal to check ownership, so it returns 503 when Temporal is down instead of serving the file.
+
 ### 3. Key storage: encrypted SQLite on the VM
 **Decision:** Keys live in `/var/lib/bessible/keys.db` (owned by the service user, mode `0600`), table `user_keys(uid, ciphertext, key_id, last4, updated_at)`: one Google key per user.
 - Encryption: AES-GCM. The per-user key is `HKDF(master_secret, info=uid)`; the associated data is the `uid`. A ciphertext copied into another user's row fails to decrypt.

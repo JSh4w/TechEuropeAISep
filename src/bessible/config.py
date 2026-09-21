@@ -14,9 +14,6 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_ignore_empty=True, extra="ignore")
 
     google_api_key: SecretStr | None = None  # the developer's own key: CLI and scripts only, never a fallback for a run
-    # Master secret that seals each run's Google key (see credentials.py)
-    key_encryption_secret: SecretStr | None = None
-    key_encryption_key_id: str = "v1"
     gemini_model: str = "gemini-3.8-flash"
 
     pydantic_ai_gateway_api_key: SecretStr | None = None
@@ -38,6 +35,14 @@ class Settings(BaseSettings):
 
     temporal_address: str = "localhost:7233"
     temporal_namespace: str = "default"
+
+    # Demo deployment: Firebase sign-in and encrypted per-user Google keys.
+    firebase_project_id: str | None = None
+    allowed_emails: str | None = None  # comma-separated; empty means anyone who signs in
+    key_encryption_secret: SecretStr | None = None  # master secret; root-owned EnvironmentFile on the VM
+    key_encryption_key_id: str = "k1"  # id stamped on new ciphertexts
+    key_encryption_previous: dict[str, SecretStr] = {}  # old key_id -> secret, kept while rotating
+    key_db_path: Path = Path("/var/lib/bessible/keys.db")
 
 
 settings = Settings()
