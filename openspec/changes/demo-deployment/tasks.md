@@ -1,7 +1,7 @@
 ## 1. Spike: per-run credentials with Temporal (do first, ~30 min)
 
-- [ ] 1.1 Check whether `TemporalAgent` can use a per-run Gemini key (`models=` / provider factory); if not, decide to call `agent.run(model=...)` inside our own activities, and record the decision in `design.md`
-- [ ] 1.2 Create the Firebase project (Spark plan, Google sign-in) and verify one real ID token end to end with `google.oauth2.id_token.verify_firebase_token` and no service-account file (a forged token is already confirmed to reach the cert lookup)
+- [x] 1.1 Check whether `TemporalAgent` can use a per-run Gemini key (`models=` / provider factory); if not, decide to call `agent.run(model=...)` inside our own activities, and record the decision in `design.md`
+- [x] 1.2 Create the Firebase project (Spark plan, Google sign-in) and verify one real ID token end to end with `google.oauth2.id_token.verify_firebase_token` and no service-account file (a forged token is already confirmed to reach the cert lookup)
 
 ## 2. Per-run model resolution and key isolation
 
