@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -15,6 +16,10 @@ from bessible.location.extract import ExtractedLocation, LocationNotFound
 from bessible.location.fetch import PageUnavailable, page_cache_path
 from bessible.models import AssessmentRequest, LocationInput
 from bessible.stages.location import resolve_location
+
+if TYPE_CHECKING:
+    from bessible.models import EncryptedCredentials
+    from tests.conftest import FakeGemini
 
 
 @pytest.mark.anyio
@@ -53,17 +58,16 @@ async def test_page_with_no_address_fails_with_postcode_hint(monkeypatch, tmp_pa
         )
     )
 
-    with (
-        patch("bessible.location.extract.gemini_model", return_value=test_model),
-        pytest.raises(LocationNotFound, match="--postcode"),
-    ):
-        await resolve_location(inp)
+    with pytest.raises(LocationNotFound, match="--postcode"):
+        await resolve_location(inp, model=test_model)
 
 
 @pytest.mark.anyio
-async def test_activity_wrapper_maps_location_not_found_to_non_retryable():
+async def test_activity_wrapper_maps_location_not_found_to_non_retryable(
+    fake_gemini: FakeGemini, run_credentials: EncryptedCredentials
+):
     """Verify Temporal activity wrapper catches LocationNotFound and raises non-retryable ApplicationError."""
-    req = AssessmentRequest(property_url=HttpUrl("https://example.com/not-found"))
+    req = AssessmentRequest(property_url=HttpUrl("https://example.com/not-found"), credentials=run_credentials)
     inp = LocationInput(run_id="run-activity-test", request=req)
 
     with patch(
@@ -80,9 +84,11 @@ async def test_activity_wrapper_maps_location_not_found_to_non_retryable():
 
 
 @pytest.mark.anyio
-async def test_activity_wrapper_maps_page_unavailable_to_non_retryable():
+async def test_activity_wrapper_maps_page_unavailable_to_non_retryable(
+    fake_gemini: FakeGemini, run_credentials: EncryptedCredentials
+):
     """Verify Temporal activity wrapper catches PageUnavailable and raises non-retryable ApplicationError."""
-    req = AssessmentRequest(property_url=HttpUrl("https://example.com/offline-page"))
+    req = AssessmentRequest(property_url=HttpUrl("https://example.com/offline-page"), credentials=run_credentials)
     inp = LocationInput(run_id="run-unavailable-test", request=req)
 
     with patch(

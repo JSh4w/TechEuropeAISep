@@ -7,9 +7,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, RunContext
-from pydantic_ai.durable_exec.temporal import TemporalAgent
+from pydantic_ai.models import Model
 
-from bessible.llm import gemini_model
 from bessible.suitability.assumptions import FinanceAssumptions, load_finance_assumptions
 from bessible.suitability.finance import CaseResult, Duration, evaluate
 
@@ -38,9 +37,9 @@ class AnalystDeps:
     assumptions: FinanceAssumptions
 
 
-def _create_raw_analyst_agent() -> Agent[AnalystDeps, Recommendation]:
+def _create_analyst_agent() -> Agent[AnalystDeps, Recommendation]:
     agent: Agent[AnalystDeps, Recommendation] = Agent(
-        gemini_model(),
+        defer_model_check=True,  # no key at import time: the run's model is supplied per call
         deps_type=AnalystDeps,
         output_type=Recommendation,
         name="financial_analyst",
@@ -80,8 +79,7 @@ def _create_raw_analyst_agent() -> Agent[AnalystDeps, Recommendation]:
     return agent
 
 
-analyst_agent = _create_raw_analyst_agent()
-temporal_analyst_agent = TemporalAgent(analyst_agent)
+analyst_agent = _create_analyst_agent()
 
 
 def fallback_recommendation(cases: dict[Duration, CaseResult], budget_gbp: float | None) -> Recommendation:
@@ -108,6 +106,7 @@ def fallback_recommendation(cases: dict[Duration, CaseResult], budget_gbp: float
 
 async def run_analyst(
     *,
+    model: Model | None = None,
     mw: float,
     distance_km: float | None,
     firm_mw: float,
@@ -115,7 +114,7 @@ async def run_analyst(
     assumptions: FinanceAssumptions | None = None,
     cases: dict[Duration, CaseResult] | None = None,
 ) -> Recommendation:
-    """Run the analyst agent with fallback on error."""
+    """Run the analyst agent with the run's `model`; without one, or on error, use the deterministic fallback."""
     assump = assumptions or load_finance_assumptions()
     if cases is None:
         cases = {d: evaluate(mw, d, distance_km, firm_mw, budget_gbp, assump) for d in (2, 4, 8)}
@@ -128,6 +127,9 @@ async def run_analyst(
         assumptions=assump,
     )
 
+    if model is None:
+        return fallback_recommendation(cases, budget_gbp)
+
     try:
         # Prompt the analyst agent
         prompt = (
@@ -137,7 +139,7 @@ async def run_analyst(
             else f"Analyze BESS site with confirmed capacity {mw:g} MW (firm capacity: {firm_mw:g} MW, "
             f"distance: {distance_km or 0.5:g} km). No budget cap."
         )
-        res = await analyst_agent.run(prompt, deps=deps)
+        res = await analyst_agent.run(prompt, deps=deps, model=model)
         rec = res.output
         if isinstance(rec, Recommendation):
             return rec

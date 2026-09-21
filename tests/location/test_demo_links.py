@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import uuid
+from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
@@ -17,6 +18,10 @@ from bessible.models import AssessmentRequest, LocationInput, SiteDecision
 from bessible.stages.location import resolve_location
 from bessible.workflow import TASK_QUEUE, AssessmentWorkflow
 
+if TYPE_CHECKING:
+    from bessible.models import EncryptedCredentials
+    from tests.conftest import FakeGemini
+
 DEMO_CASES = [
     ("https://example.com/property", "OX14 4TE"),
     ("https://example.com/property/123", "RH4 1AD"),
@@ -26,28 +31,24 @@ DEMO_CASES = [
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(("demo_url", "expected_postcode"), DEMO_CASES)
-async def test_demo_links_resolve_offline(demo_url: str, expected_postcode: str):
+async def test_demo_links_resolve_offline(demo_url: str, expected_postcode: str, fake_gemini: FakeGemini):
     """Verify each demo link resolves to the expected postcode with network off."""
-    with (
-        patch("httpx.AsyncClient.get", side_effect=RuntimeError("Network is OFF")),
-        patch("bessible.location.extract.gemini_model", side_effect=RuntimeError("Network is OFF")),
-    ):
+    with patch("httpx.AsyncClient.get", side_effect=RuntimeError("Network is OFF")):
         inp = LocationInput(run_id=f"demo-{uuid.uuid4().hex[:6]}", request=AssessmentRequest(link=demo_url))
-        loc = await resolve_location(inp)
+        loc = await resolve_location(inp, model=fake_gemini("test-google-key"))
         assert loc.postcode == expected_postcode
         assert len(loc.artifacts) == 1
         assert str(loc.artifacts[0].source_url) == demo_url
 
 
 @pytest.mark.anyio
-async def test_workflow_end_to_end_with_demo_link_offline():
+async def test_workflow_end_to_end_with_demo_link_offline(
+    fake_gemini: FakeGemini, run_credentials: EncryptedCredentials
+):
     """Verify full AssessmentWorkflow executes from a property link offline with auto-confirmation."""
     demo_url = "https://example.com/property/123"
 
-    with (
-        patch("httpx.AsyncClient.get", side_effect=RuntimeError("Network is OFF")),
-        patch("bessible.location.extract.gemini_model", side_effect=RuntimeError("Network is OFF")),
-    ):
+    with patch("httpx.AsyncClient.get", side_effect=RuntimeError("Network is OFF")):
         async with (
             await WorkflowEnvironment.start_time_skipping(data_converter=pydantic_data_converter) as env,
             Worker(
@@ -59,7 +60,9 @@ async def test_workflow_end_to_end_with_demo_link_offline():
         ):
             handle = await env.client.start_workflow(
                 AssessmentWorkflow.run,
-                AssessmentRequest(property_url=HttpUrl(demo_url), budget_gbp=10_000_000.0),
+                AssessmentRequest(
+                    property_url=HttpUrl(demo_url), budget_gbp=10_000_000.0, credentials=run_credentials
+                ),
                 id=f"test-demo-wf-{uuid.uuid4().hex[:8]}",
                 task_queue=TASK_QUEUE,
             )

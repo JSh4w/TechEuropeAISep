@@ -13,7 +13,6 @@ from pydantic_ai import Agent
 from bessible.api.postcodes_io import ReverseGeocodeRequest
 from bessible.config import settings
 from bessible.geocode import PostcodeNotFoundError, format_postcode, geocode_postcode
-from bessible.llm import gemini_model
 from bessible.location.fetch import PageUnavailable, fetch_page_text
 from bessible.models import Artifact, LocationOutput, Position
 
@@ -133,7 +132,7 @@ async def extract_location(
     """Extract structured location from property text using a Pydantic AI agent.
 
     Trims text to MAX_PAGE_TEXT_CHARS before passing to the model.
-    Falls back to deterministic extraction if the model call fails (e.g. offline).
+    Falls back to deterministic extraction if there is no model or the model call fails (e.g. offline).
     """
     if not text or not text.strip():
         return ExtractedLocation(confidence=0.0)
@@ -141,9 +140,11 @@ async def extract_location(
     trimmed = text[:MAX_PAGE_TEXT_CHARS]
     prompt = f"Extract property location details from the following web page content:\n\n{trimmed}"
     try:
-        chosen_model = model or gemini_model()
+        if model is None:
+            msg = "No model is available to read the property page. Please specify a postcode using --postcode."
+            raise LocationNotFound(msg)
         agent: Agent[None, ExtractedLocation] = Agent(
-            chosen_model,
+            model,
             output_type=ExtractedLocation,
             system_prompt=EXTRACTION_SYSTEM_PROMPT,
         )

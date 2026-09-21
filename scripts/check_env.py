@@ -44,6 +44,7 @@ def ping(name: str, make_model) -> bool:
 def main() -> None:
     results = [
         check("GOOGLE_API_KEY", settings.google_api_key is not None, "set it in .env"),
+        check("KEY_ENCRYPTION_SECRET", settings.key_encryption_secret is not None, "set it in .env (see .env.example)"),
         check("PYDANTIC_AI_GATEWAY_API_KEY", settings.pydantic_ai_gateway_api_key is not None, "set it in .env"),
         check("LOGFIRE_TOKEN", settings.logfire_token is not None, "optional: tracing", required=False),
         check("TYPESAFE_API_KEY", settings.typesafe_api_key is not None, "optional: Jev", required=False),
@@ -61,7 +62,7 @@ def main() -> None:
     if "--live" in sys.argv:
         llm.setup_logfire()
         results += [
-            ping(f"Gemini ({settings.gemini_model})", llm.gemini_model),
+            ping(f"Gemini ({settings.gemini_model})", llm.developer_model),
             ping(f"Modal via gateway ({settings.modal_model})", llm.modal_model),
         ]
     raise SystemExit(0 if all(results) else 1)

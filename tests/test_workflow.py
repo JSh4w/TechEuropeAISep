@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import uuid
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from temporalio.contrib.pydantic import pydantic_data_converter
@@ -15,9 +16,13 @@ from bessible.activities import ALL_ACTIVITIES
 from bessible.models import AssessmentRequest, SiteDecision
 from bessible.workflow import TASK_QUEUE, AssessmentWorkflow
 
+if TYPE_CHECKING:
+    from bessible.models import EncryptedCredentials
+    from tests.conftest import FakeGemini
+
 
 @pytest.mark.anyio
-async def test_workflow_end_to_end_suitability():
+async def test_workflow_end_to_end_suitability(fake_gemini: FakeGemini, run_credentials: EncryptedCredentials):
     """Verify full AssessmentWorkflow executes with suitability engine and human confirmation."""
     async with (
         await WorkflowEnvironment.start_time_skipping(data_converter=pydantic_data_converter) as env,
@@ -30,7 +35,7 @@ async def test_workflow_end_to_end_suitability():
     ):
         handle = await env.client.start_workflow(
             AssessmentWorkflow.run,
-            AssessmentRequest(postcode="RH4 1AD", budget_gbp=10_000_000.0),
+            AssessmentRequest(postcode="RH4 1AD", budget_gbp=10_000_000.0, credentials=run_credentials),
             id=f"test-wf-{uuid.uuid4().hex[:8]}",
             task_queue=TASK_QUEUE,
         )
@@ -71,7 +76,7 @@ async def test_workflow_end_to_end_suitability():
 
 
 @pytest.mark.anyio
-async def test_workflow_end_to_end_80mw_grid_level():
+async def test_workflow_end_to_end_80mw_grid_level(fake_gemini: FakeGemini, run_credentials: EncryptedCredentials):
     """Verify 80 MW request uses 132 kV grid substation and completes full workflow."""
     async with (
         await WorkflowEnvironment.start_time_skipping(data_converter=pydantic_data_converter) as env,
@@ -84,7 +89,9 @@ async def test_workflow_end_to_end_80mw_grid_level():
     ):
         handle = await env.client.start_workflow(
             AssessmentWorkflow.run,
-            AssessmentRequest(postcode="RH4 1AD", battery_mw=80.0, budget_gbp=50_000_000.0),
+            AssessmentRequest(
+                postcode="RH4 1AD", battery_mw=80.0, budget_gbp=50_000_000.0, credentials=run_credentials
+            ),
             id=f"test-wf-80mw-{uuid.uuid4().hex[:8]}",
             task_queue=TASK_QUEUE,
         )

@@ -13,7 +13,10 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", env_ignore_empty=True, extra="ignore")
 
-    google_api_key: SecretStr | None = None
+    google_api_key: SecretStr | None = None  # the developer's own key: CLI and scripts only, never a fallback for a run
+    # Master secret that seals each run's Google key (see credentials.py)
+    key_encryption_secret: SecretStr | None = None
+    key_encryption_key_id: str = "v1"
     gemini_model: str = "gemini-3.8-flash"
 
     pydantic_ai_gateway_api_key: SecretStr | None = None
