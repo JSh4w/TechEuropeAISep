@@ -8,12 +8,16 @@ from datetime import date
 from pathlib import Path
 
 from pydantic import BaseModel, Field, HttpUrl
-from pydantic_ai import Agent
+from pydantic_ai import Agent, UsageLimits
 from pydantic_ai.capabilities import WebSearch
 from pydantic_ai.models import Model
 
 DATA_DIR = Path(__file__).resolve().parents[3] / "data"
 NEWS_FIXTURES_DIR = DATA_DIR / "fixtures" / "news"
+# Bounds how many searches one news-research call can run, so nothing in a search result can drive
+# the agent into an unbounded, billed sequence of further searches (the pydantic-ai default is 50
+# requests; a local-news lookup needs a handful).
+RESEARCH_USAGE_LIMITS = UsageLimits(request_limit=8, tool_calls_limit=6)
 
 
 class Source(BaseModel):
@@ -119,7 +123,7 @@ async def research_local_news(
 
     if model is not None:
         try:
-            res = await research_agent.run(prompt, model=model)
+            res = await research_agent.run(prompt, model=model, usage_limits=RESEARCH_USAGE_LIMITS)
             output = res.output
             if isinstance(output, Research):
                 save_cached_research(key, output)

@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock
 import httpx
 import pytest
 
-from bessible.location.fetch import PageUnavailable, fetch_page_text, html_to_text, page_cache_path
+from bessible.location.fetch import PageUnavailable, UnsafeUrl, fetch_page_text, html_to_text, page_cache_path
 
 
 def test_html_to_text():
@@ -97,4 +97,45 @@ async def test_fetch_page_text_network_error(monkeypatch, tmp_path):
     mock_client.get.side_effect = httpx.ConnectError("Connection refused")
 
     with pytest.raises(PageUnavailable, match="Could not fetch"):
+        await fetch_page_text(test_url, client=mock_client)
+
+
+@pytest.mark.anyio
+async def test_fetch_page_text_rejects_bad_scheme(monkeypatch, tmp_path):
+    monkeypatch.setattr("bessible.config.settings.data_dir", tmp_path)
+
+    with pytest.raises(UnsafeUrl):
+        await fetch_page_text("file:///etc/passwd")
+
+
+@pytest.mark.anyio
+async def test_fetch_page_text_rejects_loopback_ip_literal(monkeypatch, tmp_path):
+    monkeypatch.setattr("bessible.config.settings.data_dir", tmp_path)
+
+    with pytest.raises(UnsafeUrl):
+        await fetch_page_text("http://127.0.0.1:8000/internal")
+
+
+@pytest.mark.anyio
+async def test_fetch_page_text_rejects_cloud_metadata_ip(monkeypatch, tmp_path):
+    monkeypatch.setattr("bessible.config.settings.data_dir", tmp_path)
+
+    with pytest.raises(UnsafeUrl):
+        await fetch_page_text("http://169.254.169.254/latest/meta-data/")
+
+
+@pytest.mark.anyio
+async def test_fetch_page_text_rejects_redirect_to_internal_address(monkeypatch, tmp_path):
+    monkeypatch.setattr("bessible.config.settings.data_dir", tmp_path)
+    test_url = "https://example.com/redirector"
+
+    mock_client = AsyncMock(spec=httpx.AsyncClient)
+    redirect_resp = httpx.Response(
+        status_code=302,
+        headers={"location": "http://127.0.0.1:8000/internal"},
+        request=httpx.Request("GET", test_url),
+    )
+    mock_client.get.return_value = redirect_resp
+
+    with pytest.raises(UnsafeUrl):
         await fetch_page_text(test_url, client=mock_client)

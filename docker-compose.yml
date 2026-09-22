@@ -42,11 +42,22 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK:-traefik_proxy}"
+      # Self-contained middlewares (Docker provider) so nothing depends on shared Traefik host config.
+      - "traefik.http.middlewares.bessible-security-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.bessible-security-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.bessible-security-headers.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.bessible-security-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.bessible-security-headers.headers.frameDeny=true"
+      - "traefik.http.middlewares.bessible-security-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
+      # Stricter than web: /runs, /me/key/test etc. trigger billed Gemini/Modal calls per request.
+      - "traefik.http.middlewares.bessible-api-ratelimit.ratelimit.average=${RATE_LIMIT_API_AVERAGE:-5}"
+      - "traefik.http.middlewares.bessible-api-ratelimit.ratelimit.burst=${RATE_LIMIT_API_BURST:-10}"
+      - "traefik.http.middlewares.bessible-api-ratelimit.ratelimit.period=1s"
       - "traefik.http.routers.bessible-api.rule=Host(`${DOMAIN:-localhost}`) && (PathPrefix(`/runs`) || PathPrefix(`/me`) || PathPrefix(`/demo`) || PathPrefix(`/capacity`) || PathPrefix(`/site-data`) || PathPrefix(`/inspire`) || PathPrefix(`/health`) || PathPrefix(`/data`))"
       - "traefik.http.routers.bessible-api.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}"
       - "traefik.http.routers.bessible-api.tls=true"
       - "traefik.http.routers.bessible-api.priority=100"
-      - "traefik.http.routers.bessible-api.middlewares=${TRAEFIK_MIDDLEWARES_API:-security-headers@file}"
+      - "traefik.http.routers.bessible-api.middlewares=${TRAEFIK_MIDDLEWARES_API:-bessible-security-headers@docker,bessible-api-ratelimit@docker}"
       - "traefik.http.services.bessible-api.loadbalancer.server.port=8000"
     depends_on:
       - temporal
@@ -103,11 +114,15 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK:-traefik_proxy}"
+      # Looser than the API: normal page/asset traffic, no billed calls behind it.
+      - "traefik.http.middlewares.bessible-web-ratelimit.ratelimit.average=${RATE_LIMIT_WEB_AVERAGE:-20}"
+      - "traefik.http.middlewares.bessible-web-ratelimit.ratelimit.burst=${RATE_LIMIT_WEB_BURST:-40}"
+      - "traefik.http.middlewares.bessible-web-ratelimit.ratelimit.period=1s"
       - "traefik.http.routers.bessible-web.rule=Host(`${DOMAIN:-localhost}`)"
       - "traefik.http.routers.bessible-web.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}"
       - "traefik.http.routers.bessible-web.tls=true"
       - "traefik.http.routers.bessible-web.priority=10"
-      - "traefik.http.routers.bessible-web.middlewares=${TRAEFIK_MIDDLEWARES_WEB:-security-headers@file,rate-limit@file}"
+      - "traefik.http.routers.bessible-web.middlewares=${TRAEFIK_MIDDLEWARES_WEB:-bessible-security-headers@docker,bessible-web-ratelimit@docker}"
       - "traefik.http.services.bessible-web.loadbalancer.server.port=3000"
     depends_on:
       - api
