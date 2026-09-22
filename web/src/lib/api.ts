@@ -295,7 +295,7 @@ export async function saveKey(googleKey: string): Promise<KeyStatus> {
   const res = await apiFetch('/me/key', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ google_key: googleKey }),
+    body: JSON.stringify({ google_api_key: googleKey }),
   });
   if (!res.ok) return throwApiError(res, 'Failed to save key');
   const data = await res.json();
@@ -312,7 +312,7 @@ export async function testKey(googleKey?: string): Promise<KeyTestResult> {
   const res = await apiFetch('/me/key/test', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(googleKey ? { google_key: googleKey } : {}),
+    body: JSON.stringify(googleKey ? { google_api_key: googleKey } : {}),
   });
   if (res.status === 401 || res.status === 404) return throwApiError(res, 'Not signed in or no key saved');
   const data = await res.json().catch(() => ({}));

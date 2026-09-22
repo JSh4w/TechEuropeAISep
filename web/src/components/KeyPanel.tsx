@@ -29,11 +29,14 @@ export default function KeyPanel({ open, onOpenChange, status, onStatusChange }:
   const [busy, setBusy] = useState<'test' | 'save' | 'delete' | null>(null);
   const [feedback, setFeedback] = useState<Feedback>(null);
 
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
   // Never keep a typed key around once the panel closes.
   const handleOpenChange = (next: boolean) => {
     if (!next) {
       setDraft('');
       setFeedback(null);
+      setSaveSuccess(false);
     }
     onOpenChange(next);
   };
@@ -44,6 +47,7 @@ export default function KeyPanel({ open, onOpenChange, status, onStatusChange }:
   const run = async (kind: 'test' | 'save' | 'delete', fn: () => Promise<void>) => {
     setBusy(kind);
     setFeedback(null);
+    setSaveSuccess(false);
     try {
       await fn();
     } catch (err) {
@@ -65,10 +69,17 @@ export default function KeyPanel({ open, onOpenChange, status, onStatusChange }:
 
   const handleSave = () =>
     run('save', async () => {
+      // 1. Test key against Gemini first
+      const testRes = await testKey(typed);
+      if (!testRes.ok) {
+        throw new Error(testRes.message || 'Google rejected this key. Please check AI Studio.');
+      }
+      // 2. Save if verified
       const saved = await saveKey(typed);
       onStatusChange(saved);
       setDraft('');
-      setFeedback({ kind: 'ok', text: 'Key saved.' });
+      setSaveSuccess(true);
+      setFeedback({ kind: 'ok', text: 'Key verified with Gemini and saved successfully.' });
     });
 
   const handleDelete = () =>
@@ -160,10 +171,21 @@ export default function KeyPanel({ open, onOpenChange, status, onStatusChange }:
               size="sm"
               onClick={handleSave}
               disabled={!!busy || typed.length === 0}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white"
+              className={saveSuccess ? "bg-emerald-600 text-white" : "bg-emerald-600 hover:bg-emerald-500 text-white"}
             >
-              {busy === 'save' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              Save key
+              {busy === 'save' ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                  Testing & saving…
+                </>
+              ) : saveSuccess ? (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5 mr-1.5 text-white" />
+                  Saved
+                </>
+              ) : (
+                'Save key'
+              )}
             </Button>
           </div>
         </DialogFooter>
