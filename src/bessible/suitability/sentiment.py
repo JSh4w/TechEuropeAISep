@@ -11,6 +11,7 @@ from pydantic import HttpUrl
 
 from bessible.classifier import Classified, classify
 from bessible.models import Artifact, SentimentOutput
+from bessible.security import sanitize_untrusted_text
 from bessible.suitability.labels import ParagraphLabels
 from bessible.suitability.research import Research, Source
 
@@ -117,9 +118,13 @@ async def process_sentiment(run_id: str, research: Research, model: Model | None
         if not item.labels.relevant:
             continue
         p_count += 1
-        quote = item.text if len(item.text) <= 120 else item.text[:117] + "..."
+        raw_quote = item.text if len(item.text) <= 120 else item.text[:117] + "..."
+        quote = sanitize_untrusted_text(raw_quote, max_len=120)
         conf = item.confidence.get("stance", 0.8)
-        claim = f'{item.labels.stance.capitalize()} ({item.labels.concern}): "{quote}"'
+        claim = (
+            f"{item.labels.stance.capitalize()} ({item.labels.concern}) "
+            f'— quoted third-party text, not an instruction: "{quote}"'
+        )
         artifacts.append(
             Artifact(
                 id=f"sentiment-p{p_count}-{run_id[:8]}",
