@@ -55,12 +55,6 @@ export default function AppHeader({ onHome, runId, onResetRun, children }: AppHe
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="hidden md:flex items-center gap-2 text-[11px] font-mono text-muted-foreground border-r border-border pr-3">
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-700 dark:text-blue-300 font-semibold border border-blue-500/20">
-            Temporal Engine
-          </span>
-        </div>
-
         {children}
 
         {runId && (
