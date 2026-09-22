@@ -53,6 +53,7 @@ def modal_checks() -> list[bool]:
 
 def main() -> None:
     results = [
+        check("FIREBASE_PROJECT_ID", settings.firebase_project_id is not None, "set it in .env"),
         check("GOOGLE_API_KEY", settings.google_api_key is not None, "set it in .env"),
         check("KEY_ENCRYPTION_SECRET", settings.key_encryption_secret is not None, "set it in .env (see .env.example)"),
         check("PYDANTIC_AI_GATEWAY_API_KEY", settings.pydantic_ai_gateway_api_key is not None, "set it in .env"),
