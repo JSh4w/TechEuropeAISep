@@ -666,6 +666,11 @@ export default function Home() {
     setResult(null);
     setEvents([]);
     setCapacityProposal(null);
+    // Align input and map coordinates to the recorded demo location (Dorking Viable)
+    setPostcode('RH4 1AD');
+    setInitialCenter([-0.3302, 51.2329]);
+    setCurrentPosition([-0.3302, 51.2329]);
+    lastRunPostcodeRef.current = 'RH4 1AD';
     try {
       const res = await startDemoRun();
       setRunId(res.run_id);
@@ -677,11 +682,31 @@ export default function Home() {
     }
   };
 
+  const handleReset = () => {
+    setRunId(null);
+    setRunStatus(null);
+    setResult(null);
+    setCapacityProposal(null);
+    setCapacityLoading(false);
+    setInspireGeoJson(null);
+    setSubstationChangeNotice(null);
+    setSiteData(null);
+    setEvents([]);
+    setPostcode('');
+    positionedRunRef.current = null;
+    proposedRunRef.current = null;
+    pendingPinRef.current = null;
+    lastRunPostcodeRef.current = null;
+    setErrorMsg(null);
+  };
+
   const handleSignIn = async () => {
     setSigningIn(true);
     setSignInError(null);
     try {
       await auth.signIn();
+      // Signing in clears any demo data ready for a fresh authenticated run
+      handleReset();
     } catch (err) {
       const code = (err as { code?: string })?.code;
       if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
@@ -692,16 +717,14 @@ export default function Home() {
     }
   };
 
-  const handleReset = () => {
-    setRunId(null);
-    setRunStatus(null);
-    setResult(null);
-    setCapacityProposal(null);
-    setCapacityLoading(false);
-    setInspireGeoJson(null);
-    setSubstationChangeNotice(null);
-    setEvents([]);
-  };
+  // If the user authenticates while viewing the recorded demo replay, clear demo data for a fresh run
+  const prevUserRef = useRef(auth.user);
+  useEffect(() => {
+    if (!prevUserRef.current && auth.user && isDemoRun(runId)) {
+      handleReset();
+    }
+    prevUserRef.current = auth.user;
+  }, [auth.user, runId]);
 
   const isDemo = isDemoRun(runId);
 
