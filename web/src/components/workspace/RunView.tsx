@@ -91,7 +91,7 @@ export default function RunView({
       {notices}
       <ReportView result={run.result} onReset={onReset} />
       <div className="max-w-3xl">
-        <LiveTrace events={run.events} isConnected={false} status="completed" />
+        <LiveTrace events={run.events} isConnected={false} status="completed" runId={run.runId} />
       </div>
     </div>
   ) : (
@@ -136,7 +136,7 @@ export default function RunView({
 
       {/* Right col: live agent trace, level with the location bar */}
       <div className="lg:col-span-1">
-        <LiveTrace events={run.events} isConnected={run.isStreaming} status={runStatus?.status || 'idle'} />
+        <LiveTrace events={run.events} isConnected={run.isStreaming} status={runStatus?.status || 'idle'} runId={run.runId} />
       </div>
     </div>
   );

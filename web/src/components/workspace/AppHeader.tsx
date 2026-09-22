@@ -24,7 +24,7 @@ interface AppHeaderProps {
   onHome: () => void;
   runId: string | null;
   onResetRun: () => void;
-  /** Mode-specific controls (badges, sign-in, settings), shown before the run id. */
+  /** Mode-specific controls (badges, sign-in, settings), shown before the reset button. */
   children?: React.ReactNode;
 }
 
@@ -56,10 +56,6 @@ export default function AppHeader({ onHome, runId, onResetRun, children }: AppHe
 
       <div className="flex items-center gap-3">
         <div className="hidden md:flex items-center gap-2 text-[11px] font-mono text-muted-foreground border-r border-border pr-3">
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-500/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            UKPN Live API
-          </span>
           <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-700 dark:text-blue-300 font-semibold border border-blue-500/20">
             Temporal Engine
           </span>
@@ -68,20 +64,15 @@ export default function AppHeader({ onHome, runId, onResetRun, children }: AppHe
         {children}
 
         {runId && (
-          <div className="flex items-center gap-2.5 text-xs">
-            <span className="text-muted-foreground font-mono text-[11px] hidden sm:inline bg-muted/50 px-2 py-1 rounded-md border border-border">
-              {runId}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onResetRun}
-              className="gap-1.5 text-xs h-8 px-3 rounded-xl border-border cursor-pointer hover:bg-muted/80 transition-colors"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Run</span>
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onResetRun}
+            className="gap-1.5 text-xs h-8 px-3 rounded-xl border-border cursor-pointer hover:bg-muted/80 transition-colors"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset Run</span>
+          </Button>
         )}
       </div>
     </header>
