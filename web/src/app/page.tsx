@@ -8,7 +8,6 @@ import ReportView from '../components/ReportView';
 import KeyPanel from '../components/KeyPanel';
 import FirstLoadModal from '../components/FirstLoadModal';
 import SignedOutLanding from '../components/SignedOutLanding';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -48,6 +47,7 @@ import {
   LogOut,
   PlayCircle,
   Film,
+  ChevronDown,
 } from 'lucide-react';
 
 // Demo Presets for Hackathon Testing
@@ -911,62 +911,65 @@ export default function Home() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-[1800px] w-full mx-auto p-4 sm:p-6 space-y-6">
-        {/* Postcode Search & Preset Bar */}
-        <Card className="border-border bg-card shadow-xs rounded-2xl overflow-hidden">
-          <CardContent className="p-4 sm:p-5 space-y-3.5">
-            <div className="flex flex-col md:flex-row gap-3">
-              <div className="relative flex-1">
-                <MapPin className="absolute left-3.5 top-3 w-4 h-4 text-emerald-600" />
-                <Input
-                  type="text"
-                  placeholder="Enter UK Postcode (e.g. SE1 7PB) or Property URL"
-                  value={postcode}
-                  onChange={(e) => setPostcode(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && postcode.trim() && !loading) {
-                      handleStartRun();
+        {/* Postcode Search & Action Bar */}
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="relative flex-1">
+            <MapPin className="absolute left-3.5 top-3.5 w-4 h-4 text-emerald-600" />
+            <Input
+              type="text"
+              placeholder={isDemo ? 'Demo Site: RH4 1AD' : 'Enter UK Postcode (e.g. SE1 7PB) or Property URL'}
+              value={postcode}
+              disabled={isDemo}
+              onChange={(e) => setPostcode(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && postcode.trim() && !loading && !isDemo) {
+                  handleStartRun();
+                }
+              }}
+              className="pl-10 h-11 font-medium rounded-xl text-sm bg-card shadow-xs border-border disabled:opacity-85 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          {isDemo ? (
+            <div className="relative min-w-[280px]">
+              <Sparkles className="absolute left-3.5 top-3.5 w-4 h-4 text-amber-500 pointer-events-none z-10" />
+              <select
+                aria-label="Select demo site"
+                value={DEMO_PRESETS.find((p) => p.postcode === postcode)?.postcode ?? DEMO_PRESETS[0].postcode}
+                onChange={(e) => {
+                  const preset = DEMO_PRESETS.find((p) => p.postcode === e.target.value);
+                  if (preset) {
+                    setPostcode(preset.postcode);
+                    if (preset.postcode === 'RH4 1AD') {
+                      void handleStartDemo();
+                    } else {
+                      activateFallbackFlow(preset.postcode, preset.coords, true);
                     }
-                  }}
-                  className="pl-10 h-11 font-medium rounded-xl text-sm"
-                />
-              </div>
-
-              <Button
-                type="button"
-                onClick={() => handleStartRun()}
-                disabled={loading || !postcode.trim()}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 h-11 rounded-xl gap-2 shadow-xs cursor-pointer text-sm"
+                  }
+                }}
+                disabled={loading}
+                className="w-full h-11 pl-10 pr-9 bg-card border border-border text-foreground font-semibold rounded-xl text-sm shadow-xs appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/30 hover:border-emerald-500/40 transition-colors"
               >
-                <Search className="w-4 h-4 stroke-[2.5]" />
-                <span>{loading ? 'Screening Grid...' : 'Screen Location'}</span>
-              </Button>
+                {DEMO_PRESETS.map((demo) => (
+                  <option key={demo.postcode} value={demo.postcode}>
+                    {demo.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3.5 top-3.5 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
             </div>
-
-            {/* Quick Demo Preset Pills */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/70 text-xs">
-              <span className="font-semibold text-muted-foreground flex items-center gap-1.5 mr-1 text-[11px] uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Demo Sites:
-              </span>
-              {DEMO_PRESETS.map((demo) => (
-                <button
-                  key={demo.postcode}
-                  type="button"
-                  onClick={() => {
-                    setPostcode(demo.postcode);
-                    handleStartRun(demo.postcode, demo.coords);
-                  }}
-                  className={`text-xs px-3 py-1.5 rounded-lg border transition text-left cursor-pointer ${
-                    postcode === demo.postcode
-                      ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-semibold'
-                      : 'bg-muted/30 border-border/80 text-foreground hover:bg-muted/60'
-                  }`}
-                >
-                  <span className="font-medium">{demo.label}</span>
-                </button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+          ) : (
+            <Button
+              type="button"
+              onClick={() => handleStartRun()}
+              disabled={loading || !postcode.trim()}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 h-11 rounded-xl gap-2 shadow-xs cursor-pointer text-sm"
+            >
+              <Search className="w-4 h-4 stroke-[2.5]" />
+              <span>{loading ? 'Screening Grid...' : 'Screen Location'}</span>
+            </Button>
+          )}
+        </div>
 
         {isDemo && (
           <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-900 dark:text-amber-200 flex items-center gap-2">
