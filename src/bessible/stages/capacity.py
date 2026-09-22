@@ -565,7 +565,10 @@ def _append_check_log(inp: CapacityInput, out: CapacityOutput) -> None:
 
 
 async def propose_live(position: Position, run_id: str, *, fallback: CapacityOutput) -> CapacityOutput:
-    """Outside the snapshot: live DNO headroom (UKPN, NGED, SSEN, SP Energy Networks) from `location.collate`. Any failure -> fallback."""
+    """Outside the snapshot: live DNO headroom (UKPN, NGED, SSEN, SPEN, Northern Powergrid) via `location.collate`.
+
+    Any failure -> fallback.
+    """
     if not settings.live_capacity:
         return fallback
     try:
@@ -627,7 +630,9 @@ async def _propose_live(position: Position, run_id: str) -> CapacityOutput | Non
     urls = [
         s.url
         for s in location.sources
-        if s.status == "ok" and s.url.startswith("http") and s.name.startswith(("UKPN", "NGED", "SSEN", "SP Energy Networks"))
+        if s.status == "ok"
+        and s.url.startswith("http")
+        and s.name.startswith(("UKPN", "NGED", "SSEN", "SP Energy Networks", "Northern Powergrid"))
     ]
     source = HttpUrl(urls[0]) if urls else HttpUrl(DATASET_URL)
 

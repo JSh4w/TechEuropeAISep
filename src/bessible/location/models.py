@@ -167,7 +167,9 @@ class Designation(BaseModel):
 # ------------------------------------ deterministic: the grid ----------------------------------- #
 
 Rag = Literal["red", "amber", "green"]
-Operator = Literal["UKPN", "NGED", "SSEN Distribution", "SSEN Transmission", "SP Energy Networks"]
+Operator = Literal[
+    "UKPN", "NGED", "SSEN Distribution", "SSEN Transmission", "SP Energy Networks", "Northern Powergrid"
+]
 
 
 class Headroom(BaseModel):

@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     spen_api_key: SecretStr | None = Field(
         default=None, validation_alias=AliasChoices("spen_api_key", "sp_energy_api_key")
     )  # spenergynetworks.opendatasoft.com
+    npg_api_key: SecretStr | None = None  # northernpowergrid.opendatasoft.com
     os_api_key: SecretStr | None = None  # osdatahub.os.uk (Ordnance Survey maps)
 
     # Outside the bundled (Dorking-only) UKPN snapshot, look up live DNO headroom. Tests turn it off to stay offline.

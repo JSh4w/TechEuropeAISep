@@ -12,6 +12,7 @@ from bessible.api import (
     natural_england,
     neso,
     nged,
+    npg,
     planning_data,
     postcodes_io,
     sp_energy,
@@ -374,3 +375,19 @@ def test_without_geometry_is_prompt_sized(site):
 )
 def test_connection_kv(published, voltages, name, expected):
     assert transform._connection_kv(published, voltages, name) == expected  # ruff: ignore[private-member-access]
+
+
+def test_npg_substations():
+    records = npg.DATASETS["capacity_heatmap"].parse(load("npg_capacity_heatmap_leeds")).results
+    subs = transform.npg_substations(records, Site(Coordinates(lat=53.7997, lon=-1.5492)))
+    assert [s.name for s in subs] == ["Upper Basinghall Street", "Whitehall Road 2/3"]
+    town = subs[0]
+    assert (town.operator, town.kind, town.connection_voltage_kv) == ("Northern Powergrid", "primary", 11.0)
+    assert town.gsp is None  # NPg publishes asset ids, not names
+    assert town.headroom.generation_rag == "green"
+    assert town.headroom.demand == pytest.approx(9.16)
+
+
+def test_npg_limiting_factor_drops_the_colour():
+    assert transform._limiting_factor("Red - Fault Level") == "Fault Level"  # ruff: ignore[private-member-access]
+    assert transform._limiting_factor("Green") is None  # ruff: ignore[private-member-access]

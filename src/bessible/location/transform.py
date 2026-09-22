@@ -17,7 +17,7 @@ from shapely.errors import ShapelyError
 from shapely.geometry import LineString
 from shapely.ops import unary_union
 
-from bessible.api import natural_england, nged, planning_data, sp_energy, ssen, ssen_distribution
+from bessible.api import natural_england, nged, npg, planning_data, sp_energy, ssen, ssen_distribution
 
 from .geometry import Site, from_geojson, to_geometry
 from .models import (
@@ -866,6 +866,50 @@ def sp_energy_substations(
                 voltages=str(pt.voltage) if pt.voltage else None,
                 coords=_at(p.lat, p.lon),
                 distance_km=site.distance_km(p.lat, p.lon),
+            )
+        )
+    return out
+
+
+def _limiting_factor(value: str | None) -> str | None:
+    """Northern Powergrid repeats the RAG colour: "Red - Fault Level" -> "Fault Level"; "Green" -> None."""
+    _, _, factor = (value or "").partition(" - ")
+    return factor.strip() or None
+
+
+def npg_substations(records: Sequence[npg.CapacityHeatmapSite], site: Site) -> list[Substation]:
+    """Northern Powergrid primaries, BSPs and GSPs with their LTDS heatmap headroom.
+
+    `gsp` / `bsp` are NPg asset ids ("GSP-000038"), not names, so they are left out: they would never match NESO.
+    """
+    out: list[Substation] = []
+    for r in records:
+        if r.latitude is None or r.longitude is None:
+            continue
+        out.append(
+            Substation(
+                name=(r.name or "Unnamed").strip(),
+                operator="Northern Powergrid",
+                kind=(r.type or "primary").lower(),
+                voltage_kv=r.voltages,
+                voltages=f"{r.voltages:g}" if r.voltages else None,
+                connection_voltage_kv=_connection_kv(None, [r.voltages or 0], r.name),
+                coords=_at(r.latitude, r.longitude),
+                distance_km=site.distance_km(r.latitude, r.longitude),
+                headroom=Headroom(
+                    generation_mw=r.generationavailablecapacity,
+                    generation_rag=_rag(r.generationconstraint),
+                    generation_constraint=_limiting_factor(r.generationconstraintlimitingfactor),
+                    demand=r.demandavailablecapacity,
+                    demand_rag=_rag(r.demandconstraint),
+                    demand_constraint=_limiting_factor(r.demandconstraintlimitingfactor),
+                    basis="Northern Powergrid capacity heatmap (LTDS): published available capacity",
+                    demand_firm_mw=r.demandfirmcapacity,
+                    demand_max_mw=r.demandmaximum,
+                    demand_min_mw=r.demandminimum,
+                    generation_firm_mw=r.generationfirmcapacity,
+                    reverse_power_available_mw=r.reversepowerflowavailablecapacity,
+                ),
             )
         )
     return out

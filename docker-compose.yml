@@ -30,6 +30,7 @@ services:
       - SSEN_API_KEY=${SSEN_API_KEY:-}
       - UKPN_API_KEY=${UKPN_API_KEY:-}
       - NGED_API_KEY=${NGED_API_KEY:-}
+      - NPG_API_KEY=${NPG_API_KEY:-}
       - LOGFIRE_TOKEN=${LOGFIRE_TOKEN:-}
     env_file:
       - path: .env
@@ -83,6 +84,7 @@ services:
       - SSEN_API_KEY=${SSEN_API_KEY:-}
       - UKPN_API_KEY=${UKPN_API_KEY:-}
       - NGED_API_KEY=${NGED_API_KEY:-}
+      - NPG_API_KEY=${NPG_API_KEY:-}
       - LOGFIRE_TOKEN=${LOGFIRE_TOKEN:-}
     env_file:
       - path: .env
