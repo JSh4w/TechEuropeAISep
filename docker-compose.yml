@@ -1,10 +1,8 @@
 services:
   temporal:
-    image: temporalio/auto-setup:latest
+    image: temporalio/admin-tools:latest
     container_name: bessible-temporal
-    environment:
-      - DB=sqlite
-      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+    command: ["temporal", "server", "start-dev", "--ip", "0.0.0.0", "--db-filename", "/etc/temporal/schema/temporal.db"]
     volumes:
       - temporal-data:/etc/temporal/schema
     networks:
