@@ -2,24 +2,28 @@ from __future__ import annotations
 
 from datetime import date
 
+import httpx
 import pytest
 
 from bessible.api.ukpn import CapacityHeatmapSite
 from bessible.location.models import Coordinates, Headroom, Substation
-from bessible.models import Position
+from bessible.models import CapacityOutput, Position
 from bessible.stages.capacity import (
     LOW_VOLTAGE_CAP_MW,
     connection_voltage_kv,
     distance_weight,
     haversine_km,
+    headroom_changes,
     live_connection_kv,
     live_demand_mw,
     live_firm_mw,
     propose,
     tia_threshold_mw,
+    verify_live,
 )
 from bessible.ukpn.models import GridSubstation
 from bessible.ukpn.snapshot import Snapshot, load_snapshot
+from tests.conftest import UKPN_FIXTURE_DIR
 
 SITE = Position(lat=51.5, lon=-0.5)
 
@@ -365,3 +369,62 @@ def test_live_mva_demand_converted_to_mw():
     sub = _live_sub(33.0, demand=20, generation=40, unit="MVA")
     assert live_demand_mw(sub.headroom) == pytest.approx(19.0)
     assert live_firm_mw(sub) == pytest.approx(19.0)
+
+
+DORKING = Position(lat=51.2329, lon=-0.3302)
+
+
+def _fixture_snapshot() -> Snapshot:
+    return load_snapshot(UKPN_FIXTURE_DIR)
+
+
+def _with_live(monkeypatch: pytest.MonkeyPatch, rows_or_error: list[CapacityHeatmapSite] | Exception) -> None:
+    async def fake(*_args: object, **_kwargs: object) -> list[CapacityHeatmapSite]:
+        if isinstance(rows_or_error, Exception):
+            raise rows_or_error
+        return rows_or_error
+
+    monkeypatch.setattr("bessible.stages.capacity.fetch_live_heatmap", fake)
+
+
+def _live_check(out: CapacityOutput) -> str:
+    return next(a.claim for a in out.artifacts if a.id.startswith("capacity-live-check"))
+
+
+def test_headroom_changes_matches_on_mrid():
+    snap = _fixture_snapshot().substations
+    moved = snap[0].model_copy(update={"demandavailablecapacity": 3.0})
+    assert headroom_changes(snap, snap) == []
+    assert headroom_changes(snap, [moved]) == [(snap[0], moved)]
+
+
+@pytest.mark.anyio
+async def test_verify_live_unchanged(monkeypatch: pytest.MonkeyPatch):
+    snap = _fixture_snapshot()
+    _with_live(monkeypatch, list(snap.substations))
+    out = propose(DORKING, snap, "run-live-same", flexible=False)
+    checked = await verify_live(DORKING, snap, out, "run-live-same", flexible=False)
+    assert checked.firm_mw == out.firm_mw
+    assert "matches the snapshot" in _live_check(checked)
+
+
+@pytest.mark.anyio
+async def test_verify_live_changed_uses_live_values(monkeypatch: pytest.MonkeyPatch):
+    snap = _fixture_snapshot()
+    town = next(r for r in snap.substations if r.name == "Dorking Town 11kV")
+    _with_live(monkeypatch, [town.model_copy(update={"demandavailablecapacity": 3.0})])
+    out = propose(DORKING, snap, "run-live-diff", flexible=False)
+    checked = await verify_live(DORKING, snap, out, "run-live-diff", flexible=False)
+    assert (out.firm_mw, checked.firm_mw) == (8.0, 3.0)  # 14.7 MW import fell to 3 MW, under the 8 MW cap
+    assert not checked.viable  # below the 5 MW floor now
+    assert "import 14.7 -> 3.0 MW" in _live_check(checked)
+
+
+@pytest.mark.anyio
+async def test_verify_live_unreachable_keeps_snapshot(monkeypatch: pytest.MonkeyPatch):
+    snap = _fixture_snapshot()
+    _with_live(monkeypatch, httpx.ConnectTimeout("slow"))
+    out = propose(DORKING, snap, "run-live-down", flexible=False)
+    checked = await verify_live(DORKING, snap, out, "run-live-down", flexible=False)
+    assert checked.firm_mw == out.firm_mw
+    assert "Not verified against live UKPN data (ConnectTimeout)" in _live_check(checked)

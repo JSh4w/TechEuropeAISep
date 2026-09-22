@@ -7,11 +7,15 @@ import json
 import logging
 import math
 import re
+from datetime import UTC, datetime
 from operator import itemgetter
 from typing import TYPE_CHECKING, Literal
 
+import httpx
 from pydantic import HttpUrl
 
+from bessible.api import opendatasoft
+from bessible.api import ukpn as ukpn_api
 from bessible.config import settings
 from bessible.models import AlternateOption, Artifact, CapacityInput, CapacityOutput, Position
 from bessible.ukpn.competition import competition
@@ -47,6 +51,9 @@ LOW_VOLTAGE_CAP_MW = 8.0  # 22 kV and below
 HIGH_VOLTAGE_CAP_MW = 50.0  # 33 kV and 66 kV
 GRID_VOLTAGE_CAP_MW = 100.0  # 132 kV
 EARTH_RADIUS_KM = 6371.0088
+LIVE_CHECK_TIMEOUT_S = 3.0  # per-run live re-check of the snapshot; slower than this -> keep the snapshot
+LIVE_CHECK_MODEL_USED = "live-ukpn-check"
+HEADROOM_TOLERANCE_MW = 0.05
 ASSUMED_CONNECTION_KV = 11.0  # no voltage published: assume a primary's 11 kV busbar (the lower, 8 MW cap)
 POWER_FACTOR = 0.95  # MVA -> MW, for operators that publish import headroom in MVA (SSEN)
 CHECK_LOG = "capacity_checks.jsonl"
@@ -610,6 +617,8 @@ async def _propose_live(position: Position, run_id: str) -> CapacityOutput | Non
     firm_mw = round(live_firm_mw(serving), 2)
     kv, kv_assumed = live_connection_kv(serving)
     import_mw = live_demand_mw(head)
+    fetched_at = _utc_now()
+    unpublished = [d for d, v in (("import", head.demand), ("export", head.generation_mw)) if v is None]
     message: str | None = (
         None
         if firm_mw >= FLOOR_MW
@@ -673,23 +682,143 @@ async def _propose_live(position: Position, run_id: str) -> CapacityOutput | Non
                     else ""
                 )
                 + f", export {head.generation_mw} MW ({head.basis}); firm = smaller of the two, capped by the "
-                f"connection voltage = {firm_mw:g} MW",
+                f"connection voltage = {firm_mw:g} MW; fetched live at {fetched_at}"
+                + (
+                    f"; {serving.operator} publishes no {' or '.join(unpublished)} headroom here, so it counts as 0 MW"
+                    if unpublished
+                    else ""
+                ),
             ),
         ],
     )
 
 
+def _utc_now() -> str:
+    return datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
+
+
+async def fetch_live_heatmap(position: Position, radius_km: float = SEARCH_RADIUS_KM) -> list[CapacityHeatmapSite]:
+    """UKPN capacity heatmap rows within `radius_km` of the site, fetched live in one request."""
+    if settings.ukpn_api_key is None:
+        msg = "UKPN_API_KEY is not set"
+        raise RuntimeError(msg)
+    spec = ukpn_api.DATASETS["capacity_heatmap"]
+    req = spec.near(position.lat, position.lon, radius_km * 1000)
+    headers = opendatasoft.auth_headers(settings.ukpn_api_key.get_secret_value())
+    async with httpx.AsyncClient(timeout=LIVE_CHECK_TIMEOUT_S, headers=headers) as client:
+        res = await client.get(req.url(), params=req.params())
+        res.raise_for_status()
+    return spec.parse(res.json()).results
+
+
+def _row_key(row: CapacityHeatmapSite) -> str:
+    return row.mrid or row.name or ""
+
+
+def headroom_changes(
+    snapshot_rows: list[CapacityHeatmapSite], live_rows: list[CapacityHeatmapSite]
+) -> list[tuple[CapacityHeatmapSite, CapacityHeatmapSite]]:
+    """(snapshot, live) pairs whose import / export headroom or connection voltage changed. Matched on UKPN's mrid."""
+    live = {_row_key(r): r for r in live_rows}
+    changed = []
+    for old in snapshot_rows:
+        new = live.get(_row_key(old))
+        if new is None:
+            continue
+        moved = any(
+            abs((getattr(new, f) or 0.0) - (getattr(old, f) or 0.0)) > HEADROOM_TOLERANCE_MW
+            for f in ("demandavailablecapacity", "generationavailablecapacity")
+        )
+        if moved or new.voltage != old.voltage:
+            changed.append((old, new))
+    return changed
+
+
+def _live_check_artifact(run_id: str, claim: str, confidence: float) -> Artifact:
+    return Artifact(
+        id=f"capacity-live-check-{run_id[:8]}",
+        stage="capacity",
+        claim=f"{claim} [{DATASET_ID}, live]",
+        source_url=HttpUrl(DATASET_URL),
+        confidence=confidence,
+        model_used=LIVE_CHECK_MODEL_USED,
+    )
+
+
+async def verify_live(
+    position: Position,
+    snapshot: Snapshot,
+    out: CapacityOutput,
+    run_id: str,
+    *,
+    flexible: bool,
+    requested_mw: float | None = None,
+) -> CapacityOutput:
+    """Re-check the snapshot rows near the site against live UKPN data (one request per run).
+
+    Unchanged: say so. Changed: propose again on the live rows and show both values. Unreachable: keep the snapshot
+    and say it is unverified. Never fails the run.
+    """
+    checked_at = _utc_now()
+    try:
+        live_rows = await fetch_live_heatmap(position)
+    except Exception as exc:  # any failure keeps the snapshot result
+        log.warning("live UKPN check failed; keeping the snapshot result: %s", exc)
+        art = _live_check_artifact(
+            run_id,
+            f"Not verified against live UKPN data ({type(exc).__name__}); figures are from the snapshot dated "
+            f"{snapshot.fetched_at.isoformat()}",
+            confidence=0.7,
+        )
+        return out.model_copy(update={"artifacts": [*out.artifacts, art]})
+
+    nearby = [
+        r
+        for r in snapshot.substations
+        if r.latitude is not None
+        and r.longitude is not None
+        and haversine_km(position, r.latitude, r.longitude) <= SEARCH_RADIUS_KM
+    ]
+    changes = headroom_changes(nearby, live_rows)
+    if not changes:
+        art = _live_check_artifact(
+            run_id,
+            f"Checked against live UKPN data at {checked_at}: headroom at {len(nearby)} substation(s) within "
+            f"{SEARCH_RADIUS_KM:g} km matches the snapshot dated {snapshot.fetched_at.isoformat()}",
+            confidence=0.95,
+        )
+        return out.model_copy(update={"artifacts": [*out.artifacts, art]})
+
+    live_by_key = {_row_key(r): r for r in live_rows if r.name and r.latitude is not None and r.longitude is not None}
+    patched = snapshot.model_copy(
+        update={"substations": [live_by_key.get(_row_key(r), r) for r in snapshot.substations]}
+    )
+    fresh = propose(position, patched, run_id, flexible=flexible, requested_mw=requested_mw)
+    detail = "; ".join(
+        f"{old.name}: import {old.demandavailablecapacity} -> {new.demandavailablecapacity} MW, "
+        f"export {old.generationavailablecapacity} -> {new.generationavailablecapacity} MW"
+        for old, new in changes[:3]
+    )
+    art = _live_check_artifact(
+        run_id,
+        f"Live UKPN data at {checked_at} differs from the snapshot dated {snapshot.fetched_at.isoformat()}, so these "
+        f"figures use the live values ({len(changes)} substation(s) changed: {detail})",
+        confidence=0.9,
+    )
+    return fresh.model_copy(update={"artifacts": [*fresh.artifacts, art]})
+
+
 async def propose_capacity(inp: CapacityInput) -> CapacityOutput:
     """Assess available grid headroom at the located position and propose capacity limits."""
     snapshot = await asyncio.to_thread(get_snapshot)
-    out = propose(
-        inp.location.position,
-        snapshot,
-        inp.run_id,
-        flexible=inp.request.flexible_connection,
-        requested_mw=inp.request.battery_mw,
-    )
+    flexible, requested_mw = inp.request.flexible_connection, inp.request.battery_mw
+    out = propose(inp.location.position, snapshot, inp.run_id, flexible=flexible, requested_mw=requested_mw)
     if out.out_of_area:
         out = await propose_live(inp.location.position, inp.run_id, fallback=out)
+    elif settings.live_capacity and (requested_mw is None or requested_mw <= HIGH_VOLTAGE_CAP_MW):
+        # Primary-level proposals come from heatmap rows: check those rows are still current.
+        out = await verify_live(
+            inp.location.position, snapshot, out, inp.run_id, flexible=flexible, requested_mw=requested_mw
+        )
     await asyncio.to_thread(_append_check_log, inp, out)
     return out
