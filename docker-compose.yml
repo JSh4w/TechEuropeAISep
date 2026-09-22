@@ -2,6 +2,7 @@ services:
   temporal:
     image: temporalio/admin-tools:latest
     container_name: bessible-temporal
+    user: root
     command: ["temporal", "server", "start-dev", "--ip", "0.0.0.0", "--db-filename", "/etc/temporal/schema/temporal.db"]
     volumes:
       - temporal-data:/etc/temporal/schema
