@@ -287,7 +287,7 @@ docker run -p 3000:3000 -e BACKEND_URL="http://localhost:8000" bessible-web
 
 The repository includes a GitHub Actions workflow (`.github/workflows/docker-publish.yml`) that automatically builds and publishes OCI container images to GHCR whenever changes are pushed to `main` or version tags (`v*`) are created:
 
-* **Backend Image (API & Worker):** `ghcr.io/<owner>/bessible-backend:latest` (aliased as `ghcr.io/<owner>/bessible:latest`)
+* **Backend Image (API & Worker):** `ghcr.io/<owner>/bessible-backend:latest`
 * **Web Frontend Image:** `ghcr.io/<owner>/bessible-web:latest`
 
 #### Pulling and Running from GHCR

@@ -60,7 +60,6 @@ jobs:
         with:
           images: |
             ${{ env.REGISTRY }}/${{ steps.repo.outputs.owner }}/${{ matrix.image-name }}
-            ${{ matrix.image-name == 'bessible-backend' && format('{0}/{1}/bessible', env.REGISTRY, steps.repo.outputs.owner) || '' }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
