@@ -5,11 +5,16 @@ from datetime import date
 import pytest
 
 from bessible.api.ukpn import CapacityHeatmapSite
+from bessible.location.models import Coordinates, Headroom, Substation
 from bessible.models import Position
 from bessible.stages.capacity import (
+    LOW_VOLTAGE_CAP_MW,
     connection_voltage_kv,
     distance_weight,
     haversine_km,
+    live_connection_kv,
+    live_demand_mw,
+    live_firm_mw,
     propose,
     tia_threshold_mw,
 )
@@ -331,3 +336,32 @@ def test_export_ceiling_applied_only_when_validated():
     out_on = propose(SITE, snap_on, "t-on", flexible=True)
     assert out_on.ceiling_mw == 6.0
     assert out_on.export_ceiling_mw == 6.0
+
+
+def _live_sub(connection_kv: float | None, *, demand: float, generation: float, unit: str = "MW") -> Substation:
+    return Substation(
+        name="Test Primary",
+        operator="NGED",
+        kind="primary",
+        connection_voltage_kv=connection_kv,
+        coords=Coordinates(lat=51.0, lon=-1.0),
+        distance_km=0.5,
+        headroom=Headroom(generation_mw=generation, demand=demand, demand_unit=unit, basis="test"),
+    )
+
+
+def test_live_firm_uses_connection_voltage_cap():
+    assert live_firm_mw(_live_sub(11.0, demand=30, generation=30)) == LOW_VOLTAGE_CAP_MW
+    assert live_firm_mw(_live_sub(33.0, demand=30, generation=30)) == 30
+
+
+def test_live_unknown_voltage_assumes_11kv():
+    sub = _live_sub(None, demand=30, generation=30)
+    assert live_connection_kv(sub) == (11.0, True)
+    assert live_firm_mw(sub) == LOW_VOLTAGE_CAP_MW
+
+
+def test_live_mva_demand_converted_to_mw():
+    sub = _live_sub(33.0, demand=20, generation=40, unit="MVA")
+    assert live_demand_mw(sub.headroom) == pytest.approx(19.0)
+    assert live_firm_mw(sub) == pytest.approx(19.0)

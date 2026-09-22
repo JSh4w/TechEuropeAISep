@@ -207,6 +207,9 @@ class Substation(BaseModel):
     kind: str  # "primary" | "bsp" | "gsp" | "grid" | "transmission"
     voltage_kv: float | None = None  # highest voltage on site
     voltages: str | None = None  # as published, e.g. "33 / 11"
+    # What a new connection here would use: the operator's proposed connection voltage, else the lowest published
+    # voltage (the busbar a new connection joins, e.g. 11 of "33 / 11"); None when the operator publishes neither.
+    connection_voltage_kv: float | None = None
     coords: Coordinates
     distance_km: float
     bsp: str | None = None  # bulk supply point feeding it

@@ -31,7 +31,7 @@ from bessible.ukpn.snapshot import (
 
 if TYPE_CHECKING:
     from bessible.api.ukpn import CapacityHeatmapSite
-    from bessible.location.models import Substation
+    from bessible.location.models import Headroom, Substation
     from bessible.ukpn.models import Competition
 
 MODEL_USED = "ukpn-snapshot"
@@ -47,6 +47,8 @@ LOW_VOLTAGE_CAP_MW = 8.0  # 22 kV and below
 HIGH_VOLTAGE_CAP_MW = 50.0  # 33 kV and 66 kV
 GRID_VOLTAGE_CAP_MW = 100.0  # 132 kV
 EARTH_RADIUS_KM = 6371.0088
+ASSUMED_CONNECTION_KV = 11.0  # no voltage published: assume a primary's 11 kV busbar (the lower, 8 MW cap)
+POWER_FACTOR = 0.95  # MVA -> MW, for operators that publish import headroom in MVA (SSEN)
 CHECK_LOG = "capacity_checks.jsonl"
 
 _VOLTAGE_RE = re.compile(r"(\d+(?:\.\d+)?)\s*kv", re.IGNORECASE)
@@ -566,6 +568,29 @@ async def propose_live(position: Position, run_id: str, *, fallback: CapacityOut
         return fallback
 
 
+def live_connection_kv(sub: Substation) -> tuple[float, bool]:
+    """The substation's connection voltage, and whether it is assumed because the operator publishes none."""
+    if sub.connection_voltage_kv:
+        return sub.connection_voltage_kv, False
+    return ASSUMED_CONNECTION_KV, True
+
+
+def live_demand_mw(head: Headroom) -> float | None:
+    """Import headroom in MW; MVA figures are scaled by POWER_FACTOR."""
+    if head.demand is None:
+        return None
+    return head.demand * POWER_FACTOR if head.demand_unit == "MVA" else head.demand
+
+
+def live_firm_mw(sub: Substation) -> float:
+    """A battery imports and exports, so the smaller headroom binds, capped by the connection voltage."""
+    head = sub.headroom
+    if head is None:
+        return 0.0
+    cap = voltage_cap_mw(live_connection_kv(sub)[0])
+    return max(0.0, min(head.generation_mw or 0.0, live_demand_mw(head) or 0.0, cap))
+
+
 async def _propose_live(position: Position, run_id: str) -> CapacityOutput | None:
     from bessible.location import Coordinates, collate  # ruff: ignore[import-outside-top-level]
 
@@ -577,20 +602,14 @@ async def _propose_live(position: Position, run_id: str) -> CapacityOutput | Non
         return None
     primaries = [s for s in with_headroom if s.kind == "primary"] or with_headroom
 
-    def firm(sub: Substation) -> float:
-        """A battery imports and exports, so the smaller headroom binds, capped by connection voltage."""
-        h = sub.headroom
-        if h is None:
-            return 0.0
-        cap = voltage_cap_mw(sub.voltage_kv) if sub.voltage_kv else HIGH_VOLTAGE_CAP_MW
-        return max(0.0, min(h.generation_mw or 0.0, h.demand or 0.0, cap))
-
     # Best connection option in reach: headroom weighted down by distance (same weighting as the alternates).
-    primaries = sorted(primaries, key=lambda sub: -firm(sub) * distance_weight(sub.distance_km))
+    primaries = sorted(primaries, key=lambda sub: -live_firm_mw(sub) * distance_weight(sub.distance_km))
     serving = primaries[0]
     head = serving.headroom
     assert head is not None  # ruff: ignore[assert]
-    firm_mw = round(firm(serving), 2)
+    firm_mw = round(live_firm_mw(serving), 2)
+    kv, kv_assumed = live_connection_kv(serving)
+    import_mw = live_demand_mw(head)
     message: str | None = (
         None
         if firm_mw >= FLOOR_MW
@@ -618,17 +637,17 @@ async def _propose_live(position: Position, run_id: str) -> CapacityOutput | Non
         message=message,
         out_of_area=False,
         substation=serving.name,
-        connection_voltage_kv=serving.voltage_kv,
+        connection_voltage_kv=kv,
         firm_mw=firm_mw,
         ceiling_mw=firm_mw,
         recommended_mw=firm_mw,
-        binding_direction="import" if (head.demand or 0.0) <= (head.generation_mw or 0.0) else "export",
+        binding_direction="import" if (import_mw or 0.0) <= (head.generation_mw or 0.0) else "export",
         distance_km=round(serving.distance_km, 2),
         alternates=[
             AlternateOption(
                 substation=s.name,
                 distance_km=round(s.distance_km, 2),
-                size_mw=round(firm(s), 2),
+                size_mw=round(live_firm_mw(s), 2),
                 marginal=s.distance_km > MARGINAL_KM,
             )
             for s in primaries[1 : MAX_ALTERNATES + 1]
@@ -637,13 +656,24 @@ async def _propose_live(position: Position, run_id: str) -> CapacityOutput | Non
         artifacts=[
             art(
                 "substation",
-                f"Predicted point of connection: {serving.name} ({serving.operator}, {serving.voltages or serving.voltage_kv} kV), "
-                f"{serving.distance_km:.2f} km away",
+                f"Predicted point of connection: {serving.name} ({serving.operator}), connecting at {kv:g} kV "
+                f"(cap {voltage_cap_mw(kv):g} MW), {serving.distance_km:.2f} km away"
+                + (
+                    f"; {serving.operator} publishes no voltage for this substation, so {kv:g} kV is assumed"
+                    if kv_assumed
+                    else ""
+                ),
             ),
             art(
                 "headroom",
-                f"Published headroom at {serving.name}: import {head.demand} {head.demand_unit}, "
-                f"export {head.generation_mw} MW ({head.basis}); firm = smaller of the two = {firm_mw:g} MW",
+                f"Published headroom at {serving.name}: import {head.demand} {head.demand_unit}"
+                + (
+                    f" (= {import_mw:.1f} MW at power factor {POWER_FACTOR:g})"
+                    if head.demand_unit == "MVA" and import_mw is not None
+                    else ""
+                )
+                + f", export {head.generation_mw} MW ({head.basis}); firm = smaller of the two, capped by the "
+                f"connection voltage = {firm_mw:g} MW",
             ),
         ],
     )
