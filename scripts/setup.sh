@@ -52,7 +52,8 @@ fi
 
 # 7. Web UI dependencies (exact versions from package-lock.json)
 echo "==> Installing web dependencies"
-(cd sandbox/map_session/web && npm ci --no-audit --no-fund)
+(cd web && npm ci --no-audit --no-fund)
+[ -f web/.env.local ] || [ ! -f .env ] || ln -sf ../.env web/.env.local
 
 echo
 echo "Done. Next:"

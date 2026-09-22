@@ -55,6 +55,7 @@ wait_for "API Server" 30 curl -sf -o /dev/null "http://localhost:$API_PORT/healt
 
 # 4. Web UI
 [ -d "$WEB_DIR/node_modules" ] || (cd "$WEB_DIR" && npm install --no-audit --no-fund)
+[ -f "$WEB_DIR/.env.local" ] || [ ! -f .env ] || ln -sf ../.env "$WEB_DIR/.env.local"
 echo "==> Starting web UI"
 (cd "$WEB_DIR" && exec npx next dev -p "$WEB_PORT") >"$LOGS/web.log" 2>&1 &
 PIDS="$PIDS $!"

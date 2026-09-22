@@ -42,7 +42,9 @@ class Settings(BaseSettings):
     temporal_namespace: str = "default"
 
     # Demo deployment: Firebase sign-in and encrypted per-user Google keys.
-    firebase_project_id: str | None = None
+    firebase_project_id: str | None = Field(
+        default=None, validation_alias=AliasChoices("firebase_project_id", "next_public_firebase_project_id")
+    )
     allowed_emails: str | None = None  # comma-separated; empty means anyone who signs in
     key_encryption_secret: SecretStr | None = None  # master secret; root-owned EnvironmentFile on the VM
     key_encryption_key_id: str = "k1"  # id stamped on new ciphertexts
