@@ -35,6 +35,8 @@ services:
         required: false
     volumes:
       - bessible-data:/var/lib/bessible
+      # The worker writes trace events to out/<run_id>/events.jsonl; the API streams them over SSE.
+      - bessible-out:/app/out
     networks:
       - bessible-internal
       - proxy
@@ -88,6 +90,8 @@ services:
         required: false
     volumes:
       - bessible-data:/var/lib/bessible
+      # The worker writes trace events to out/<run_id>/events.jsonl; the API streams them over SSE.
+      - bessible-out:/app/out
     networks:
       - bessible-internal
     depends_on:
@@ -138,6 +142,7 @@ services:
 volumes:
   temporal-data:
   bessible-data:
+  bessible-out:
 
 networks:
   bessible-internal:
