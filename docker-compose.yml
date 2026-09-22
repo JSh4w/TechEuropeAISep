@@ -94,9 +94,6 @@ services:
         - FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN:-}
         - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-}
         - FIREBASE_APP_ID=${FIREBASE_APP_ID:-}
-        - FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET:-}
-        - FIREBASE_MESSAGING_SENDER_ID=${FIREBASE_MESSAGING_SENDER_ID:-}
-        - FIREBASE_MEASUREMENT_ID=${FIREBASE_MEASUREMENT_ID:-}
     image: ghcr.io/${IMAGE_OWNER:-eskres}/bessible-web:latest
     container_name: bessible-web
     environment:
