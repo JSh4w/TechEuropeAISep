@@ -163,19 +163,26 @@ export default function Home() {
     const isFlexibleNeeded = targetPostcode.toUpperCase().startsWith('CB');
     const isDorking = targetPostcode.toUpperCase().startsWith('RH');
 
-    const fakeRunId = `run_${Date.now().toString(36)}`;
+    const fakeRunId = isDemo || (auth.enabled && !auth.user)
+      ? `demo-sim-${Date.now().toString(36)}`
+      : `sim_${Date.now().toString(36)}`;
     setRunId(fakeRunId);
+    setCapacityLoading(true);
+    setIsStreaming(true);
 
-    // Initial events
+    const t1 = immediate ? 0 : 350;
+    const t2 = immediate ? 0 : 750;
+
+    // Initial event
     setEvents([
       { id: 1, t: new Date().toISOString(), stage: 'location', msg: `Geocoded ${targetPostcode} to [${centerCoords[1].toFixed(4)}, ${centerCoords[0].toFixed(4)}]` },
-      { id: 2, t: new Date().toISOString(), stage: 'grid', msg: 'Querying UKPN network snapshot for distribution primary substation...' },
     ]);
 
     if (isOutOfArea) {
       setTimeout(() => {
         setEvents((prev) => [
           ...prev,
+          { id: 2, t: new Date().toISOString(), stage: 'grid', msg: 'Querying UKPN network snapshot for distribution primary substation...' },
           { id: 3, t: new Date().toISOString(), stage: 'grid', msg: 'Error: Location falls outside UKPN licensed area.' },
         ]);
         setRunStatus({
@@ -185,7 +192,8 @@ export default function Home() {
         });
         setCapacityProposal(null);
         setCapacityLoading(false);
-      }, immediate ? 0 : 1000);
+        setIsStreaming(false);
+      }, immediate ? 50 : 800);
       return;
     }
 
@@ -285,10 +293,17 @@ export default function Home() {
       alternates: mockSubstations,
     };
 
-    const applyReady = () => {
+    setTimeout(() => {
       setEvents((prev) => [
         ...prev,
+        { id: 2, t: new Date().toISOString(), stage: 'grid', msg: 'Querying UKPN network snapshot for distribution primary substation...' },
         { id: 3, t: new Date().toISOString(), stage: 'capacity', msg: `Identified serving substation: ${substationName} (${firmMw} MW firm, ${ceilingMw} MW ceiling)` },
+      ]);
+    }, t1);
+
+    setTimeout(() => {
+      setEvents((prev) => [
+        ...prev,
         { id: 4, t: new Date().toISOString(), stage: 'title', msg: 'HM Land Registry INSPIRE boundaries retrieved. Awaiting human confirmation...' },
       ]);
 
@@ -302,13 +317,8 @@ export default function Home() {
         position: centerCoords,
       });
       setCapacityLoading(false);
-    };
-
-    if (immediate) {
-      applyReady();
-    } else {
-      setTimeout(applyReady, 1200);
-    }
+      setIsStreaming(false);
+    }, t2);
   };
 
   // Check URL parameters for direct state preview (e.g. ?state=confirm or ?state=report)
@@ -461,7 +471,7 @@ export default function Home() {
 
   // Connect SSE for Live Trace
   useEffect(() => {
-    if (!runId) return;
+    if (!runId || runId.startsWith('sim_') || runId.startsWith('demo-sim-')) return;
 
     setIsStreaming(true);
     const unsubscribe = subscribeEvents(
@@ -484,10 +494,6 @@ export default function Home() {
     overrideCoords?: [number, number],
     overrideFlexible?: boolean
   ) => {
-    if (auth.enabled && !auth.user) {
-      setErrorMsg('Sign in to run a real assessment, or keep exploring the recorded example.');
-      return;
-    }
     const targetInput = (overridePostcode || postcode).trim();
     const isUrl = targetInput.startsWith('http://') || targetInput.startsWith('https://');
     let targetPostcode = isUrl ? 'SE1 7PB' : targetInput;
@@ -553,6 +559,12 @@ export default function Home() {
     setInitialCenter(centerCoords);
     setCurrentPosition(centerCoords);
 
+    if (auth.enabled && !auth.user) {
+      activateFallbackFlow(targetPostcode, centerCoords);
+      setLoading(false);
+      return;
+    }
+
     try {
       const payload: AssessmentRequest = isUrl
         ? {
@@ -576,7 +588,8 @@ export default function Home() {
         if (JSON.stringify(err.data).includes('missing_google_key')) {
           setKeyStatus({ configured: false, last4: null, updated_at: null });
           setKeyPanelOpen(true);
-          setErrorMsg('Add your Google AI key to start a real assessment.');
+          setErrorMsg('Add your Google AI key in Settings to run a live assessment, or explore the simulation below.');
+          activateFallbackFlow(targetPostcode, centerCoords);
         } else {
           setErrorMsg('Your session has expired. Sign in again to continue.');
         }
@@ -826,7 +839,7 @@ export default function Home() {
     prevUserRef.current = auth.user;
   }, [auth.user, runId]);
 
-  const isDemo = isDemoRun(runId);
+  const isDemo = isDemoRun(runId) || !!runId?.startsWith('demo-sim-');
 
   if (auth.enabled && auth.loading) {
     return (
@@ -1009,16 +1022,15 @@ export default function Home() {
             <MapPin className="absolute left-3.5 top-3.5 w-4 h-4 text-emerald-600" />
             <Input
               type="text"
-              placeholder={isDemo ? 'Demo Site: RH4 1AD' : 'Enter UK Postcode (e.g. SE1 7PB) or Property URL'}
+              placeholder={isDemo ? "Enter UK Postcode (e.g. RH4 1AD, CB24 9ZR)" : "Enter UK Postcode (e.g. SE1 7PB) or Property URL"}
               value={postcode}
-              disabled={isDemo}
               onChange={(e) => setPostcode(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && postcode.trim() && !loading && !isDemo) {
+                if (e.key === 'Enter' && postcode.trim() && !loading) {
                   handleStartRun();
                 }
               }}
-              className="pl-10 h-11 font-medium rounded-xl text-sm bg-card shadow-xs border-border disabled:opacity-85 disabled:cursor-not-allowed"
+              className="pl-10 h-11 font-medium rounded-xl text-sm bg-card shadow-xs border-border"
             />
           </div>
 
