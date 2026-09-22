@@ -43,7 +43,7 @@ import {
   AlertCircle,
   RotateCcw,
   Sparkles,
-  KeyRound,
+  Settings,
   LogIn,
   LogOut,
   PlayCircle,
@@ -807,12 +807,30 @@ export default function Home() {
             </Badge>
           )}
 
+          {/* Settings & API Key modal trigger - always accessible */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setKeyPanelOpen(true)}
+            className="gap-1.5 text-xs h-8 px-2.5 sm:px-3 rounded-xl border-border cursor-pointer hover:bg-muted/80 transition-colors"
+            title="Settings & Google AI Key"
+            aria-label="Settings"
+          >
+            <Settings className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="hidden sm:inline">Settings</span>
+            {currentKeyStatus?.configured && (
+              <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                ••••{currentKeyStatus.last4}
+              </span>
+            )}
+          </Button>
+
           {auth.enabled && !auth.user && (
             <Button
               size="sm"
               onClick={handleSignIn}
               disabled={signingIn}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white gap-1.5 text-xs h-8 px-3 rounded-xl cursor-pointer"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white gap-1.5 text-xs h-8 px-3 rounded-xl cursor-pointer shadow-xs"
             >
               <LogIn className="w-3.5 h-3.5" />
               <span>{signingIn ? 'Signing in…' : 'Sign in'}</span>
@@ -821,29 +839,22 @@ export default function Home() {
 
           {auth.enabled && auth.user && (
             <div className="flex items-center gap-2 text-xs">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setKeyPanelOpen(true)}
-                className="gap-1.5 text-xs h-8 px-3 rounded-xl border-border"
-              >
-                <KeyRound className="w-3.5 h-3.5" />
-                <span>{currentKeyStatus?.configured ? `Key ••••${currentKeyStatus.last4}` : 'Add key'}</span>
-              </Button>
-              <span className="text-muted-foreground hidden lg:inline max-w-[160px] truncate" title={auth.user.email ?? undefined}>
+              <span className="text-muted-foreground hidden md:inline max-w-[160px] truncate text-[11px] font-medium" title={auth.user.email ?? undefined}>
                 {auth.user.email}
               </span>
               <Button
                 variant="ghost"
-                size="icon-sm"
+                size="sm"
                 onClick={() => {
                   handleReset();
                   void auth.signOut();
                 }}
+                className="gap-1.5 text-xs h-8 px-2.5 rounded-xl cursor-pointer text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                 aria-label="Sign out"
                 title="Sign out"
               >
                 <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Logout</span>
               </Button>
             </div>
           )}
