@@ -1,7 +1,13 @@
 [project]
 name = "bessible"
 version = "0.1.0"
-description = "BESS site assessment agent"
+description = "BESS location assessment agent"
+license = "AGPL-3.0-or-later"
+authors = [
+    { name = "Einar Skreslett" },
+    { name = "Jonathan Shaw" },
+    { name = "Jack Swerdlow" },
+]
 requires-python = ">=3.13,<3.15"
 dependencies = [
     "cachecontrol>=0.14.4",
