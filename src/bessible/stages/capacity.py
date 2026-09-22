@@ -6,7 +6,6 @@ import asyncio
 import json
 import logging
 import math
-import os
 import re
 from operator import itemgetter
 from typing import TYPE_CHECKING, Literal
@@ -558,7 +557,7 @@ def _append_check_log(inp: CapacityInput, out: CapacityOutput) -> None:
 
 async def propose_live(position: Position, run_id: str, *, fallback: CapacityOutput) -> CapacityOutput:
     """Outside the snapshot: live DNO headroom (UKPN, NGED, SSEN, SP Energy Networks) from `location.collate`. Any failure -> fallback."""
-    if os.environ.get("BESSIBLE_LIVE_LAND") != "1":
+    if not settings.live_capacity:
         return fallback
     try:
         return await asyncio.wait_for(_propose_live(position, run_id), LIVE_TIMEOUT_S) or fallback

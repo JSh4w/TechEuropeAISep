@@ -33,6 +33,12 @@ def offline_lpa_lookup(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("bessible.stages.planning.lookup_lpa", fake)
 
 
+@pytest.fixture(autouse=True)  # ruff: ignore[pytest-fixture-autouse] - every stage test must stay offline
+def offline_capacity(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Out-of-area capacity keeps the snapshot result instead of calling live DNO APIs."""
+    monkeypatch.setattr(settings, "live_capacity", False)
+
+
 @pytest.fixture(autouse=True)  # ruff: ignore[pytest-fixture-autouse] - tests pin values from the fixture snapshot
 def ukpn_fixture_snapshot(monkeypatch: pytest.MonkeyPatch) -> None:
     """Point every `get_snapshot` importer at the small fixture snapshot, not the full one in data/ukpn."""

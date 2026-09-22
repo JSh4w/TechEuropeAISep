@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     )  # spenergynetworks.opendatasoft.com
     os_api_key: SecretStr | None = None  # osdatahub.os.uk (Ordnance Survey maps)
 
+    # Outside the bundled (Dorking-only) UKPN snapshot, look up live DNO headroom. Tests turn it off to stay offline.
+    live_capacity: bool = True
+
     data_dir: Path = Path(__file__).resolve().parents[2] / "data"  # committed fixtures and UKPN snapshot
 
     temporal_address: str = "localhost:7233"
