@@ -38,7 +38,6 @@ import {
 } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import {
-  BatteryCharging,
   Search,
   MapPin,
   AlertCircle,
@@ -91,6 +90,7 @@ export default function Home() {
   const [initialCenter, setInitialCenter] = useState<[number, number]>([-0.1132, 51.5014]);
   const [currentPosition, setCurrentPosition] = useState<[number, number]>([-0.1132, 51.5014]);
   const [capacityProposal, setCapacityProposal] = useState<CapacityOutput | null>(null);
+  const [capacityLoading, setCapacityLoading] = useState(false);
   const [selectedCapacityMw, setSelectedCapacityMw] = useState<number>(10);
   const [flexibleConnection, setFlexibleConnection] = useState<boolean>(false);
   const [submittingDecision, setSubmittingDecision] = useState<boolean>(false);
@@ -181,6 +181,7 @@ export default function Home() {
           status: 'not_viable',
           message: 'The requested postcode is located in Manchester (Electricity North West area). Bessible screening currently covers UKPN license regions (London, South East, Eastern England).',
         });
+        setCapacityLoading(false);
       }, immediate ? 0 : 1000);
       return;
     }
@@ -247,6 +248,7 @@ export default function Home() {
         capacity: mockCapacity,
         position: centerCoords,
       });
+      setCapacityLoading(false);
     };
 
     if (immediate) {
@@ -364,6 +366,9 @@ export default function Home() {
       try {
         const status = await getRunStatus(runId);
         setRunStatus(status);
+        if (status.status !== 'running') {
+          setCapacityLoading(false);
+        }
 
         if (status.position && positionedRunRef.current !== runId) {
           positionedRunRef.current = runId;
@@ -454,6 +459,14 @@ export default function Home() {
     setLoading(true);
     setResult(null);
     setEvents([]);
+    setRunStatus(null);
+    setInspireGeoJson(null);
+    setSubstationChangeNotice(null);
+    // Keep the previous run's capacity card mounted (SiteControls shows it dimmed, under a
+    // loading overlay) instead of unmounting it while the new run's data is in flight.
+    setCapacityLoading(true);
+    positionedRunRef.current = null;
+    proposedRunRef.current = null;
 
     const centerCoords = overrideCoords || currentPosition;
     setInitialCenter(centerCoords);
@@ -477,6 +490,7 @@ export default function Home() {
       setRunStatus({ run_id: res.run_id, status: 'running' });
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
+        setCapacityLoading(false);
         // Auth failures are real: do not hide them behind the offline simulation.
         if (JSON.stringify(err.data).includes('missing_google_key')) {
           setKeyStatus({ configured: false, last4: null, updated_at: null });
@@ -682,6 +696,9 @@ export default function Home() {
     setRunStatus(null);
     setResult(null);
     setCapacityProposal(null);
+    setCapacityLoading(false);
+    setInspireGeoJson(null);
+    setSubstationChangeNotice(null);
     setEvents([]);
   };
 
@@ -723,9 +740,24 @@ export default function Home() {
       {/* Top Header */}
       <header className="bg-card/90 backdrop-blur-md border-b border-border/80 px-6 py-3.5 flex items-center justify-between shadow-xs sticky top-0 z-30">
         <div className="flex items-center gap-3">
-          <div className="bg-emerald-600 text-white p-2.5 rounded-xl shadow-xs">
-            <BatteryCharging className="w-5 h-5" />
-          </div>
+          <button
+            type="button"
+            onClick={handleReset}
+            aria-label="Back to start"
+            title="Back to start"
+            className="bg-emerald-600 text-white p-2.5 rounded-xl shadow-xs hover:bg-emerald-500 transition-colors cursor-pointer"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 -960 960 960"
+              width="20"
+              height="20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M320-80q-17 0-28.5-11.5T280-120v-640q0-17 11.5-28.5T320-800h80v-80h160v80h80q17 0 28.5 11.5T680-760v280q-100 1-170 70.5T440-240q0 46 16 87t45 73H320Zm40-400h240v-240H360v240ZM660-80v-120H560l140-200v120h100L660-80Z" />
+            </svg>
+          </button>
           <div>
             <div className="flex items-center gap-2">
               <span className="text-lg font-bold tracking-tight">Bessible</span>
@@ -937,15 +969,16 @@ export default function Home() {
                 currentPosition={currentPosition}
                 onPositionChange={handlePositionChange}
                 capacityMw={selectedCapacityMw}
-                substations={capacityProposal?.alternates || []}
+                substations={capacityLoading ? [] : capacityProposal?.alternates || []}
                 inspireGeoJson={inspireGeoJson}
                 siteData={siteData}
                 siteDataLoading={siteDataLoading}
               />
 
-              {runStatus?.status === 'awaiting_confirmation' && capacityProposal && (
+              {(capacityLoading || runStatus?.status === 'awaiting_confirmation') && capacityProposal && (
                 <SiteControls
                   capacity={capacityProposal}
+                  loading={capacityLoading}
                   selectedCapacityMw={selectedCapacityMw}
                   onCapacityChange={setSelectedCapacityMw}
                   flexibleConnection={flexibleConnection}

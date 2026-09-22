@@ -8,10 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { Zap, AlertTriangle, Check, X, Sliders, Info, Box, Layers } from 'lucide-react';
+import { Zap, AlertTriangle, Check, X, Sliders, Info, Box, Layers, Loader2 } from 'lucide-react';
 
 interface SiteControlsProps {
   capacity: CapacityOutput;
+  loading?: boolean;
   selectedCapacityMw: number;
   onCapacityChange: (mw: number) => void;
   flexibleConnection: boolean;
@@ -23,6 +24,7 @@ interface SiteControlsProps {
 
 export default function SiteControls({
   capacity,
+  loading = false,
   selectedCapacityMw,
   onCapacityChange,
   flexibleConnection,
@@ -45,7 +47,13 @@ export default function SiteControls({
   const estContainers = Math.ceil(acreage.energyMWh / 2.8); // ~2.8 MWh per standardized battery enclosure
 
   return (
-    <Card className="border-border bg-card shadow-md rounded-2xl overflow-hidden">
+    <Card className="relative border-border bg-card shadow-md rounded-2xl overflow-hidden">
+      {loading && (
+        <div className="absolute inset-0 z-10 bg-background/90 backdrop-blur-sm flex flex-col items-center justify-center gap-2">
+          <Loader2 className="w-6 h-6 text-emerald-600 animate-spin" />
+          <span className="text-xs font-semibold text-muted-foreground">Screening new location...</span>
+        </div>
+      )}
       <CardHeader className="p-5 border-b border-border/80 bg-muted/20">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -54,8 +62,8 @@ export default function SiteControls({
               Human-in-the-Loop Confirmation
             </div>
             <CardTitle className="text-xl font-bold flex items-center gap-2.5 mt-1 tracking-tight">
-              <span>{capacity.serving_substation || 'Primary Substation'}</span>
-              {capacity.voltage_kv && (
+              <span>{loading ? '—' : capacity.serving_substation || 'Primary Substation'}</span>
+              {!loading && capacity.voltage_kv && (
                 <Badge variant="outline" className="font-mono text-xs font-semibold bg-blue-500/10 text-blue-600 border-blue-500/30">
                   {capacity.voltage_kv} kV Busbar
                 </Badge>
