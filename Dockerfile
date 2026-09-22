@@ -35,8 +35,8 @@ RUN uv sync --frozen --no-dev
 
 # Set up runtime directories and create non-root user for security
 RUN useradd -m -u 1000 appuser && \
-    mkdir -p /app/out /app/data && \
-    chown -R appuser:appuser /app
+    mkdir -p /app/out /app/data /var/lib/bessible && \
+    chown -R appuser:appuser /app /var/lib/bessible
 
 USER appuser
 

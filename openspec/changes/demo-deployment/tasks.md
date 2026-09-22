@@ -42,11 +42,11 @@
 - [x] 6.3 Wire the **View demo run** button and a "recorded example" label in the UI
 - [x] 6.4 Record one real run end to end and commit the recording
 
-## 7. Ubuntu deployment runtime, scripts and hardening
-
-- [ ] 7.1 Configure `next.config.ts` for standalone output (`output: 'standalone'`) and verify `npm run build` produces `.next/standalone`
-- [ ] 7.2 Create systemd units for `temporal server start-dev` (`127.0.0.1`), FastAPI, worker and Next.js, running as a non-root user with `NoNewPrivileges` and `ProtectSystem`; the master secret comes from a root-owned `0600` `EnvironmentFile`
-- [ ] 7.3 Create a `Caddyfile` with automatic HTTPS, unbuffered SSE for `/runs/{id}/events`, rate limiting and security headers, verified with `caddy validate`
-- [ ] 7.4 Create `scripts/deploy_ubuntu.sh` (installs dependencies, sets `ufw` for 80 and 443 only, SSH key-only, launches the stack); keep it idempotent
-- [ ] 7.5 Measure the resident memory of Temporal and the full stack on the VM and record the figures in `design.md`; confirm internal ports refuse outside connections
-- [ ] 7.6 Confirm no headers, request bodies or keys appear in logs or Logfire spans
+## 7. Docker + Traefik deployment (GHCR, Cloudflare edge TLS)
+ 
+- [x] 7.1 Configure `next.config.ts` for standalone output (`output: 'standalone'`) and verify `npm run build` produces `.next/standalone`
+- [x] 7.2 Update Dockerfiles and `docker-compose.yml` for non-root execution (`appuser`), persistent volumes (`bessible-data`, `temporal-data`), and env-based master secret (`KEY_ENCRYPTION_SECRET`)
+- [x] 7.3 Configure Traefik labels on external network `traefik_proxy` for `bessible.skreslett.com` (`websecure` entrypoint, TLS, file middlewares, API priority routing) and adapt `web/src/lib/api.ts` for same-origin relative URLs
+- [ ] 7.4 Build and push backend and web images to GHCR (`ghcr.io/skreslett/bessible-backend:latest`, `ghcr.io/skreslett/bessible-web:latest`)
+- [ ] 7.5 Deploy on server via `docker compose pull && docker compose up -d` and verify containers start cleanly without exposing host ports
+- [ ] 7.6 Verify live functionality on `https://bessible.skreslett.com` and confirm no keys appear in container logs or Logfire spans
