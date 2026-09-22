@@ -41,7 +41,7 @@ services:
       - proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-traefik_proxy}"
       - "traefik.http.routers.bessible-api.rule=Host(`${DOMAIN:-localhost}`) && (PathPrefix(`/runs`) || PathPrefix(`/me`) || PathPrefix(`/demo`) || PathPrefix(`/capacity`) || PathPrefix(`/site-data`) || PathPrefix(`/inspire`) || PathPrefix(`/health`) || PathPrefix(`/data`))"
       - "traefik.http.routers.bessible-api.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}"
       - "traefik.http.routers.bessible-api.tls=true"
@@ -90,6 +90,10 @@ services:
       dockerfile: Dockerfile
       args:
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-}
+        - FIREBASE_API_KEY=${FIREBASE_API_KEY:-}
+        - FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN:-}
+        - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-}
+        - FIREBASE_APP_ID=${FIREBASE_APP_ID:-}
     image: ghcr.io/${IMAGE_OWNER:-eskres}/bessible-web:latest
     container_name: bessible-web
     environment:
@@ -98,7 +102,7 @@ services:
       - proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-traefik_proxy}"
       - "traefik.http.routers.bessible-web.rule=Host(`${DOMAIN:-localhost}`)"
       - "traefik.http.routers.bessible-web.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}"
       - "traefik.http.routers.bessible-web.tls=true"
@@ -116,5 +120,5 @@ volumes:
 networks:
   bessible-internal:
   proxy:
-    name: ${TRAEFIK_NETWORK:-proxy}
+    name: ${TRAEFIK_NETWORK:-traefik_proxy}
     external: true

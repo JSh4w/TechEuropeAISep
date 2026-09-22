@@ -16,7 +16,7 @@ from bessible.keystore import KeyMeta, KeyStore, KeyStoreError, get_key_store
 
 router = APIRouter(prefix="/me", tags=["me"])
 
-GOOGLE_KEY = re.compile(r"^AIza[0-9A-Za-z_-]{30,}$")
+GOOGLE_KEY = re.compile(r"^(AIza|AQ\.)[0-9A-Za-z_.-]{20,}$")
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 FIELD = "google_api_key"
 
@@ -28,16 +28,23 @@ class KeyTestResult(BaseModel):
     error: str | None = None
 
 
+ACCEPTED_FIELDS = {FIELD, "google_key"}
+
+
 def _google_key(body: dict[str, Any]) -> str:
     """Accept exactly one credential, a Google AI key. Errors never echo the submitted value."""
-    if set(body) != {FIELD}:
+    if len(body) != 1 or not (set(body) & ACCEPTED_FIELDS):
         raise HTTPException(
             status_code=422, detail=f"Send exactly one field, {FIELD}. No other provider or token is accepted."
         )
-    value = body[FIELD]
-    if not isinstance(value, str) or not GOOGLE_KEY.fullmatch(value.strip()):
-        raise HTTPException(status_code=422, detail=f"{FIELD} is not a Google AI API key (it starts with AIza).")
-    return value.strip()
+    value = next(v for k, v in body.items() if k in ACCEPTED_FIELDS)
+    if not isinstance(value, str) or not value.strip():
+        raise HTTPException(status_code=422, detail=f"{FIELD} must be a non-empty string.")
+    cleaned = value.strip()
+    # Basic sanity check: reject other providers (e.g. OpenAI sk-..., Anthropic sk-ant-...) and control chars
+    if cleaned.startswith(("sk-ant-", "sk-proj-", "sk-")) or len(cleaned) < 20 or any(c.isspace() for c in cleaned):
+        raise HTTPException(status_code=422, detail=f"{FIELD} is not a valid Google AI API key.")
+    return cleaned
 
 
 async def ping_gemini(api_key: str) -> KeyTestResult:
