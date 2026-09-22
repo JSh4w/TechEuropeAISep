@@ -42,7 +42,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
-      - "traefik.http.routers.bessible-api.rule=Host(`${DOMAIN:-localhost}`) && (PathPrefix(`/runs`) || PathPrefix(`/me`) || PathPrefix(`/demo`) || PathPrefix(`/capacity`) || PathPrefix(`/site-data`) || PathPrefix(`/inspire`) || PathPrefix(`/health`) || PathPrefix(`/data`))"
+      - "traefik.http.routers.bessible-api.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/runs`, `/me`, `/demo`, `/capacity`, `/site-data`, `/inspire`, `/health`, `/data`)"
       - "traefik.http.routers.bessible-api.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}"
       - "traefik.http.routers.bessible-api.tls=true"
       - "traefik.http.routers.bessible-api.priority=100"
