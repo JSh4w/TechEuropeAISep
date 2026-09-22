@@ -26,11 +26,11 @@ Set these in `web/.env.local` to turn on Google sign-in (Firebase Auth). Leave t
 no bearer token, no key prompts.
 
 ```
-NEXT_PUBLIC_FIREBASE_API_KEY=
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=
-NEXT_PUBLIC_FIREBASE_APP_ID=
-NEXT_PUBLIC_API_URL=http://localhost:8000
+AUTH_ENABLED=true
+FIREBASE_API_KEY=
+FIREBASE_AUTH_DOMAIN=
+FIREBASE_PROJECT_ID=
+FIREBASE_APP_ID=
 ```
 
 With Firebase on, every non-demo API call carries `Authorization: Bearer <ID token>` (`src/lib/api.ts`), and the run

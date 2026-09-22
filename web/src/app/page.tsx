@@ -44,6 +44,7 @@ import {
   RotateCcw,
   Sparkles,
   KeyRound,
+  LogIn,
   LogOut,
   PlayCircle,
   Film,
@@ -705,7 +706,25 @@ export default function Home() {
   const isDemo = isDemoRun(runId);
 
   if (auth.enabled && auth.loading) {
-    return <div className="min-h-screen bg-background" />;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-3">
+          <div className="bg-emerald-600 text-white p-3.5 rounded-2xl shadow-xs animate-pulse">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 -960 960 960"
+              width="32"
+              height="32"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M320-80q-17 0-28.5-11.5T280-120v-640q0-17 11.5-28.5T320-800h80v-80h160v80h80q17 0 28.5 11.5T680-760v280q-100 1-170 70.5T440-240q0 46 16 87t45 73H320Zm40-400h240v-240H360v240ZM660-80v-120H560l140-200v120h100L660-80Z" />
+            </svg>
+          </div>
+          <span className="text-xs text-muted-foreground font-medium animate-pulse">Loading Bessible…</span>
+        </div>
+      </div>
+    );
   }
   // No session: landing page, until the visitor starts the demo replay.
   if (auth.enabled && !auth.user && !isDemo) {
@@ -786,6 +805,18 @@ export default function Home() {
             <Badge variant="outline" className="gap-1 text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30">
               <Film className="w-3 h-3" /> Recorded example
             </Badge>
+          )}
+
+          {auth.enabled && !auth.user && (
+            <Button
+              size="sm"
+              onClick={handleSignIn}
+              disabled={signingIn}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white gap-1.5 text-xs h-8 px-3 rounded-xl cursor-pointer"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>{signingIn ? 'Signing in…' : 'Sign in'}</span>
+            </Button>
           )}
 
           {auth.enabled && auth.user && (
@@ -938,9 +969,22 @@ export default function Home() {
         )}
 
         {errorMsg && (
-          <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-xs text-destructive flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{errorMsg}</span>
+          <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-xs text-destructive flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{errorMsg}</span>
+            </div>
+            {auth.enabled && !auth.user && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSignIn}
+                disabled={signingIn}
+                className="h-7 text-xs border-destructive/40 text-destructive hover:bg-destructive/10 shrink-0 cursor-pointer"
+              >
+                Sign in
+              </Button>
+            )}
           </div>
         )}
 
