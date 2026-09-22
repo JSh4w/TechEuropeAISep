@@ -154,7 +154,7 @@ def test_artifacts_cite_dataset_and_snapshot_date():
             ds in a.claim
             for ds in (
                 "ukpn-capacity-heatmap",
-                "ltds-table-6-interest-connections",
+                "ukpn-ltds-table-6-interest-connections",
                 "ukpn-ltds-table-2a-transformer-2w",
             )
         )
@@ -286,7 +286,7 @@ def test_competition_artifacts_and_caveat():
     comp_art = next((a for a in out.artifacts if "competition" in a.id), None)
     caveat_art = next((a for a in out.artifacts if "caveat" in a.id), None)
     assert comp_art is not None
-    assert "ltds-table-6-interest-connections" in comp_art.claim
+    assert "ukpn-ltds-table-6-interest-connections" in comp_art.claim
     assert caveat_art is not None
     assert "speculative projects" in caveat_art.claim
     assert out.competition is not None

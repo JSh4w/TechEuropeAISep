@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
@@ -10,6 +11,9 @@ from temporalio import activity
 from bessible.config import settings
 from bessible.credentials import encrypt_google_key
 from bessible.planning.route import LpaLookup
+from bessible.ukpn.snapshot import load_snapshot
+
+UKPN_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "ukpn"
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -27,6 +31,14 @@ def offline_lpa_lookup(monkeypatch: pytest.MonkeyPatch) -> None:
         return LpaLookup(entity=626002, reference="E60000002", name="Darlington LPA")
 
     monkeypatch.setattr("bessible.stages.planning.lookup_lpa", fake)
+
+
+@pytest.fixture(autouse=True)  # ruff: ignore[pytest-fixture-autouse] - tests pin values from the fixture snapshot
+def ukpn_fixture_snapshot(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Point every `get_snapshot` importer at the small fixture snapshot, not the full one in data/ukpn."""
+    snapshot = load_snapshot(UKPN_FIXTURE_DIR)
+    for module in ("bessible.stages.capacity", "bessible.stages.grid", "bessible.api.capacity", "bessible.cli"):
+        monkeypatch.setattr(f"{module}.get_snapshot", lambda: snapshot)
 
 
 class FakeGemini:

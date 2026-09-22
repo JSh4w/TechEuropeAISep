@@ -140,4 +140,4 @@ def test_ingest_and_snapshot_load(tmp_path, monkeypatch):
     manifest = json.loads((tmp_path / "ukpn" / "manifest.json").read_text())
     assert "ukpn-capacity-heatmap" in manifest["datasets"]
     assert "grid-and-primary-sites" in manifest["datasets"]
-    assert "ltds-table-6-interest-connections" in manifest["datasets"]
+    assert "ukpn-ltds-table-6-interest-connections" in manifest["datasets"]

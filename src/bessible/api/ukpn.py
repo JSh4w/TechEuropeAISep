@@ -215,7 +215,7 @@ class OverheadLine(ApiResponse):
 
 
 class Table6InterestRecord(ApiResponse):
-    """Row of ``ltds-table-6-interest-connections``: new connection enquiries and offers."""
+    """Row of ``ukpn-ltds-table-6-interest-connections``: new connection enquiries and offers."""
 
     gridsupplypoint: str | None = None
     substation: str | None = None
@@ -294,7 +294,7 @@ DATASETS: dict[str, DatasetSpec[Any]] = {
         BASE_URL, "ukpn-33kv-overhead-lines", "geo_shape", RecordsResponse[OverheadLine], "geo_point_2d"
     ),
     "table6": DatasetSpec(
-        BASE_URL, "ltds-table-6-interest-connections", "spatial_coordinates", RecordsResponse[Table6InterestRecord]
+        BASE_URL, "ukpn-ltds-table-6-interest-connections", "spatial_coordinates", RecordsResponse[Table6InterestRecord]
     ),
     "table2a": DatasetSpec(
         BASE_URL, "ukpn-ltds-table-2a-transformer-2w", None, RecordsResponse[Table2aTransformerRecord]

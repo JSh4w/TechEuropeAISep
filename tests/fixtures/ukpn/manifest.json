@@ -1,0 +1,29 @@
+{
+  "fetched_at": "2026-09-19",
+  "datasets": {
+    "ukpn-capacity-heatmap": {
+      "rows": 3,
+      "file": "heatmap.json"
+    },
+    "grid-and-primary-sites": {
+      "rows": 3,
+      "file": "grid_substations.json"
+    },
+    "ukpn-gsp-project-status": {
+      "rows": 22,
+      "file": "gsp_project_status.json"
+    },
+    "ukpn-ltds-table-6-interest-connections": {
+      "rows": 3,
+      "file": "table6.json"
+    },
+    "ukpn-ltds-table-2a-transformer-2w": {
+      "rows": 4,
+      "file": "table2a.json"
+    }
+  },
+  "export_ceiling_validated": true,
+  "export_ceiling_failing_substations": [],
+  "partial": true,
+  "note": "Test fixture: a small Dorking-area subset (grid substations are hand-made). Tests pin its values; the app reads the full snapshot in data/ukpn (refresh: `uv run python -m bessible.ukpn.ingest`)."
+}
