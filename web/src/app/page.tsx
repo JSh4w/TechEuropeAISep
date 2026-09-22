@@ -161,6 +161,7 @@ export default function Home() {
   ) => {
     const isOutOfArea = targetPostcode.toUpperCase().startsWith('M1');
     const isFlexibleNeeded = targetPostcode.toUpperCase().startsWith('CB');
+    const isDorking = targetPostcode.toUpperCase().startsWith('RH');
 
     const fakeRunId = `run_${Date.now().toString(36)}`;
     setRunId(fakeRunId);
@@ -182,49 +183,100 @@ export default function Home() {
           status: 'not_viable',
           message: 'The requested postcode is located in Manchester (Electricity North West area). Bessible screening currently covers UKPN license regions (London, South East, Eastern England).',
         });
+        setCapacityProposal(null);
         setCapacityLoading(false);
       }, immediate ? 0 : 1000);
       return;
     }
 
-    const firmMw = isFlexibleNeeded ? 3 : 12;
-    const ceilingMw = isFlexibleNeeded ? 14 : 18;
+    const firmMw = isFlexibleNeeded ? 3 : isDorking ? 8 : 12;
+    const ceilingMw = isFlexibleNeeded ? 14 : isDorking ? 12 : 18;
+    const substationName = isDorking
+      ? 'Dorking Town 11kV'
+      : isFlexibleNeeded
+      ? 'Histon 33kV Primary'
+      : 'Southwark Central Primary';
+    const voltageKv = isDorking ? 11 : 33;
+    const distanceKmVal = isDorking ? 1.24 : isFlexibleNeeded ? 2.4 : 0.65;
 
-    const mockSubstations: SubstationOption[] = [
-      {
-        name: 'Southwark Central Primary',
-        distance_km: 0.65,
-        voltage_kv: 33,
-        import_headroom_mw: 15,
-        export_headroom_mw: ceilingMw,
-        effective_headroom_mw: firmMw,
-        is_marginal: false,
-      },
-      {
-        name: 'Borough High Alternate',
-        distance_km: 1.45,
-        voltage_kv: 11,
-        import_headroom_mw: 8,
-        export_headroom_mw: 8,
-        effective_headroom_mw: 6,
-        is_marginal: true,
-      },
-      {
-        name: 'Elephant North Alternate',
-        distance_km: 2.1,
-        voltage_kv: 33,
-        import_headroom_mw: 18,
-        export_headroom_mw: 18,
-        effective_headroom_mw: 14,
-        is_marginal: true,
-      },
-    ];
+    const mockSubstations: SubstationOption[] = isDorking
+      ? [
+          {
+            name: 'Dorking Town 11kV',
+            distance_km: 1.24,
+            voltage_kv: 11,
+            import_headroom_mw: 10,
+            export_headroom_mw: 12,
+            effective_headroom_mw: 8,
+            is_marginal: false,
+          },
+          {
+            name: 'Brockham 33kV Alternate',
+            distance_km: 1.84,
+            voltage_kv: 33,
+            import_headroom_mw: 20,
+            export_headroom_mw: 20,
+            effective_headroom_mw: 15,
+            is_marginal: false,
+          },
+        ]
+      : isFlexibleNeeded
+      ? [
+          {
+            name: 'Histon 33kV Primary',
+            distance_km: 2.4,
+            voltage_kv: 33,
+            import_headroom_mw: 12,
+            export_headroom_mw: 14,
+            effective_headroom_mw: 3,
+            is_marginal: true,
+          },
+          {
+            name: 'Milton Road Alternate',
+            distance_km: 3.1,
+            voltage_kv: 33,
+            import_headroom_mw: 15,
+            export_headroom_mw: 15,
+            effective_headroom_mw: 4,
+            is_marginal: true,
+          },
+        ]
+      : [
+          {
+            name: 'Southwark Central Primary',
+            distance_km: 0.65,
+            voltage_kv: 33,
+            import_headroom_mw: 15,
+            export_headroom_mw: ceilingMw,
+            effective_headroom_mw: firmMw,
+            is_marginal: false,
+          },
+          {
+            name: 'Borough High Alternate',
+            distance_km: 1.45,
+            voltage_kv: 11,
+            import_headroom_mw: 8,
+            export_headroom_mw: 8,
+            effective_headroom_mw: 6,
+            is_marginal: true,
+          },
+          {
+            name: 'Elephant North Alternate',
+            distance_km: 2.1,
+            voltage_kv: 33,
+            import_headroom_mw: 18,
+            export_headroom_mw: 18,
+            effective_headroom_mw: 14,
+            is_marginal: true,
+          },
+        ];
 
     const mockCapacity: CapacityOutput = {
       viable: !isFlexibleNeeded || flexibleConnection,
       out_of_area: false,
-      serving_substation: 'Southwark Central Primary',
-      voltage_kv: 33,
+      serving_substation: substationName,
+      distance_km: distanceKmVal,
+      voltage_kv: voltageKv,
       firm_mw: firmMw,
       ceiling_mw: ceilingMw,
       recommended_mw: flexibleConnection ? ceilingMw : firmMw,
@@ -236,7 +288,7 @@ export default function Home() {
     const applyReady = () => {
       setEvents((prev) => [
         ...prev,
-        { id: 3, t: new Date().toISOString(), stage: 'capacity', msg: `Identified serving substation: Southwark Central (${firmMw} MW firm, ${ceilingMw} MW ceiling)` },
+        { id: 3, t: new Date().toISOString(), stage: 'capacity', msg: `Identified serving substation: ${substationName} (${firmMw} MW firm, ${ceilingMw} MW ceiling)` },
         { id: 4, t: new Date().toISOString(), stage: 'title', msg: 'HM Land Registry INSPIRE boundaries retrieved. Awaiting human confirmation...' },
       ]);
 
@@ -370,6 +422,10 @@ export default function Home() {
         if (status.status !== 'running') {
           setCapacityLoading(false);
         }
+        if (status.status === 'not_viable') {
+          setCapacityProposal(null);
+          setCapacityLoading(false);
+        }
 
         if (status.position && positionedRunRef.current !== runId) {
           positionedRunRef.current = runId;
@@ -382,6 +438,7 @@ export default function Home() {
         if (status.status === 'awaiting_confirmation' && status.capacity && proposedRunRef.current !== runId) {
           proposedRunRef.current = runId;
           setCapacityProposal(status.capacity);
+          setCapacityLoading(false);
           if (status.capacity.recommended_mw) {
             setSelectedCapacityMw(status.capacity.recommended_mw);
           }
@@ -469,7 +526,30 @@ export default function Home() {
     positionedRunRef.current = null;
     proposedRunRef.current = null;
 
-    const centerCoords = overrideCoords || currentPosition;
+    let centerCoords = overrideCoords;
+    if (!centerCoords && !isUrl && targetPostcode) {
+      const normalizedTarget = targetPostcode.replace(/\s+/g, '').toUpperCase();
+      const matchedPreset = DEMO_PRESETS.find(
+        (p) => p.postcode.replace(/\s+/g, '').toUpperCase() === normalizedTarget
+      );
+      if (matchedPreset) {
+        centerCoords = matchedPreset.coords;
+      } else {
+        try {
+          const r = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(targetPostcode)}`);
+          const data = await r.json();
+          if (data?.status === 200 && data.result?.longitude && data.result?.latitude) {
+            centerCoords = [data.result.longitude, data.result.latitude];
+          }
+        } catch {
+          // fallback to currentPosition
+        }
+      }
+    }
+    if (!centerCoords) {
+      centerCoords = currentPosition;
+    }
+
     setInitialCenter(centerCoords);
     setCurrentPosition(centerCoords);
 
@@ -512,6 +592,7 @@ export default function Home() {
   const handlePositionChange = async (newPos: [number, number]) => {
     setCurrentPosition(newPos);
     setSubstationChangeNotice(null);
+    setCapacityLoading(true);
     try {
       const updated = await checkCapacity(newPos, flexibleConnection);
       if (
@@ -540,7 +621,18 @@ export default function Home() {
         setSubstationChangeNotice(
           `Pin moved into new substation area: Now served by ${alt.name} (${alt.distance_km} km away)`
         );
+        setCapacityProposal({
+          ...capacityProposal,
+          serving_substation: alt.name,
+          distance_km: alt.distance_km,
+          voltage_kv: alt.voltage_kv,
+          firm_mw: alt.effective_headroom_mw,
+          ceiling_mw: alt.export_headroom_mw,
+          recommended_mw: flexibleConnection ? alt.export_headroom_mw : alt.effective_headroom_mw,
+        });
       }
+    } finally {
+      setCapacityLoading(false);
     }
   };
 
