@@ -7,7 +7,12 @@ import {
   TraceEvent,
 } from './types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL !== undefined
+    ? process.env.NEXT_PUBLIC_API_URL
+    : process.env.NODE_ENV === 'production'
+      ? ''
+      : 'http://localhost:8000';
 
 type TokenGetter = () => Promise<string | null>;
 let getToken: TokenGetter = async () => null;

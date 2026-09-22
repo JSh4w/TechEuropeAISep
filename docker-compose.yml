@@ -2,42 +2,52 @@ services:
   temporal:
     image: temporalio/auto-setup:latest
     container_name: bessible-temporal
-    ports:
-      - "7233:7233"
-      - "8233:8233"
     environment:
       - DB=sqlite
       - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
     volumes:
       - temporal-data:/etc/temporal/schema
+    networks:
+      - bessible-internal
     restart: unless-stopped
 
   api:
     build:
       context: .
       dockerfile: Dockerfile
-    image: ghcr.io/${IMAGE_OWNER:-jsh4w}/bessible-backend:latest
+    image: ghcr.io/${IMAGE_OWNER:-eskres}/bessible-backend:latest
     container_name: bessible-api
-    ports:
-      - "8000:8000"
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_NAMESPACE=default
+      - KEY_ENCRYPTION_SECRET=${KEY_ENCRYPTION_SECRET:-}
+      - KEY_STORE_PATH=/var/lib/bessible/keys.db
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-}
+      - ALLOWED_EMAILS=${ALLOWED_EMAILS:-}
+      - CLASSIFIER_BACKEND=${CLASSIFIER_BACKEND:-auto}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
-      - PYDANTIC_AI_GATEWAY_API_KEY=${PYDANTIC_AI_GATEWAY_API_KEY:-}
-      - PYDANTIC_AI_GATEWAY_BASE_URL=${PYDANTIC_AI_GATEWAY_BASE_URL:-https://gateway-eu.pydantic.dev/proxy}
-      - MODAL_GATEWAY_ROUTE=${MODAL_GATEWAY_ROUTE:-modal}
-      - MODAL_MODEL=${MODAL_MODEL:-google/gemma-4-31B-it}
-      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.8-flash}
-      - LOGFIRE_TOKEN=${LOGFIRE_TOKEN:-}
-      - TYPESAFE_API_KEY=${TYPESAFE_API_KEY:-}
-      - UKPN_API_KEY=${UKPN_API_KEY:-}
-      - SSEN_API_KEY=${SSEN_API_KEY:-}
-      - NGED_API_KEY=${NGED_API_KEY:-}
       - OS_API_KEY=${OS_API_KEY:-}
+      - SSEN_API_KEY=${SSEN_API_KEY:-}
+      - UKPN_API_KEY=${UKPN_API_KEY:-}
+      - NGED_API_KEY=${NGED_API_KEY:-}
+      - LOGFIRE_TOKEN=${LOGFIRE_TOKEN:-}
     env_file:
       - path: .env
         required: false
+    volumes:
+      - bessible-data:/var/lib/bessible
+    networks:
+      - bessible-internal
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
+      - "traefik.http.routers.bessible-api.rule=Host(`${DOMAIN:-localhost}`) && (PathPrefix(`/runs`) || PathPrefix(`/me`) || PathPrefix(`/demo`) || PathPrefix(`/capacity`) || PathPrefix(`/site-data`) || PathPrefix(`/inspire`) || PathPrefix(`/health`) || PathPrefix(`/data`))"
+      - "traefik.http.routers.bessible-api.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}"
+      - "traefik.http.routers.bessible-api.tls=true"
+      - "traefik.http.routers.bessible-api.priority=100"
+      - "traefik.http.routers.bessible-api.middlewares=${TRAEFIK_MIDDLEWARES_API:-security-headers@file}"
+      - "traefik.http.services.bessible-api.loadbalancer.server.port=8000"
     depends_on:
       - temporal
     restart: unless-stopped
@@ -46,27 +56,30 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: ghcr.io/${IMAGE_OWNER:-jsh4w}/bessible-backend:latest
+    image: ghcr.io/${IMAGE_OWNER:-eskres}/bessible-backend:latest
     container_name: bessible-worker
     command: ["python", "-m", "bessible.worker"]
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_NAMESPACE=default
+      - KEY_ENCRYPTION_SECRET=${KEY_ENCRYPTION_SECRET:-}
+      - KEY_STORE_PATH=/var/lib/bessible/keys.db
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-}
+      - ALLOWED_EMAILS=${ALLOWED_EMAILS:-}
+      - CLASSIFIER_BACKEND=${CLASSIFIER_BACKEND:-auto}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
-      - PYDANTIC_AI_GATEWAY_API_KEY=${PYDANTIC_AI_GATEWAY_API_KEY:-}
-      - PYDANTIC_AI_GATEWAY_BASE_URL=${PYDANTIC_AI_GATEWAY_BASE_URL:-https://gateway-eu.pydantic.dev/proxy}
-      - MODAL_GATEWAY_ROUTE=${MODAL_GATEWAY_ROUTE:-modal}
-      - MODAL_MODEL=${MODAL_MODEL:-google/gemma-4-31B-it}
-      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.8-flash}
-      - LOGFIRE_TOKEN=${LOGFIRE_TOKEN:-}
-      - TYPESAFE_API_KEY=${TYPESAFE_API_KEY:-}
-      - UKPN_API_KEY=${UKPN_API_KEY:-}
-      - SSEN_API_KEY=${SSEN_API_KEY:-}
-      - NGED_API_KEY=${NGED_API_KEY:-}
       - OS_API_KEY=${OS_API_KEY:-}
+      - SSEN_API_KEY=${SSEN_API_KEY:-}
+      - UKPN_API_KEY=${UKPN_API_KEY:-}
+      - NGED_API_KEY=${NGED_API_KEY:-}
+      - LOGFIRE_TOKEN=${LOGFIRE_TOKEN:-}
     env_file:
       - path: .env
         required: false
+    volumes:
+      - bessible-data:/var/lib/bessible
+    networks:
+      - bessible-internal
     depends_on:
       - temporal
     restart: unless-stopped
@@ -76,17 +89,32 @@ services:
       context: ./web
       dockerfile: Dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
-    image: ghcr.io/${IMAGE_OWNER:-jsh4w}/bessible-web:latest
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-}
+    image: ghcr.io/${IMAGE_OWNER:-eskres}/bessible-web:latest
     container_name: bessible-web
-    ports:
-      - "3000:3000"
     environment:
       - PORT=3000
-      - BACKEND_URL=http://api:8000
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
+      - "traefik.http.routers.bessible-web.rule=Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.bessible-web.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}"
+      - "traefik.http.routers.bessible-web.tls=true"
+      - "traefik.http.routers.bessible-web.priority=10"
+      - "traefik.http.routers.bessible-web.middlewares=${TRAEFIK_MIDDLEWARES_WEB:-security-headers@file,rate-limit@file}"
+      - "traefik.http.services.bessible-web.loadbalancer.server.port=3000"
     depends_on:
       - api
     restart: unless-stopped
 
 volumes:
   temporal-data:
+  bessible-data:
+
+networks:
+  bessible-internal:
+  proxy:
+    name: ${TRAEFIK_NETWORK:-proxy}
+    external: true
