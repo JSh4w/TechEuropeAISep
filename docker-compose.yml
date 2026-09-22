@@ -41,7 +41,7 @@ services:
       - proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-traefik_proxy}"
       - "traefik.http.routers.bessible-api.rule=Host(`${DOMAIN:-localhost}`) && PathPrefix(`/runs`, `/me`, `/demo`, `/capacity`, `/site-data`, `/inspire`, `/health`, `/data`)"
       - "traefik.http.routers.bessible-api.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}"
       - "traefik.http.routers.bessible-api.tls=true"
@@ -102,7 +102,7 @@ services:
       - proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-traefik_proxy}"
       - "traefik.http.routers.bessible-web.rule=Host(`${DOMAIN:-localhost}`)"
       - "traefik.http.routers.bessible-web.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}"
       - "traefik.http.routers.bessible-web.tls=true"
@@ -120,5 +120,5 @@ volumes:
 networks:
   bessible-internal:
   proxy:
-    name: ${TRAEFIK_NETWORK:-proxy}
+    name: ${TRAEFIK_NETWORK:-traefik_proxy}
     external: true
