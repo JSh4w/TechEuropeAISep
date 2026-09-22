@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
+from temporalio.client import WorkflowUpdateFailedError
 from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.testing import WorkflowEnvironment
 from temporalio.worker import Worker
@@ -121,3 +122,34 @@ async def test_workflow_end_to_end_80mw_grid_level(fake_gemini: FakeGemini, run_
         assert "132 kV" in report_md
         assert any("grid-and-primary-sites" in a.claim for a in result.artifacts)
         assert any("132 kV connection" in a.claim for a in result.artifacts)
+
+
+@pytest.mark.anyio
+async def test_workflow_early_rejection_stops_before_title(
+    fake_gemini: FakeGemini, run_credentials: EncryptedCredentials
+):
+    """A rejection sent while the run is still running ends it as rejected, and a second decision is refused."""
+    async with (
+        await WorkflowEnvironment.start_time_skipping(data_converter=pydantic_data_converter) as env,
+        Worker(
+            env.client,
+            task_queue=TASK_QUEUE,
+            workflows=[AssessmentWorkflow],
+            activities=ALL_ACTIVITIES,
+        ),
+    ):
+        handle = await env.client.start_workflow(
+            AssessmentWorkflow.run,
+            AssessmentRequest(postcode="RH4 1AD", budget_gbp=10_000_000.0, credentials=run_credentials),
+            id=f"test-wf-{uuid.uuid4().hex[:8]}",
+            task_queue=TASK_QUEUE,
+        )
+
+        await handle.execute_update(AssessmentWorkflow.decide_site, SiteDecision(confirmed=False))
+        with pytest.raises(WorkflowUpdateFailedError):
+            await handle.execute_update(AssessmentWorkflow.decide_site, SiteDecision(confirmed=True))
+
+        result = await handle.result()
+        assert result.status == "rejected"
+        st = await handle.query(AssessmentWorkflow.status)
+        assert st.boundary is None  # the title stage never ran
