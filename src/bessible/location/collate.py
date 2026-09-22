@@ -243,7 +243,10 @@ async def _fetch_grid(f: _Fetcher, c: Coordinates) -> _GridRaw:
 
     jobs: list[Awaitable[None]] = [nged_tables(), ssen_d_tables()]
     if key := _key(settings.ukpn_api_key):
-        jobs += [ods(ukpn, n, LINES_M + 1000 if "lines" in n else GRID_KM * 1000, key, raw.ukpn) for n in ukpn.DATASETS]
+        # Tables without a location field (LTDS table 2a, GSP project status) are whole-dataset: the snapshot ingest
+        # fetches them; a radius query would send `within_distance(None, ...)`.
+        spatial = [n for n, spec in ukpn.DATASETS.items() if spec.geo_field]
+        jobs += [ods(ukpn, n, LINES_M + 1000 if "lines" in n else GRID_KM * 1000, key, raw.ukpn) for n in spatial]
     else:
         f.skip("UKPN", ukpn.BASE_URL, "UKPN_API_KEY is not set")
     if key := _key(settings.ssen_api_key):
