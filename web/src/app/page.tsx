@@ -700,6 +700,14 @@ export default function Home() {
     setErrorMsg(null);
   };
 
+  const handleResetRun = () => {
+    if (isDemo) {
+      void handleStartDemo();
+    } else {
+      handleReset();
+    }
+  };
+
   const handleSignIn = async () => {
     setSigningIn(true);
     setSignInError(null);
@@ -890,8 +898,8 @@ export default function Home() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleReset}
-                className="gap-1.5 text-xs h-8 px-3 rounded-xl border-border"
+                onClick={handleResetRun}
+                className="gap-1.5 text-xs h-8 px-3 rounded-xl border-border cursor-pointer hover:bg-muted/80 transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Reset Run</span>
