@@ -108,8 +108,16 @@ class AssessmentWorkflow:
 
     @decide_site.validator
     def _validate_decide_site(self, decision: SiteDecision) -> None:
-        """Validate that confirmation decision is allowed and within capacity bounds."""
-        if self._status != "awaiting_confirmation":
+        """Validate that confirmation decision is allowed and within capacity bounds.
+
+        A rejection is also accepted before the run reaches the confirmation step (the user moved to another
+        location); the run then stops before the title stage.
+        """
+        if self._decision is not None:
+            msg = "Site decision already made"
+            raise ValueError(msg)
+        allowed = ("running", "awaiting_confirmation") if not decision.confirmed else ("awaiting_confirmation",)
+        if self._status not in allowed:
             msg = f"Not awaiting confirmation (current status: {self._status})"
             raise ValueError(msg)
         if decision.confirmed:
@@ -171,11 +179,19 @@ class AssessmentWorkflow:
 
         return None
 
+    def _rejected(self, run_id: str, all_artifacts: list[Artifact]) -> AssessmentResult:
+        self._status = "rejected"
+        self._stages = []
+        return AssessmentResult(status="rejected", artifacts=all_artifacts, run_dir=f"out/{run_id}")
+
     async def _await_confirmation(self, run_id: str, all_artifacts: list[Artifact]) -> ConfirmedSite | AssessmentResult:
         """Find title boundaries and await human confirmation."""
         if self._request is None or self._location is None or self._capacity is None:
             msg = "Workflow state incomplete before title stage"
             raise RuntimeError(msg)
+
+        if self._decision is not None and not self._decision.confirmed:
+            return self._rejected(run_id, all_artifacts)
 
         self._stages = ["title"]
         title = await workflow.execute_activity(
@@ -198,13 +214,7 @@ class AssessmentWorkflow:
 
         decision = self._decision
         if decision is None or not decision.confirmed:
-            self._status = "rejected"
-            self._stages = []
-            return AssessmentResult(
-                status="rejected",
-                artifacts=all_artifacts,
-                run_dir=f"out/{run_id}",
-            )
+            return self._rejected(run_id, all_artifacts)
 
         self._status = "running"
         chosen_pos = decision.position or self._location.position

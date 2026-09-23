@@ -192,6 +192,16 @@ def test_mocked_workflow_endpoints(client: TestClient) -> None:
         assert reject_res.status_code == 204
         mock_handle.execute_update.assert_awaited_once()
 
+        # 6b. While the run is still running, a rejection is accepted but a confirmation is not
+        mock_handle.query = AsyncMock(return_value=RunStatus(status="running", stages=["capacity"]))
+        mock_handle.execute_update.reset_mock()
+        early_reject_res = client.post(f"/runs/{run_id}/decision", json={"confirmed": False})
+        assert early_reject_res.status_code == 204
+        mock_handle.execute_update.assert_awaited_once()
+        early_confirm_res = client.post(f"/runs/{run_id}/decision", json={"confirmed": True})
+        assert early_confirm_res.status_code == 409
+        mock_handle.query = AsyncMock(return_value=mock_status_awaiting)
+
         # 7. Completed result returns 200
         mock_desc_completed = MagicMock()
         mock_desc_completed.status = WorkflowExecutionStatus.COMPLETED

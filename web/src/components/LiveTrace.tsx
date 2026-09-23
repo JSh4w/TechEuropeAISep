@@ -9,7 +9,6 @@ import {
   Clock,
   Terminal,
   ArrowDown,
-  CheckCircle,
   MapPin,
   Zap,
   Building,
@@ -22,6 +21,8 @@ interface LiveTraceProps {
   events: TraceEvent[];
   isConnected?: boolean;
   status?: string;
+  /** Temporal workflow id of the run, shown under the title once a run exists. */
+  runId?: string | null;
 }
 
 const STAGE_CONFIG: Record<
@@ -62,6 +63,7 @@ export default function LiveTrace({
   events,
   isConnected = false,
   status = 'running',
+  runId = null,
 }: LiveTraceProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
@@ -76,17 +78,19 @@ export default function LiveTrace({
     <Card className="flex flex-col h-full shadow-md rounded-2xl overflow-hidden border-border bg-card">
       <CardHeader className="p-4 border-b border-border/80 bg-muted/20">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
               <Terminal className="w-4 h-4" />
             </div>
-            <div>
+            <div className="min-w-0">
               <CardTitle className="text-sm font-bold tracking-tight">Agent Telemetry</CardTitle>
-              <div className="text-[10px] text-muted-foreground font-mono">Temporal Workflow Stream</div>
+              <div className="text-[10px] text-muted-foreground font-mono truncate" title={runId ?? undefined}>
+                {runId ?? 'Temporal Workflow Stream'}
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {isConnected ? (
               <Badge variant="outline" className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5">
                 <span className="relative flex h-2 w-2">

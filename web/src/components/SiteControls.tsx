@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { Zap, AlertTriangle, Check, X, Sliders, Info, Box, Layers, Loader2 } from 'lucide-react';
+import { Zap, AlertTriangle, Check, Compass, Sliders, Info, Box, Layers, Loader2 } from 'lucide-react';
 
 interface SiteControlsProps {
   capacity: CapacityOutput;
@@ -18,7 +18,8 @@ interface SiteControlsProps {
   flexibleConnection: boolean;
   onFlexibleToggle: (enabled: boolean) => void;
   onConfirm: () => void;
-  onReject: () => void;
+  /** Declines this site so the user can pick another one. */
+  onExploreAnother: () => void;
   submitting?: boolean;
 }
 
@@ -30,7 +31,7 @@ export default function SiteControls({
   flexibleConnection,
   onFlexibleToggle,
   onConfirm,
-  onReject,
+  onExploreAnother,
   submitting = false,
 }: SiteControlsProps) {
   const firmMw = capacity.firm_mw ?? 0;
@@ -253,18 +254,18 @@ export default function SiteControls({
           className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold gap-2 text-sm h-11 rounded-xl shadow-md cursor-pointer transition active:scale-[0.99]"
         >
           <Check className="w-4 h-4 stroke-[3]" />
-          <span>{submitting ? 'Running Feasibility & Valuation...' : 'Confirm Site & Run Feasibility'}</span>
+          <span>{submitting ? 'Running Feasibility & Valuation...' : 'Run feasibility'}</span>
         </Button>
 
         <Button
           type="button"
           variant="outline"
-          onClick={onReject}
+          onClick={onExploreAnother}
           disabled={submitting}
-          className="gap-2 text-sm h-11 px-4 rounded-xl border-border hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 cursor-pointer"
+          className="w-1/3 shrink-0 gap-2 text-sm h-auto min-h-11 py-2 px-4 whitespace-normal text-center leading-tight rounded-xl border-border hover:bg-muted/80 cursor-pointer"
         >
-          <X className="w-4 h-4" />
-          <span>Reject</span>
+          <Compass className="w-4 h-4 shrink-0" />
+          <span>Explore another location</span>
         </Button>
       </CardFooter>
     </Card>

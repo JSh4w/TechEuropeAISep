@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.responses import JSONResponse
-from temporalio.client import WorkflowExecutionStatus
+from temporalio.client import WorkflowExecutionStatus, WorkflowUpdateFailedError
 
 from bessible.api.ownership import OWNER_MEMO, assert_owner
 from bessible.api.temporal import get_temporal_client, handle_temporal_error
@@ -93,7 +93,9 @@ async def submit_site_decision(
         handle_temporal_error(exc, run_id)
         raise
 
-    if status.status != "awaiting_confirmation":
+    # A rejection may arrive early, while the run is still on its way to the confirmation step.
+    allowed = ("awaiting_confirmation",) if decision.confirmed else ("running", "awaiting_confirmation")
+    if status.status not in allowed:
         raise HTTPException(
             status_code=409,
             detail=f"Run is not awaiting confirmation (current status: {status.status})",
@@ -126,6 +128,9 @@ async def submit_site_decision(
 
     try:
         await handle.execute_update(AssessmentWorkflow.decide_site, decision)
+    except WorkflowUpdateFailedError as exc:
+        # The workflow validator refused it, e.g. the site was already decided.
+        raise HTTPException(status_code=409, detail=str(exc.cause or exc)) from exc
     except Exception as exc:
         handle_temporal_error(exc, run_id)
         raise

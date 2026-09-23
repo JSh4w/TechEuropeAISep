@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Map, Marker, NavigationControl, Popup, StyleSpecification, GeoJSONSource } from 'maplibre-gl';
-import { SubstationOption } from '../lib/types';
+import { SiteData, SubstationOption } from '../lib/types';
 import { generateFootprintPolygon, distanceKm, clampPositionWithinDistance } from '../lib/footprint';
 import { MapPin, Zap, Layers, Navigation, Info } from 'lucide-react';
 
@@ -14,7 +14,7 @@ interface SiteMapProps {
   substations?: SubstationOption[];
   areasGeoJson?: GeoJSON.GeoJSON | null;
   inspireGeoJson?: GeoJSON.GeoJSON | null;
-  siteData?: any; // LocationData from /site-data
+  siteData?: SiteData | null;
   siteDataLoading?: boolean;
   maxDistanceKm?: number;
 }
@@ -89,7 +89,9 @@ export default function SiteMap({
 
   // Latest props for the marker's dragend handler, which is bound once
   const latestRef = useRef({ initialCenter, maxDistanceKm, onPositionChange });
-  latestRef.current = { initialCenter, maxDistanceKm, onPositionChange };
+  useEffect(() => {
+    latestRef.current = { initialCenter, maxDistanceKm, onPositionChange };
+  });
 
   // Initialize Map
   useEffect(() => {
@@ -402,25 +404,23 @@ export default function SiteMap({
     const esc = (v: unknown) => String(v ?? '').replace(/[<>&]/g, '');
     const fmt = (v: unknown, unit = '') => (typeof v === 'number' ? `${Math.round(v * 10) / 10}${unit}` : 'n/a');
 
-    const shapes = {
+    const shapes: GeoJSON.FeatureCollection = {
       type: 'FeatureCollection',
-      features: [
-        ...((grid?.lines ?? []) as any[]).map((l) => ({
-          type: 'Feature',
-          properties: { layer: 'line', crosses: !!l.crosses_site },
-          geometry: l.geometry,
-        })),
-      ],
+      features: (grid?.lines ?? []).map((l) => ({
+        type: 'Feature',
+        properties: { layer: 'line', crosses: !!l.crosses_site },
+        geometry: l.geometry,
+      })),
     };
-    const titleShape = {
+    const titleShape: GeoJSON.FeatureCollection = {
       type: 'FeatureCollection',
       features: siteData?.title ? [{ type: 'Feature', properties: {}, geometry: siteData.title.geometry }] : [],
     };
     const titleSource = map.getSource('site-title-source') as GeoJSONSource;
     if (titleSource) {
-      titleSource.setData(titleShape as any);
+      titleSource.setData(titleShape);
     } else {
-      map.addSource('site-title-source', { type: 'geojson', data: titleShape as any });
+      map.addSource('site-title-source', { type: 'geojson', data: titleShape });
       map.addLayer({
         id: 'site-title-fill',
         type: 'fill',
@@ -445,9 +445,9 @@ export default function SiteMap({
 
     const source = map.getSource('site-data-source') as GeoJSONSource;
     if (source) {
-      source.setData(shapes as any);
+      source.setData(shapes);
     } else {
-      map.addSource('site-data-source', { type: 'geojson', data: shapes as any });
+      map.addSource('site-data-source', { type: 'geojson', data: shapes });
       map.addLayer({
         id: 'site-data-lines',
         type: 'line',
@@ -472,7 +472,7 @@ export default function SiteMap({
       siteDataMarkersRef.current.push(marker);
     };
 
-    (grid.projects as any[]).slice(0, 40).forEach((p) => {
+    grid.projects.slice(0, 40).forEach((p) => {
       const icon = p.is_storage ? '🔋' : p.is_solar ? '☀️' : '⚙️';
       add(
         [p.coords.lon, p.coords.lat],
@@ -483,7 +483,7 @@ export default function SiteMap({
       );
     });
 
-    (grid.substations as any[]).slice(0, 12).forEach((sub) => {
+    grid.substations.slice(0, 12).forEach((sub) => {
       const h = sub.headroom;
       const twoWay = h ? Math.max(0, Math.min(h.generation_mw ?? 0, h.demand ?? 0)) : null;
       const tone =
@@ -609,6 +609,7 @@ export default function SiteMap({
                     type="button"
                     className="pointer-events-auto underline text-orange-600 dark:text-orange-400 font-semibold cursor-pointer ml-1"
                     onClick={() => {
+                      if (!siteData.title) return;
                       const [minLon, minLat, maxLon, maxLat] = siteData.title.bbox;
                       mapRef.current?.fitBounds(
                         [

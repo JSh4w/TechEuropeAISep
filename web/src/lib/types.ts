@@ -23,6 +23,68 @@ export interface SubstationOption {
   is_marginal: boolean; // true if distance > 1 km
 }
 
+/** Backend spelling of a capacity alternate, before `normalizeCapacity` maps it to a SubstationOption. */
+export interface RawSubstationOption extends Partial<SubstationOption> {
+  substation?: string;
+  size_mw?: number;
+  marginal?: boolean;
+}
+
+/** The part of LocationData (GET /site-data) the map draws. */
+export interface SiteData {
+  title?: {
+    geometry: GeoJSON.Geometry;
+    area_ha: number;
+    bbox: [number, number, number, number]; // min_lon, min_lat, max_lon, max_lat
+  } | null;
+  deterministic?: { grid?: SiteGrid };
+}
+
+export interface SiteGrid {
+  substations: GridSubstation[];
+  lines: GridLine[];
+  projects: GridProject[];
+}
+
+export interface GridHeadroom {
+  generation_mw?: number | null;
+  generation_constraint?: string | null;
+  demand?: number | null;
+  demand_unit: 'MW' | 'MVA';
+  demand_constraint?: string | null;
+}
+
+export interface GridSubstation {
+  name: string;
+  operator: string;
+  kind: string;
+  voltage_kv?: number | null;
+  voltages?: string | null;
+  coords: PositionCoords;
+  distance_km: number;
+  bsp?: string | null;
+  gsp?: string | null;
+  headroom?: GridHeadroom | null;
+}
+
+export interface GridLine {
+  crosses_site: boolean;
+  geometry: GeoJSON.Geometry;
+}
+
+export interface GridProject {
+  name?: string | null;
+  operator: string;
+  coords: PositionCoords;
+  distance_km: number;
+  technology?: string | null;
+  is_storage: boolean;
+  is_solar: boolean;
+  capacity_mw?: number | null;
+  storage_mwh?: number | null;
+  status?: string | null;
+}
+
 export interface Artifact {
   id: string;
   stage: string;
