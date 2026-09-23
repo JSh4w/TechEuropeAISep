@@ -69,14 +69,13 @@ export async function startRun(
     if (res.status === 503) {
       throw new ApiError(
         503,
-        errorData.detail ||
-          'Temporal server is unavailable. Start it with: temporal server start-dev',
+        detailMessage(errorData, 'Temporal server is unavailable. Start it with: temporal server start-dev'),
         errorData
       );
     }
     throw new ApiError(
       res.status,
-      errorData.detail || 'Failed to start assessment run',
+      detailMessage(errorData, 'Failed to start assessment run'),
       errorData
     );
   }
@@ -89,7 +88,7 @@ export async function startDemoRun(): Promise<{ run_id: string }> {
   const res = await apiFetch('/demo/runs', { method: 'POST' }, { auth: false });
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, errorData.detail || 'Failed to start demo run', errorData);
+    throw new ApiError(res.status, detailMessage(errorData, 'Failed to start demo run'), errorData);
   }
   return res.json();
 }
@@ -98,7 +97,7 @@ export async function getRunStatus(id: string): Promise<RunStatus> {
   const res = await apiFetch(`${runPath(id)}/status`);
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, errorData.detail || 'Failed to get status', errorData);
+    throw new ApiError(res.status, detailMessage(errorData, 'Failed to get status'), errorData);
   }
   const status = await res.json();
   if (status?.capacity) status.capacity = normalizeCapacity(status.capacity);
@@ -128,7 +127,7 @@ export async function sendDecision(
   }
 
   const errorData = await res.json().catch(() => ({}));
-  throw new ApiError(res.status, errorData.detail || 'Decision submission failed', errorData);
+  throw new ApiError(res.status, detailMessage(errorData, 'Decision submission failed'), errorData);
 }
 
 export async function getRunResult(id: string): Promise<AssessmentResult> {
@@ -139,7 +138,7 @@ export async function getRunResult(id: string): Promise<AssessmentResult> {
   }
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, errorData.detail || 'Failed to get result', errorData);
+    throw new ApiError(res.status, detailMessage(errorData, 'Failed to get result'), errorData);
   }
   return res.json();
 }
@@ -156,7 +155,7 @@ export async function checkCapacity(
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, errorData.detail || 'Capacity check failed', errorData);
+    throw new ApiError(res.status, detailMessage(errorData, 'Capacity check failed'), errorData);
   }
 
   return normalizeCapacity(await res.json());
@@ -271,6 +270,10 @@ export interface KeyTestResult {
 function detailMessage(data: { detail?: unknown; message?: unknown }, fallback: string): string {
   const d = data.detail;
   if (typeof d === 'string') return d;
+  if (Array.isArray(d)) {
+    const msgs = d.map((e) => (e && typeof e === 'object' ? (e as { msg?: unknown }).msg : null)).filter((m) => typeof m === 'string');
+    if (msgs.length) return msgs.join('; ');
+  }
   if (d && typeof d === 'object' && typeof (d as { message?: unknown }).message === 'string') {
     return (d as { message: string }).message;
   }
