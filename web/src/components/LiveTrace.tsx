@@ -15,6 +15,9 @@ import {
   Coins,
   Sparkles,
   FileCheck,
+  CheckCircle2,
+  Hand,
+  XCircle,
 } from 'lucide-react';
 
 interface LiveTraceProps {
@@ -23,7 +26,25 @@ interface LiveTraceProps {
   status?: string;
   /** Temporal workflow id of the run, shown under the title once a run exists. */
   runId?: string | null;
+  /** Fill the parent's height and scroll inside it (large screens); otherwise the list caps at a fixed height. */
+  fill?: boolean;
 }
+
+/** How the stream ended, or why it is paused; null while the agents are still working. */
+const RUN_STATE: Record<string, { label: string; tone: 'done' | 'paused' | 'stopped' }> = {
+  awaiting_confirmation: { label: 'Paused: waiting for your site confirmation', tone: 'paused' },
+  completed: { label: 'Pipeline complete: report ready', tone: 'done' },
+  not_viable: { label: 'Run ended: no viable grid connection', tone: 'stopped' },
+  rejected: { label: 'Run ended: site declined', tone: 'stopped' },
+  out_of_area: { label: 'Run ended: location outside the screened area', tone: 'stopped' },
+  failed: { label: 'Run failed', tone: 'stopped' },
+};
+
+const TONE_STYLE = {
+  done: { className: 'text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10', icon: CheckCircle2 },
+  paused: { className: 'text-amber-700 dark:text-amber-300 border-amber-500/30 bg-amber-500/10', icon: Hand },
+  stopped: { className: 'text-muted-foreground border-border bg-muted/40', icon: XCircle },
+};
 
 const STAGE_CONFIG: Record<
   string,
@@ -64,7 +85,11 @@ export default function LiveTrace({
   isConnected = false,
   status = 'running',
   runId = null,
+  fill = false,
 }: LiveTraceProps) {
+  const runState = RUN_STATE[status] ?? null;
+  const working = !runState && (isConnected || status === 'running');
+  const lastEventAt = events.length ? events[events.length - 1].t : null;
   const scrollRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
 
@@ -79,7 +104,12 @@ export default function LiveTrace({
       <CardHeader className="p-4 border-b border-border/80 bg-muted/20">
         <div className="flex flex-col items-start gap-2">
           <div className="flex items-center min-w-0 max-w-full">
-            {isConnected ? (
+            {runState ? (
+              <Badge variant="outline" className={`flex items-center gap-1 text-[10px] font-semibold px-[7px] py-0.5 max-w-full ${TONE_STYLE[runState.tone].className}`}>
+                {React.createElement(TONE_STYLE[runState.tone].icon, { className: 'w-[11px] h-[11px] shrink-0' })}
+                <span className="capitalize truncate">{status.replace(/_/g, ' ')}</span>
+              </Badge>
+            ) : isConnected ? (
               <Badge variant="outline" className="flex items-center gap-[5px] text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold border-emerald-500/30 bg-emerald-500/10 px-[7px] py-0.5">
                 <span className="relative flex h-[7px] w-[7px]">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -109,7 +139,7 @@ export default function LiveTrace({
         </div>
       </CardHeader>
 
-      <CardContent className="p-0 flex-1 flex flex-col justify-between">
+      <CardContent className="p-0 flex-1 min-h-0 flex flex-col justify-between">
         <div
           ref={scrollRef}
           onScroll={(e) => {
@@ -117,7 +147,9 @@ export default function LiveTrace({
             const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
             setAutoScroll(isNearBottom);
           }}
-          className="p-4 overflow-y-auto space-y-2.5 font-mono text-xs max-h-[460px] min-h-[300px]"
+          className={`p-4 overflow-y-auto space-y-2.5 font-mono text-xs max-h-[460px] min-h-[300px] ${
+            fill ? 'lg:flex-1 lg:max-h-none lg:min-h-0' : ''
+          }`}
         >
           {events.length === 0 ? (
             <div className="text-muted-foreground text-center py-16 font-sans text-xs flex flex-col items-center gap-2">
@@ -168,10 +200,24 @@ export default function LiveTrace({
             })
           )}
 
-          {isConnected && events.length > 0 && (
+          {working && events.length > 0 && (
             <div className="flex items-center gap-2 pt-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-mono animate-pulse">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
               <span>Autonomous agent processing stage...</span>
+            </div>
+          )}
+
+          {runState && events.length > 0 && (
+            <div
+              className={`flex items-center gap-2 p-2 rounded-xl border text-[11px] font-semibold font-sans ${TONE_STYLE[runState.tone].className}`}
+            >
+              {React.createElement(TONE_STYLE[runState.tone].icon, { className: 'w-4 h-4 shrink-0' })}
+              <span className="flex-1">{runState.label}</span>
+              {runState.tone !== 'paused' && lastEventAt && (
+                <span className="text-[10px] font-mono font-normal opacity-80">
+                  {new Date(lastEventAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </span>
+              )}
             </div>
           )}
         </div>
