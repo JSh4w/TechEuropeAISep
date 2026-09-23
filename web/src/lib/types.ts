@@ -153,13 +153,25 @@ export interface RunStatus {
   boundary?: Record<string, unknown> | null;
 }
 
+/** Mirrors `DurationCase` in `src/bessible/models.py`. `irr` is a fraction; null when equity never pays back. */
 export interface FinancialCase {
-  duration_hours?: 2 | 4 | 8;
-  duration_h?: 2 | 4 | 8;
+  duration_h: 2 | 4 | 8;
   capex_gbp: number;
   npv_gbp: number;
-  irr_pct?: number;
-  irr?: number;
+  irr?: number | null;
+  over_budget?: boolean;
+  curtailment_pct?: number | null;
+  payback_years?: number | null;
+}
+
+/** Mirrors `FinancialOutput` in `src/bessible/models.py`. */
+export interface FinancialOutput {
+  cases: FinancialCase[];
+  recommended_h?: 2 | 4 | 8 | null;
+  rationale?: string | null;
+  discount_rate_pct?: number | null;
+  project_life_years?: number | null;
+  artifacts?: Artifact[];
 }
 
 export interface SentimentOutput {
@@ -198,13 +210,7 @@ export interface AssessmentResult {
     planning_risk: string;
   };
   sentiment?: SentimentOutput;
-  durations?: {
-    cases: FinancialCase[];
-  };
-  financials?: {
-    cases: FinancialCase[];
-    recommended_duration_hours?: number;
-  };
+  financial?: FinancialOutput | null;
   report?: ReportOutput;
   artifacts: Artifact[];
   run_dir?: string;

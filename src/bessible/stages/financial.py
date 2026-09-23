@@ -114,7 +114,7 @@ async def financial_model(inp: FinancialInput) -> FinancialOutput:
             f"{case.duration_h}h (CAPEX £{case.capex_gbp:,.0f}, NPV £{case.npv_gbp:,.0f}, IRR {irr_str})"
         )
 
-    returns_claim = f"25-year returns: {'; '.join(case_summaries)}."
+    returns_claim = f"{int(a.number('project_life_years'))}-year returns:{'; '.join(case_summaries)}."
     over_budget_cases = [f"{c.duration_h}h" for c in cases if c.over_budget]
     if over_budget_cases:
         returns_claim += f" Flagged over budget: {', '.join(over_budget_cases)}."
@@ -138,5 +138,7 @@ async def financial_model(inp: FinancialInput) -> FinancialOutput:
         cases=cases,
         recommended_h=rec_h,
         rationale=rationale,
+        discount_rate_pct=disc_rate,
+        project_life_years=int(a.number("project_life_years")),
         artifacts=[art_cost, art_curtailment, art_returns],
     )
