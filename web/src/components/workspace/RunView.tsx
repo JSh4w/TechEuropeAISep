@@ -8,7 +8,7 @@ import ReportView from '../ReportView';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Compass, Sparkles } from 'lucide-react';
 import type { SiteRun } from '../../lib/useSiteRun';
-import type { SiteData } from '../../lib/types';
+import type { SiteData, SubstationOption } from '../../lib/types';
 
 interface RunViewProps {
   run: SiteRun;
@@ -36,6 +36,18 @@ export default function RunView({
   siteDataLoading,
 }: RunViewProps) {
   const { runStatus, capacityProposal, capacityLoading } = run;
+  // The map's substation list is the alternates; the serving substation comes separately
+  const serving: SubstationOption | null = capacityProposal?.serving_substation
+    ? {
+        name: capacityProposal.serving_substation,
+        distance_km: capacityProposal.distance_km ?? 0,
+        import_headroom_mw: capacityProposal.firm_mw ?? 0,
+        export_headroom_mw: capacityProposal.firm_mw ?? 0,
+        effective_headroom_mw: capacityProposal.firm_mw ?? 0,
+        voltage_kv: capacityProposal.voltage_kv ?? 0,
+        is_marginal: (capacityProposal.distance_km ?? 0) > 1,
+      }
+    : null;
   const notViableMessage =
     runStatus?.message || runStatus?.capacity?.message || 'Capacity is below the minimum viable connection threshold.';
 
@@ -113,8 +125,12 @@ export default function RunView({
           initialCenter={run.initialCenter}
           currentPosition={run.currentPosition}
           onPositionChange={(pos) => void run.moveTo(pos)}
+          onPositionClamped={run.clampTo}
           capacityMw={run.selectedCapacityMw}
           substations={capacityLoading ? [] : capacityProposal?.alternates || []}
+          servingSubstation={capacityLoading ? null : serving}
+          servingPosition={capacityLoading ? null : capacityProposal?.substation_position}
+          cableRoute={capacityLoading ? null : capacityProposal?.route}
           inspireGeoJson={run.inspireGeoJson}
           siteData={siteData}
           siteDataLoading={siteDataLoading}

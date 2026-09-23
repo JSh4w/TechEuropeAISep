@@ -65,6 +65,12 @@ class Site:
     def _project(self, xy: NDArray[np.float64]) -> NDArray[np.float64]:
         return np.column_stack(((xy[:, 0] - self._lon0) * self._kx, (xy[:, 1] - self._lat0) * M_PER_DEG_LAT))
 
+    def to_deg(self, geom: BaseGeometry) -> BaseGeometry:
+        """Inverse of `to_m`: a geometry in the site's metric frame back to degrees."""
+        return shapely.transform(
+            geom, lambda xy: np.column_stack((xy[:, 0] / self._kx + self._lon0, xy[:, 1] / M_PER_DEG_LAT + self._lat0))
+        )
+
     @property
     def bbox(self) -> tuple[float, float, float, float]:
         """(min_lon, min_lat, max_lon, max_lat) of the site."""

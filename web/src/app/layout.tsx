@@ -38,6 +38,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       projectId: process.env.FIREBASE_PROJECT_ID || "",
       appId: process.env.FIREBASE_APP_ID || "",
     },
+    googleMaps: {
+      apiKey: process.env.GOOGLE_MAPS_API_KEY || "",
+      mapId: process.env.GOOGLE_MAPS_MAP_ID || "",
+    },
   };
 
   return (

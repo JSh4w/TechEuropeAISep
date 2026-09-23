@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "maplibre-gl/dist/maplibre-gl.css";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
@@ -142,4 +141,10 @@
     background: white !important;
     color: black !important;
   }
+}
+
+/* Google's focus box around a map marker after it is dragged or clicked */
+gmp-advanced-marker:focus,
+gmp-advanced-marker:focus-visible {
+  outline: none;
 }

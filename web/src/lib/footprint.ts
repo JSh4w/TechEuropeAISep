@@ -32,6 +32,18 @@ export function calculateAcres(
   };
 }
 
+/** Side of the square footprint in meters (mid-range acres, at least 0.1 acre). */
+function footprintSideMeters(capacityMw: number, durationHours: number = 4): number {
+  // 1 acre = 4046.8564224 square meters
+  const { midAcres } = calculateAcres(capacityMw, durationHours);
+  return Math.sqrt(Math.max(midAcres, 0.1) * 4046.8564224);
+}
+
+/** Center-to-corner distance of the square footprint in km: how far past the pin the footprint reaches. */
+export function footprintHalfDiagonalKm(capacityMw: number, durationHours: number = 4): number {
+  return (footprintSideMeters(capacityMw, durationHours) * Math.SQRT2) / 2 / 1000;
+}
+
 /**
  * Generates a GeoJSON polygon feature centred on [lng, lat]
  * representing a square footprint matching the mid-range acres.
@@ -44,9 +56,7 @@ export function generateFootprintPolygon(
   const [lng, lat] = center;
   const { midAcres } = calculateAcres(capacityMw, durationHours);
 
-  // 1 acre = 4046.8564224 square meters
-  const areaSqMeters = Math.max(midAcres, 0.1) * 4046.8564224;
-  const sideMeters = Math.sqrt(areaSqMeters);
+  const sideMeters = footprintSideMeters(capacityMw, durationHours);
   const halfSideMeters = sideMeters / 2;
 
   // Degrees approximation:

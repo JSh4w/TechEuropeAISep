@@ -39,6 +39,12 @@ def offline_capacity(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(settings, "live_capacity", False)
 
 
+@pytest.fixture(autouse=True)  # ruff: ignore[pytest-fixture-autouse] - every stage test must stay offline
+def offline_routes(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No Routes API key, so cable routes fall back to straight lines; route tests pass a mock client."""
+    monkeypatch.setattr(settings, "google_routes_api_key", None)
+
+
 @pytest.fixture(autouse=True)  # ruff: ignore[pytest-fixture-autouse] - tests pin values from the fixture snapshot
 def ukpn_fixture_snapshot(monkeypatch: pytest.MonkeyPatch) -> None:
     """Point every `get_snapshot` importer at the small fixture snapshot, not the full one in data/ukpn."""

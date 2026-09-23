@@ -138,6 +138,14 @@ class AlternateOption(BaseModel):
     marginal: bool  # farther than 1 km: cable cost and losses make it a weak option
 
 
+class CableRoute(BaseModel):
+    """Cable from the site to the serving substation: by road when a route was found, else a straight line."""
+
+    distance_km: float
+    path: list[Position]  # site first, substation last
+    method: Literal["road", "straight_line"]
+
+
 class CapacityOutput(BaseModel):
     """Grid capacity proposal and headroom assessment."""
 
@@ -151,7 +159,9 @@ class CapacityOutput(BaseModel):
     recommended_mw: float = 0.0
     binding_direction: Literal["import", "export"] | None = None
     binding_season: Literal["winter", "summer"] | None = None
-    distance_km: float | None = None
+    distance_km: float | None = None  # straight line to the serving substation (ranking, marginal flag)
+    substation_position: Position | None = None
+    route: CableRoute | None = None  # set after the proposal; its distance prices the cable
     alternates: list[AlternateOption] = Field(default_factory=list)
     tia_threshold_mw: Literal[1, 5] | None = None
     snapshot_date: date | None = None

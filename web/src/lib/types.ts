@@ -98,6 +98,13 @@ export interface Artifact {
   snapshot_date?: string;
 }
 
+/** Cable from the site to the serving substation: by road when a route was found, else a straight line. */
+export interface CableRoute {
+  distance_km: number;
+  path: PositionCoords[]; // site first, substation last
+  method: 'road' | 'straight_line';
+}
+
 export interface CapacityOutput {
   viable: boolean;
   out_of_area: boolean;
@@ -111,7 +118,9 @@ export interface CapacityOutput {
   recommended_mw?: number;
   binding_direction?: 'import' | 'export';
   binding_season?: 'winter' | 'summer';
-  distance_km?: number;
+  distance_km?: number; // straight line to the serving substation
+  substation_position?: PositionCoords | null;
+  route?: CableRoute | null;
   alternates?: SubstationOption[];
   artifacts?: Artifact[];
 }
