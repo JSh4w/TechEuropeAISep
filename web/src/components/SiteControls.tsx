@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { Zap, AlertTriangle, Check, Compass, Sliders, Info, Box, Layers, Loader2 } from 'lucide-react';
+import { Zap, AlertTriangle, Play, Compass, Sliders, Info, Box, Layers, Loader2 } from 'lucide-react';
 
 interface SiteControlsProps {
   capacity: CapacityOutput;
@@ -246,14 +246,14 @@ export default function SiteControls({
         </div>
       </CardContent>
 
-      <CardFooter className="p-5 pt-0 flex items-center gap-3">
+      <CardFooter className="p-5 flex items-center gap-3">
         <Button
           type="button"
           onClick={onConfirm}
           disabled={submitting || selectedCapacityMw < minFloorMw || selectedCapacityMw > maxAllowedMw}
           className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold gap-2 text-sm h-11 rounded-xl shadow-md cursor-pointer transition active:scale-[0.99]"
         >
-          <Check className="w-4 h-4 stroke-[3]" />
+          <Play className="w-4 h-4 fill-current" />
           <span>{submitting ? 'Running Feasibility & Valuation...' : 'Run feasibility'}</span>
         </Button>
 
