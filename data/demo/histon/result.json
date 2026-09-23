@@ -109,9 +109,9 @@
     "cases": [
       {
         "duration_h": 2,
-        "capex_gbp": 22752000.0,
-        "npv_gbp": 4357694.88,
-        "irr": 0.11947412682183833,
+        "capex_gbp": 22818000.0,
+        "npv_gbp": 4294454.04,
+        "irr": 0.11878668319104013,
         "over_budget": false,
         "curtailment_pct": 0.0,
         "low": null,
@@ -120,9 +120,9 @@
       },
       {
         "duration_h": 4,
-        "capex_gbp": 41602000.0,
-        "npv_gbp": -4850614.47,
-        "irr": 0.05583748595313687,
+        "capex_gbp": 41668000.0,
+        "npv_gbp": -4913855.32,
+        "irr": 0.05555915182311966,
         "over_budget": false,
         "curtailment_pct": 0.0,
         "low": null,
@@ -131,8 +131,8 @@
       },
       {
         "duration_h": 8,
-        "capex_gbp": 79302000.0,
-        "npv_gbp": -34937966.0,
+        "capex_gbp": 79368000.0,
+        "npv_gbp": -35001206.84,
         "irr": null,
         "over_budget": false,
         "curtailment_pct": 0.0,
@@ -149,7 +149,7 @@
       {
         "id": "financial-cost-bessible",
         "stage": "financial",
-        "claim": "Financing terms: interest rate 6.5%, arrangement fee 2%, discount rate 8%, debt share 60%, loan term 15 years. 33 kV connection (£500k-£700k/km over 0.22 km, straight line): £110,000 - £154,000 (no crossing uplift applied). OTCF fee: inactive (oversubscription 30% is between 25% and 50%).",
+        "claim": "Financing terms: interest rate 6.5%, arrangement fee 2%, discount rate 8%, debt share 60%, loan term 15 years. 33 kV connection (£500k-£700k/km over 0.33 km, 0.22 km straight line x1.5 detour): £165,000 - £231,000 (no crossing uplift applied). OTCF fee: inactive (oversubscription 30% is between 25% and 50%).",
         "source_url": "https://www.ofgem.gov.uk/",
         "file_path": null,
         "image_path": null,
@@ -169,7 +169,7 @@
       {
         "id": "financial-returns-bessible",
         "stage": "financial",
-        "claim": "25-year returns:2h (CAPEX £22,752,000, NPV £4,357,695, IRR 11.9%); 4h (CAPEX £41,602,000, NPV £-4,850,614, IRR 5.6%); 8h (CAPEX £79,302,000, NPV £-34,937,966, IRR N/A). Cases with N/A IRR do not pay back equity over project life.",
+        "claim": "25-year returns:2h (CAPEX £22,818,000, NPV £4,294,454, IRR 11.9%); 4h (CAPEX £41,668,000, NPV £-4,913,855, IRR 5.6%); 8h (CAPEX £79,368,000, NPV £-35,001,207, IRR N/A). Cases with N/A IRR do not pay back equity over project life.",
         "source_url": "https://www.ofgem.gov.uk/",
         "file_path": null,
         "image_path": null,
@@ -281,7 +281,9 @@
       "lon": 0.1068681484881494
     },
     "route": {
-      "distance_km": 0.22,
+      "distance_km": 0.33,
+      "straight_km": 0.22,
+      "detour_factor": 1.5,
       "path": [
         {
           "lat": 52.244997,
@@ -291,8 +293,7 @@
           "lat": 52.24319473076745,
           "lon": 0.1068681484881494
         }
-      ],
-      "method": "straight_line"
+      ]
     },
     "alternates": [
       {
@@ -395,7 +396,7 @@
       {
         "id": "capacity-live-check-bessible",
         "stage": "capacity",
-        "claim": "Checked against live UKPN data at 2026-09-23 14:47 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+        "claim": "Checked against live UKPN data at 2026-09-23 15:16 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
         "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
         "file_path": null,
         "image_path": null,
@@ -405,11 +406,11 @@
       {
         "id": "capacity-cable-route-bessible",
         "stage": "capacity",
-        "claim": "Cable run to Histon Grid 33kV: 0.22 km straight line (no road route: the 0.92 km road route is a 4.2x detour, so the cable crosses the land between)",
-        "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
-        "file_path": null,
+        "claim": "Cable run to Histon Grid 33kV: 0.22 km straight line, priced as 0.33 km (x1.5 detour factor for roads and field edges). The DNO designs the actual route",
+        "source_url": null,
+        "file_path": "data/assumptions/finance.json",
         "image_path": null,
-        "confidence": 0.5,
+        "confidence": 0.6,
         "model_used": "straight-line"
       }
     ]
@@ -488,7 +489,7 @@
     {
       "id": "capacity-live-check-bessible",
       "stage": "capacity",
-      "claim": "Checked against live UKPN data at 2026-09-23 14:47 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+      "claim": "Checked against live UKPN data at 2026-09-23 15:16 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
       "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
       "file_path": null,
       "image_path": null,
@@ -498,11 +499,11 @@
     {
       "id": "capacity-cable-route-bessible",
       "stage": "capacity",
-      "claim": "Cable run to Histon Grid 33kV: 0.22 km straight line (no road route: the 0.92 km road route is a 4.2x detour, so the cable crosses the land between)",
-      "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
-      "file_path": null,
+      "claim": "Cable run to Histon Grid 33kV: 0.22 km straight line, priced as 0.33 km (x1.5 detour factor for roads and field edges). The DNO designs the actual route",
+      "source_url": null,
+      "file_path": "data/assumptions/finance.json",
       "image_path": null,
-      "confidence": 0.5,
+      "confidence": 0.6,
       "model_used": "straight-line"
     },
     {
@@ -718,7 +719,7 @@
     {
       "id": "financial-cost-bessible",
       "stage": "financial",
-      "claim": "Financing terms: interest rate 6.5%, arrangement fee 2%, discount rate 8%, debt share 60%, loan term 15 years. 33 kV connection (£500k-£700k/km over 0.22 km, straight line): £110,000 - £154,000 (no crossing uplift applied). OTCF fee: inactive (oversubscription 30% is between 25% and 50%).",
+      "claim": "Financing terms: interest rate 6.5%, arrangement fee 2%, discount rate 8%, debt share 60%, loan term 15 years. 33 kV connection (£500k-£700k/km over 0.33 km, 0.22 km straight line x1.5 detour): £165,000 - £231,000 (no crossing uplift applied). OTCF fee: inactive (oversubscription 30% is between 25% and 50%).",
       "source_url": "https://www.ofgem.gov.uk/",
       "file_path": null,
       "image_path": null,
@@ -738,7 +739,7 @@
     {
       "id": "financial-returns-bessible",
       "stage": "financial",
-      "claim": "25-year returns:2h (CAPEX £22,752,000, NPV £4,357,695, IRR 11.9%); 4h (CAPEX £41,602,000, NPV £-4,850,614, IRR 5.6%); 8h (CAPEX £79,302,000, NPV £-34,937,966, IRR N/A). Cases with N/A IRR do not pay back equity over project life.",
+      "claim": "25-year returns:2h (CAPEX £22,818,000, NPV £4,294,454, IRR 11.9%); 4h (CAPEX £41,668,000, NPV £-4,913,855, IRR 5.6%); 8h (CAPEX £79,368,000, NPV £-35,001,207, IRR N/A). Cases with N/A IRR do not pay back equity over project life.",
       "source_url": "https://www.ofgem.gov.uk/",
       "file_path": null,
       "image_path": null,
@@ -778,7 +779,7 @@
     {
       "id": "planning-summary-bessible",
       "stage": "planning",
-      "claim": "National policy establishes a clear need for electricity storage to support grid resilience and decarbonisation (NPS EN-1, NPPF Chapter 14), with standalone BESS schemes falling under local planning authority jurisdiction regardless of megawatt capacity via the 2020 NSIP carve-out. Local planning precedent within 5 km supports grid-scale storage, as demonstrated by the approved 40 MW Cottenham BESS Substation application in June 2023. Applications must incorporate landscape mitigation and acoustic fencing alongside existing grid infrastructure in line with PPG, while complying with NFCC guidance requiring a Battery Safety Management Plan to manage thermal runaway and site access.",
+      "claim": "Local planning precedent within the 5 km search area is demonstrated by the approval of the 40 MW Cottenham BESS Substation in June 2023. Standalone battery storage falls under local planning authority jurisdiction regardless of capacity pursuant to the 2020 NSIP carve-out, and benefits from national policy support under NPPF Chapter 14 and NPS EN-1 recognising storage as essential infrastructure for grid resilience and decarbonisation. Proposals are expected to incorporate Battery Safety Management Plans addressing thermal runaway and emergency access per NFCC guidance, while meeting PPG expectations for landscape mitigation, acoustic fencing, and screening near grid infrastructure.",
       "source_url": "https://www.gov.uk/government/publications/renewable-energy-planning-database-monthly-extract",
       "file_path": null,
       "image_path": null,
@@ -806,5 +807,5 @@
       "model_used": "deterministic"
     }
   ],
-  "run_dir": "out/bessible-record-histon-19e4ba72"
+  "run_dir": "out/bessible-record-histon-56239b57"
 }

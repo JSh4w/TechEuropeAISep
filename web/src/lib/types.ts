@@ -100,11 +100,12 @@ export interface Artifact {
   snapshot_date?: string;
 }
 
-/** Cable from the site to the serving substation: by road when a route was found, else a straight line. */
+/** Cable from the site to the serving substation: the straight line, priced with a detour factor. */
 export interface CableRoute {
-  distance_km: number;
-  path: PositionCoords[]; // site first, substation last
-  method: 'road' | 'straight_line';
+  distance_km: number; // priced length: straight_km x detour_factor
+  straight_km: number;
+  detour_factor: number;
+  path: PositionCoords[]; // site, substation
 }
 
 export interface CapacityOutput {

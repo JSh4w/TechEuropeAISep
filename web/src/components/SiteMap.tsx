@@ -522,9 +522,9 @@ export default function SiteMap({
   }, [mapLoaded, servingSubstation, servingPosition, substations, initialCenter, siteData]);
 
   // Cable from the pin to the serving substation. Target: the position the capacity check returns, else the same-named
-  // substation in live site data, else its estimated marker. Drawn along the road route when there is one (solid),
-  // else straight (dashed). While a capacity re-check is loading there is no serving substation, so keep a dashed
-  // line to the last target for this site rather than blink out.
+  // substation in live site data, else its estimated marker. Always a straight line: solid once the check has priced
+  // the cable run, dashed until then. While a capacity re-check is loading there is no serving substation, so keep a
+  // dashed line to the last target for this site rather than blink out.
   useEffect(() => {
     if (!mapRef.current || !mapLoaded) return;
     const name = servingSubstation?.name.toLowerCase();
@@ -549,11 +549,8 @@ export default function SiteMap({
       cableCasingRef.current = null;
       return;
     }
-    // The route starts where the pin was checked; the pin may since have been nudged back inside the radius
-    const road =
-      cableRoute?.method === 'road' && name ? cableRoute.path.slice(1).map((p) => ({ lat: p.lat, lng: p.lon })) : null;
-    const path = road ? [toLatLng(currentPosition), ...road] : [toLatLng(currentPosition), toLatLng(target)];
-    const options = { path, ...cableStyle(!road) };
+    const path = [toLatLng(currentPosition), toLatLng(target)];
+    const options = { path, ...cableStyle(!(cableRoute && name)) };
     if (cableRayRef.current) {
       cableRayRef.current.setOptions(options);
       cableCasingRef.current?.setPath(path);
@@ -814,13 +811,16 @@ export default function SiteMap({
             <span className="font-medium text-foreground">Reserved Compound ({capacityMw} MW)</span>
           </div>
           <div className="flex items-center gap-1.5 border-l border-border pl-3">
-            {cableRoute?.method === 'road' ? (
+            {cableRoute ? (
               <>
                 <span
                   className="inline-block w-4 h-1 rounded-sm"
                   style={{ background: CABLE_COLOR, boxShadow: `0 0 0 1px ${CABLE_CASING}` }}
                 ></span>
-                <span>Cable route by road ({cableRoute.distance_km.toFixed(2)} km)</span>
+                <span>
+                  Cable run {cableRoute.straight_km.toFixed(2)} km, priced as {cableRoute.distance_km.toFixed(2)} km
+                  (×{cableRoute.detour_factor} detour)
+                </span>
               </>
             ) : (
               <>
@@ -828,9 +828,7 @@ export default function SiteMap({
                   className="inline-block w-4 h-1 rounded-sm"
                   style={{ background: `repeating-linear-gradient(90deg, ${CABLE_COLOR} 0 3px, ${CABLE_CASING} 3px 5px)` }}
                 ></span>
-                <span>
-                  Cable run, straight line{cableRoute ? ` (${cableRoute.distance_km.toFixed(2)} km)` : ''}
-                </span>
+                <span>Cable run, straight line</span>
               </>
             )}
           </div>

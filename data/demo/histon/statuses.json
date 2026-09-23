@@ -14,23 +14,6 @@
     }
   },
   {
-    "stage": "capacity",
-    "status": {
-      "run_id": null,
-      "status": "running",
-      "stages": [
-        "capacity"
-      ],
-      "capacity": null,
-      "boundary": null,
-      "position": {
-        "lat": 52.244997,
-        "lon": 0.108173
-      },
-      "message": null
-    }
-  },
-  {
     "stage": "awaiting_confirmation",
     "status": {
       "run_id": null,
@@ -53,7 +36,9 @@
           "lon": 0.1068681484881494
         },
         "route": {
-          "distance_km": 0.22,
+          "distance_km": 0.33,
+          "straight_km": 0.22,
+          "detour_factor": 1.5,
           "path": [
             {
               "lat": 52.244997,
@@ -63,8 +48,7 @@
               "lat": 52.24319473076745,
               "lon": 0.1068681484881494
             }
-          ],
-          "method": "straight_line"
+          ]
         },
         "alternates": [
           {
@@ -167,7 +151,7 @@
           {
             "id": "capacity-live-check-bessible",
             "stage": "capacity",
-            "claim": "Checked against live UKPN data at 2026-09-23 14:47 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+            "claim": "Checked against live UKPN data at 2026-09-23 15:16 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -177,11 +161,11 @@
           {
             "id": "capacity-cable-route-bessible",
             "stage": "capacity",
-            "claim": "Cable run to Histon Grid 33kV: 0.22 km straight line (no road route: the 0.92 km road route is a 4.2x detour, so the cable crosses the land between)",
-            "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
-            "file_path": null,
+            "claim": "Cable run to Histon Grid 33kV: 0.22 km straight line, priced as 0.33 km (x1.5 detour factor for roads and field edges). The DNO designs the actual route",
+            "source_url": null,
+            "file_path": "data/assumptions/finance.json",
             "image_path": null,
-            "confidence": 0.5,
+            "confidence": 0.6,
             "model_used": "straight-line"
           }
         ]
@@ -271,7 +255,9 @@
           "lon": 0.1068681484881494
         },
         "route": {
-          "distance_km": 0.22,
+          "distance_km": 0.33,
+          "straight_km": 0.22,
+          "detour_factor": 1.5,
           "path": [
             {
               "lat": 52.244997,
@@ -281,8 +267,7 @@
               "lat": 52.24319473076745,
               "lon": 0.1068681484881494
             }
-          ],
-          "method": "straight_line"
+          ]
         },
         "alternates": [
           {
@@ -385,7 +370,7 @@
           {
             "id": "capacity-live-check-bessible",
             "stage": "capacity",
-            "claim": "Checked against live UKPN data at 2026-09-23 14:47 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+            "claim": "Checked against live UKPN data at 2026-09-23 15:16 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -395,11 +380,11 @@
           {
             "id": "capacity-cable-route-bessible",
             "stage": "capacity",
-            "claim": "Cable run to Histon Grid 33kV: 0.22 km straight line (no road route: the 0.92 km road route is a 4.2x detour, so the cable crosses the land between)",
-            "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
-            "file_path": null,
+            "claim": "Cable run to Histon Grid 33kV: 0.22 km straight line, priced as 0.33 km (x1.5 detour factor for roads and field edges). The DNO designs the actual route",
+            "source_url": null,
+            "file_path": "data/assumptions/finance.json",
             "image_path": null,
-            "confidence": 0.5,
+            "confidence": 0.6,
             "model_used": "straight-line"
           }
         ]
@@ -487,7 +472,9 @@
           "lon": 0.1068681484881494
         },
         "route": {
-          "distance_km": 0.22,
+          "distance_km": 0.33,
+          "straight_km": 0.22,
+          "detour_factor": 1.5,
           "path": [
             {
               "lat": 52.244997,
@@ -497,8 +484,7 @@
               "lat": 52.24319473076745,
               "lon": 0.1068681484881494
             }
-          ],
-          "method": "straight_line"
+          ]
         },
         "alternates": [
           {
@@ -601,7 +587,7 @@
           {
             "id": "capacity-live-check-bessible",
             "stage": "capacity",
-            "claim": "Checked against live UKPN data at 2026-09-23 14:47 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+            "claim": "Checked against live UKPN data at 2026-09-23 15:16 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -611,11 +597,11 @@
           {
             "id": "capacity-cable-route-bessible",
             "stage": "capacity",
-            "claim": "Cable run to Histon Grid 33kV: 0.22 km straight line (no road route: the 0.92 km road route is a 4.2x detour, so the cable crosses the land between)",
-            "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
-            "file_path": null,
+            "claim": "Cable run to Histon Grid 33kV: 0.22 km straight line, priced as 0.33 km (x1.5 detour factor for roads and field edges). The DNO designs the actual route",
+            "source_url": null,
+            "file_path": "data/assumptions/finance.json",
             "image_path": null,
-            "confidence": 0.5,
+            "confidence": 0.6,
             "model_used": "straight-line"
           }
         ]
@@ -700,7 +686,9 @@
           "lon": 0.1068681484881494
         },
         "route": {
-          "distance_km": 0.22,
+          "distance_km": 0.33,
+          "straight_km": 0.22,
+          "detour_factor": 1.5,
           "path": [
             {
               "lat": 52.244997,
@@ -710,8 +698,7 @@
               "lat": 52.24319473076745,
               "lon": 0.1068681484881494
             }
-          ],
-          "method": "straight_line"
+          ]
         },
         "alternates": [
           {
@@ -814,7 +801,7 @@
           {
             "id": "capacity-live-check-bessible",
             "stage": "capacity",
-            "claim": "Checked against live UKPN data at 2026-09-23 14:47 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+            "claim": "Checked against live UKPN data at 2026-09-23 15:16 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -824,11 +811,11 @@
           {
             "id": "capacity-cable-route-bessible",
             "stage": "capacity",
-            "claim": "Cable run to Histon Grid 33kV: 0.22 km straight line (no road route: the 0.92 km road route is a 4.2x detour, so the cable crosses the land between)",
-            "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
-            "file_path": null,
+            "claim": "Cable run to Histon Grid 33kV: 0.22 km straight line, priced as 0.33 km (x1.5 detour factor for roads and field edges). The DNO designs the actual route",
+            "source_url": null,
+            "file_path": "data/assumptions/finance.json",
             "image_path": null,
-            "confidence": 0.5,
+            "confidence": 0.6,
             "model_used": "straight-line"
           }
         ]
