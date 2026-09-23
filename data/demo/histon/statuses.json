@@ -53,114 +53,18 @@
           "lon": 0.1068681484881494
         },
         "route": {
-          "distance_km": 0.9,
+          "distance_km": 0.22,
           "path": [
             {
               "lat": 52.244997,
               "lon": 0.108173
             },
             {
-              "lat": 52.244871,
-              "lon": 0.108049
-            },
-            {
-              "lat": 52.24478,
-              "lon": 0.10795
-            },
-            {
-              "lat": 52.24466,
-              "lon": 0.10821
-            },
-            {
-              "lat": 52.2443,
-              "lon": 0.10868
-            },
-            {
-              "lat": 52.24422,
-              "lon": 0.10892
-            },
-            {
-              "lat": 52.24418,
-              "lon": 0.10919
-            },
-            {
-              "lat": 52.24419,
-              "lon": 0.10941
-            },
-            {
-              "lat": 52.24431,
-              "lon": 0.11006
-            },
-            {
-              "lat": 52.24309,
-              "lon": 0.11061
-            },
-            {
-              "lat": 52.24289,
-              "lon": 0.11065
-            },
-            {
-              "lat": 52.24214,
-              "lon": 0.11067
-            },
-            {
-              "lat": 52.2413,
-              "lon": 0.11059
-            },
-            {
-              "lat": 52.24132,
-              "lon": 0.11043
-            },
-            {
-              "lat": 52.24143,
-              "lon": 0.11027
-            },
-            {
-              "lat": 52.24158,
-              "lon": 0.10989
-            },
-            {
-              "lat": 52.2416,
-              "lon": 0.10974
-            },
-            {
-              "lat": 52.242,
-              "lon": 0.1089
-            },
-            {
-              "lat": 52.24222,
-              "lon": 0.10862
-            },
-            {
-              "lat": 52.24304,
-              "lon": 0.10772
-            },
-            {
-              "lat": 52.24313,
-              "lon": 0.1076
-            },
-            {
-              "lat": 52.24311,
-              "lon": 0.10753
-            },
-            {
-              "lat": 52.24313,
-              "lon": 0.1073
-            },
-            {
-              "lat": 52.2431,
-              "lon": 0.10705
-            },
-            {
-              "lat": 52.24307,
-              "lon": 0.10699
-            },
-            {
               "lat": 52.24319473076745,
               "lon": 0.1068681484881494
             }
           ],
-          "method": "road"
+          "method": "straight_line"
         },
         "alternates": [
           {
@@ -263,7 +167,7 @@
           {
             "id": "capacity-live-check-bessible",
             "stage": "capacity",
-            "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+            "claim": "Checked against live UKPN data at 2026-09-23 14:47 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -273,12 +177,12 @@
           {
             "id": "capacity-cable-route-bessible",
             "stage": "capacity",
-            "claim": "Cable route to Histon Grid 33kV: 0.9 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.22 km. The DNO designs the actual route",
+            "claim": "Cable run to Histon Grid 33kV: 0.22 km straight line (no road route: the 0.92 km road route is a 4.2x detour, so the cable crosses the land between)",
             "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
             "file_path": null,
             "image_path": null,
-            "confidence": 0.7,
-            "model_used": "google-routes-api"
+            "confidence": 0.5,
+            "model_used": "straight-line"
           }
         ]
       },
@@ -367,114 +271,18 @@
           "lon": 0.1068681484881494
         },
         "route": {
-          "distance_km": 0.9,
+          "distance_km": 0.22,
           "path": [
             {
               "lat": 52.244997,
               "lon": 0.108173
             },
             {
-              "lat": 52.244871,
-              "lon": 0.108049
-            },
-            {
-              "lat": 52.24478,
-              "lon": 0.10795
-            },
-            {
-              "lat": 52.24466,
-              "lon": 0.10821
-            },
-            {
-              "lat": 52.2443,
-              "lon": 0.10868
-            },
-            {
-              "lat": 52.24422,
-              "lon": 0.10892
-            },
-            {
-              "lat": 52.24418,
-              "lon": 0.10919
-            },
-            {
-              "lat": 52.24419,
-              "lon": 0.10941
-            },
-            {
-              "lat": 52.24431,
-              "lon": 0.11006
-            },
-            {
-              "lat": 52.24309,
-              "lon": 0.11061
-            },
-            {
-              "lat": 52.24289,
-              "lon": 0.11065
-            },
-            {
-              "lat": 52.24214,
-              "lon": 0.11067
-            },
-            {
-              "lat": 52.2413,
-              "lon": 0.11059
-            },
-            {
-              "lat": 52.24132,
-              "lon": 0.11043
-            },
-            {
-              "lat": 52.24143,
-              "lon": 0.11027
-            },
-            {
-              "lat": 52.24158,
-              "lon": 0.10989
-            },
-            {
-              "lat": 52.2416,
-              "lon": 0.10974
-            },
-            {
-              "lat": 52.242,
-              "lon": 0.1089
-            },
-            {
-              "lat": 52.24222,
-              "lon": 0.10862
-            },
-            {
-              "lat": 52.24304,
-              "lon": 0.10772
-            },
-            {
-              "lat": 52.24313,
-              "lon": 0.1076
-            },
-            {
-              "lat": 52.24311,
-              "lon": 0.10753
-            },
-            {
-              "lat": 52.24313,
-              "lon": 0.1073
-            },
-            {
-              "lat": 52.2431,
-              "lon": 0.10705
-            },
-            {
-              "lat": 52.24307,
-              "lon": 0.10699
-            },
-            {
               "lat": 52.24319473076745,
               "lon": 0.1068681484881494
             }
           ],
-          "method": "road"
+          "method": "straight_line"
         },
         "alternates": [
           {
@@ -577,7 +385,7 @@
           {
             "id": "capacity-live-check-bessible",
             "stage": "capacity",
-            "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+            "claim": "Checked against live UKPN data at 2026-09-23 14:47 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -587,12 +395,12 @@
           {
             "id": "capacity-cable-route-bessible",
             "stage": "capacity",
-            "claim": "Cable route to Histon Grid 33kV: 0.9 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.22 km. The DNO designs the actual route",
+            "claim": "Cable run to Histon Grid 33kV: 0.22 km straight line (no road route: the 0.92 km road route is a 4.2x detour, so the cable crosses the land between)",
             "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
             "file_path": null,
             "image_path": null,
-            "confidence": 0.7,
-            "model_used": "google-routes-api"
+            "confidence": 0.5,
+            "model_used": "straight-line"
           }
         ]
       },
@@ -679,114 +487,18 @@
           "lon": 0.1068681484881494
         },
         "route": {
-          "distance_km": 0.9,
+          "distance_km": 0.22,
           "path": [
             {
               "lat": 52.244997,
               "lon": 0.108173
             },
             {
-              "lat": 52.244871,
-              "lon": 0.108049
-            },
-            {
-              "lat": 52.24478,
-              "lon": 0.10795
-            },
-            {
-              "lat": 52.24466,
-              "lon": 0.10821
-            },
-            {
-              "lat": 52.2443,
-              "lon": 0.10868
-            },
-            {
-              "lat": 52.24422,
-              "lon": 0.10892
-            },
-            {
-              "lat": 52.24418,
-              "lon": 0.10919
-            },
-            {
-              "lat": 52.24419,
-              "lon": 0.10941
-            },
-            {
-              "lat": 52.24431,
-              "lon": 0.11006
-            },
-            {
-              "lat": 52.24309,
-              "lon": 0.11061
-            },
-            {
-              "lat": 52.24289,
-              "lon": 0.11065
-            },
-            {
-              "lat": 52.24214,
-              "lon": 0.11067
-            },
-            {
-              "lat": 52.2413,
-              "lon": 0.11059
-            },
-            {
-              "lat": 52.24132,
-              "lon": 0.11043
-            },
-            {
-              "lat": 52.24143,
-              "lon": 0.11027
-            },
-            {
-              "lat": 52.24158,
-              "lon": 0.10989
-            },
-            {
-              "lat": 52.2416,
-              "lon": 0.10974
-            },
-            {
-              "lat": 52.242,
-              "lon": 0.1089
-            },
-            {
-              "lat": 52.24222,
-              "lon": 0.10862
-            },
-            {
-              "lat": 52.24304,
-              "lon": 0.10772
-            },
-            {
-              "lat": 52.24313,
-              "lon": 0.1076
-            },
-            {
-              "lat": 52.24311,
-              "lon": 0.10753
-            },
-            {
-              "lat": 52.24313,
-              "lon": 0.1073
-            },
-            {
-              "lat": 52.2431,
-              "lon": 0.10705
-            },
-            {
-              "lat": 52.24307,
-              "lon": 0.10699
-            },
-            {
               "lat": 52.24319473076745,
               "lon": 0.1068681484881494
             }
           ],
-          "method": "road"
+          "method": "straight_line"
         },
         "alternates": [
           {
@@ -889,7 +601,7 @@
           {
             "id": "capacity-live-check-bessible",
             "stage": "capacity",
-            "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+            "claim": "Checked against live UKPN data at 2026-09-23 14:47 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -899,12 +611,12 @@
           {
             "id": "capacity-cable-route-bessible",
             "stage": "capacity",
-            "claim": "Cable route to Histon Grid 33kV: 0.9 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.22 km. The DNO designs the actual route",
+            "claim": "Cable run to Histon Grid 33kV: 0.22 km straight line (no road route: the 0.92 km road route is a 4.2x detour, so the cable crosses the land between)",
             "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
             "file_path": null,
             "image_path": null,
-            "confidence": 0.7,
-            "model_used": "google-routes-api"
+            "confidence": 0.5,
+            "model_used": "straight-line"
           }
         ]
       },
@@ -988,114 +700,18 @@
           "lon": 0.1068681484881494
         },
         "route": {
-          "distance_km": 0.9,
+          "distance_km": 0.22,
           "path": [
             {
               "lat": 52.244997,
               "lon": 0.108173
             },
             {
-              "lat": 52.244871,
-              "lon": 0.108049
-            },
-            {
-              "lat": 52.24478,
-              "lon": 0.10795
-            },
-            {
-              "lat": 52.24466,
-              "lon": 0.10821
-            },
-            {
-              "lat": 52.2443,
-              "lon": 0.10868
-            },
-            {
-              "lat": 52.24422,
-              "lon": 0.10892
-            },
-            {
-              "lat": 52.24418,
-              "lon": 0.10919
-            },
-            {
-              "lat": 52.24419,
-              "lon": 0.10941
-            },
-            {
-              "lat": 52.24431,
-              "lon": 0.11006
-            },
-            {
-              "lat": 52.24309,
-              "lon": 0.11061
-            },
-            {
-              "lat": 52.24289,
-              "lon": 0.11065
-            },
-            {
-              "lat": 52.24214,
-              "lon": 0.11067
-            },
-            {
-              "lat": 52.2413,
-              "lon": 0.11059
-            },
-            {
-              "lat": 52.24132,
-              "lon": 0.11043
-            },
-            {
-              "lat": 52.24143,
-              "lon": 0.11027
-            },
-            {
-              "lat": 52.24158,
-              "lon": 0.10989
-            },
-            {
-              "lat": 52.2416,
-              "lon": 0.10974
-            },
-            {
-              "lat": 52.242,
-              "lon": 0.1089
-            },
-            {
-              "lat": 52.24222,
-              "lon": 0.10862
-            },
-            {
-              "lat": 52.24304,
-              "lon": 0.10772
-            },
-            {
-              "lat": 52.24313,
-              "lon": 0.1076
-            },
-            {
-              "lat": 52.24311,
-              "lon": 0.10753
-            },
-            {
-              "lat": 52.24313,
-              "lon": 0.1073
-            },
-            {
-              "lat": 52.2431,
-              "lon": 0.10705
-            },
-            {
-              "lat": 52.24307,
-              "lon": 0.10699
-            },
-            {
               "lat": 52.24319473076745,
               "lon": 0.1068681484881494
             }
           ],
-          "method": "road"
+          "method": "straight_line"
         },
         "alternates": [
           {
@@ -1198,7 +814,7 @@
           {
             "id": "capacity-live-check-bessible",
             "stage": "capacity",
-            "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+            "claim": "Checked against live UKPN data at 2026-09-23 14:47 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -1208,12 +824,12 @@
           {
             "id": "capacity-cable-route-bessible",
             "stage": "capacity",
-            "claim": "Cable route to Histon Grid 33kV: 0.9 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.22 km. The DNO designs the actual route",
+            "claim": "Cable run to Histon Grid 33kV: 0.22 km straight line (no road route: the 0.92 km road route is a 4.2x detour, so the cable crosses the land between)",
             "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
             "file_path": null,
             "image_path": null,
-            "confidence": 0.7,
-            "model_used": "google-routes-api"
+            "confidence": 0.5,
+            "model_used": "straight-line"
           }
         ]
       },

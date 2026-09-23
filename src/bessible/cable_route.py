@@ -1,4 +1,8 @@
-"""Cable route from the site to the serving substation: by road (Google Routes API), else a straight line.
+"""Cable route from the site to the serving substation: along roads and paths (Google Routes API), else a straight line.
+
+The route is a walking route: it ignores one-way streets and turn rules and takes the shortest way, which is closer to
+how a cable is laid than a driving route (fastest by car). A route that loops far around private land is dropped for
+the straight line, because the DNO would cross that land under a wayleave.
 
 Runs after the capacity proposal, which stays pure; this module does the I/O. It never fails a capacity check.
 """
@@ -31,6 +35,8 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 ROUTE_TIMEOUT_S = 5.0
+# A road route longer than this multiple of the straight line is a detour a real cable would not take
+MAX_DETOUR = 2.0
 TITLE_TIMEOUT_S = 10.0
 ROUTES_DOCS_URL = "https://developers.google.com/maps/documentation/routes/compute_route_directions"
 
@@ -77,14 +83,14 @@ def exit_point(site: Position, title: BaseGeometry, substation: Position) -> Pos
 
 
 async def road_route(site: Position, substation: Position, client: httpx.AsyncClient | None = None) -> CableRoute:
-    """Driving route on local roads (motorways avoided), joined to the site and the substation by short straight legs.
+    """Walking route along roads and paths, joined to the site and the substation by short straight legs.
 
     Raises `LookupError` when there is no key or no route, `httpx.HTTPError` / `ValueError` on a bad response.
     """
     if settings.google_routes_api_key is None:
         msg = "GOOGLE_ROUTES_API_KEY is not set"
         raise LookupError(msg)
-    req = ComputeRoutesRequest.between(site.lat, site.lon, substation.lat, substation.lon)
+    req = ComputeRoutesRequest.between(site.lat, site.lon, substation.lat, substation.lon, travel_mode="WALK")
     headers = {"X-Goog-Api-Key": settings.google_routes_api_key.get_secret_value(), "X-Goog-FieldMask": FIELD_MASK}
     if client is None:
         async with httpx.AsyncClient(timeout=ROUTE_TIMEOUT_S) as http:
@@ -109,6 +115,21 @@ async def road_route(site: Position, substation: Position, client: httpx.AsyncCl
     return CableRoute(distance_km=round(road_km, 2), path=[site, *road, substation], method="road")
 
 
+async def _route_from(
+    site: Position, start: Position | None, substation: Position, line: CableRoute, client: httpx.AsyncClient | None
+) -> CableRoute:
+    """Road route from `start` (the title exit, else the site), led back to the site. `LookupError` on a long detour."""
+    route = await road_route(start or site, substation, client)
+    if start is not None:
+        on_site = _km(site, start)
+        route = CableRoute(distance_km=round(route.distance_km + on_site, 2), path=[site, *route.path], method="road")
+    if line.distance_km > 0 and route.distance_km > MAX_DETOUR * line.distance_km:
+        ratio = route.distance_km / line.distance_km
+        msg = f"the {route.distance_km:g} km road route is a {ratio:.1f}x detour, so the cable crosses the land between"
+        raise LookupError(msg)
+    return route
+
+
 async def with_cable_route(
     site: Position, out: CapacityOutput, run_id: str, client: httpx.AsyncClient | None = None
 ) -> CapacityOutput:
@@ -122,12 +143,7 @@ async def with_cable_route(
     title = await title_at(site, client) if settings.google_routes_api_key is not None else None
     start = exit_point(site, title, substation) if title is not None else None
     try:
-        route = await road_route(start or site, substation, client)
-        if start is not None:
-            on_site = _km(site, start)
-            route = CableRoute(
-                distance_km=round(route.distance_km + on_site, 2), path=[site, *route.path], method="road"
-            )
+        route = await _route_from(site, start, substation, line, client)
     except (LookupError, httpx.HTTPError, ValueError) as exc:  # ValueError covers bad JSON and ValidationError
         log.info("cable route falls back to a straight line: %s", exc)
         reason = str(exc) if isinstance(exc, LookupError) else type(exc).__name__
@@ -141,7 +157,7 @@ async def with_cable_route(
             else ""
         )
         claim = (
-            f"Cable route to {name}: {route.distance_km:g} km; {leaves}by road (local roads, motorways avoided); "
+            f"Cable route to {name}: {route.distance_km:g} km; {leaves}along roads and paths; "
             f"straight line {line.distance_km:g} km. The DNO designs the actual route"
         )
         confidence, model_used = 0.7, "google-routes-api"

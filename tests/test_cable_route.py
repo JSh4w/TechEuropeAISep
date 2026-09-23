@@ -76,9 +76,9 @@ def client(
         assert request.headers["X-Goog-Api-Key"] == "test-key"
         assert request.headers["X-Goog-FieldMask"] == FIELD_MASK
         sent = json.loads(request.content)
-        assert sent["travelMode"] == "DRIVE"
-        assert sent["routingPreference"] == "TRAFFIC_UNAWARE"
-        assert sent["routeModifiers"] == {"avoidHighways": True}
+        assert sent["travelMode"] == "WALK"
+        assert "routingPreference" not in sent  # the API rejects it for WALK
+        assert "routeModifiers" not in sent
         if origin is not None:
             start = sent["origin"]["location"]["latLng"]
             assert [round(start["latitude"], 6), round(start["longitude"], 6)] == origin
@@ -110,7 +110,7 @@ async def test_road_route_joins_site_and_substation():
     assert route.distance_km >= straight_line(SITE, SUBSTATION).distance_km
     art = out.artifacts[-1]
     assert art.model_used == "google-routes-api"
-    assert "by road" in art.claim
+    assert "along roads and paths" in art.claim
 
 
 @pytest.mark.anyio
@@ -128,6 +128,16 @@ async def test_service_failure_falls_back_to_straight_line(status: int, body: ob
     assert out.route is not None
     assert out.route.method == "straight_line"
     assert reason in out.artifacts[-1].claim
+
+
+@pytest.mark.anyio
+@pytest.mark.usefixtures("routes_key")
+async def test_long_detour_falls_back_to_straight_line():
+    # A road route 4x the straight line loops around land a real cable would cross
+    detour = {"routes": [{**ROUTE_JSON["routes"][0], "distanceMeters": 4 * 571}]}
+    out = await with_cable_route(SITE, capacity(), "run-route", client(body=detour))
+    assert out.route == straight_line(SITE, SUBSTATION)
+    assert "detour" in out.artifacts[-1].claim
 
 
 @pytest.mark.anyio
@@ -168,7 +178,9 @@ async def test_route_leaves_the_title_at_the_edge_nearest_the_substation():
     north_edge = SITE.lat + 0.002
     title = title_json(SITE.lat - 0.001, SITE.lon - 0.001, north_edge, SITE.lon + 0.001)
     exit_ = [round(north_edge, 6), round(SITE.lon + 0.001, 6)]  # the substation is north-east: the NE corner
-    out = await with_cable_route(SITE, capacity(), "run-route", client(title=title, origin=exit_))
+    # The canned polyline starts at the pin, not the exit, so shorten the road leg to stay under the detour limit
+    body = {"routes": [{**ROUTE_JSON["routes"][0], "distanceMeters": 400}]}
+    out = await with_cable_route(SITE, capacity(), "run-route", client(body=body, title=title, origin=exit_))
     route = out.route
     assert route is not None
     assert route.method == "road"

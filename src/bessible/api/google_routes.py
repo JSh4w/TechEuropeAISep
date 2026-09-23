@@ -54,22 +54,32 @@ class ComputeRoutesRequest(ApiRequest):
     origin: Waypoint
     destination: Waypoint
     travel_mode: Literal["DRIVE", "WALK", "BICYCLE"] = Field(default="DRIVE", alias="travelMode")
-    routing_preference: Literal["TRAFFIC_UNAWARE"] = Field(default="TRAFFIC_UNAWARE", alias="routingPreference")
+    # DRIVE only: the API rejects a routing preference or road modifiers for WALK / BICYCLE
+    routing_preference: Literal["TRAFFIC_UNAWARE"] | None = Field(default=None, alias="routingPreference")
     route_modifiers: RouteModifiers | None = Field(default=None, alias="routeModifiers")
 
     @classmethod
     def between(
-        cls, lat1: float, lon1: float, lat2: float, lon2: float, *, avoid_highways: bool = True
+        cls,
+        lat1: float,
+        lon1: float,
+        lat2: float,
+        lon2: float,
+        *,
+        travel_mode: Literal["DRIVE", "WALK", "BICYCLE"] = "DRIVE",
     ) -> ComputeRoutesRequest:
-        """Driving route from (lat1, lon1) to (lat2, lon2), motorways avoided by default."""
+        """Route from (lat1, lon1) to (lat2, lon2); a DRIVE route ignores traffic and avoids motorways."""
 
         def point(lat: float, lon: float) -> Waypoint:
             return Waypoint(location=Location(lat_lng=LatLng(latitude=lat, longitude=lon)))
 
+        drive = travel_mode == "DRIVE"
         return cls(
             origin=point(lat1, lon1),
             destination=point(lat2, lon2),
-            route_modifiers=RouteModifiers(avoid_highways=avoid_highways),
+            travel_mode=travel_mode,
+            routing_preference="TRAFFIC_UNAWARE" if drive else None,
+            route_modifiers=RouteModifiers(avoid_highways=True) if drive else None,
         )
 
 

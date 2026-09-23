@@ -2,7 +2,7 @@
   "status": "completed",
   "message": null,
   "report": {
-    "verdict": "maybe",
+    "verdict": "go",
     "findings": [
       {
         "text": "Grid capacity confirmed: 8 MW firm connection (8 MW ceiling) at Dorking Town 11kV.",
@@ -87,7 +87,7 @@
       {
         "id": "synthesis-bessible",
         "stage": "synthesis",
-        "claim": "Assessment report compiled with verdict 'MAYBE' and duration comparison",
+        "claim": "Assessment report compiled with verdict 'GO' and duration comparison",
         "source_url": null,
         "file_path": "report.md",
         "image_path": null,
@@ -110,9 +110,9 @@
     "cases": [
       {
         "duration_h": 2,
-        "capex_gbp": 5928000.0,
-        "npv_gbp": -129294.13,
-        "irr": 0.07550006117229191,
+        "capex_gbp": 5340000.0,
+        "npv_gbp": 434124.31,
+        "irr": 0.09674321033521627,
         "over_budget": false,
         "curtailment_pct": 0.0,
         "low": null,
@@ -121,9 +121,9 @@
       },
       {
         "duration_h": 4,
-        "capex_gbp": 9928000.0,
-        "npv_gbp": -2083312.03,
-        "irr": 0.03617434106190276,
+        "capex_gbp": 9340000.0,
+        "npv_gbp": -1519893.59,
+        "irr": 0.04616329314189549,
         "over_budget": false,
         "curtailment_pct": 0.0,
         "low": null,
@@ -132,8 +132,8 @@
       },
       {
         "duration_h": 8,
-        "capex_gbp": 17928000.0,
-        "npv_gbp": -8467895.91,
+        "capex_gbp": 17340000.0,
+        "npv_gbp": -7904477.47,
         "irr": null,
         "over_budget": false,
         "curtailment_pct": 0.0,
@@ -150,7 +150,7 @@
       {
         "id": "financial-cost-bessible",
         "stage": "financial",
-        "claim": "Financing terms: interest rate 6.5%, arrangement fee 2%, discount rate 8%, debt share 60%, loan term 15 years. 11 kV connection (£500k-£700k/km over 1.88 km, by road): £940,000 - £1,316,000 (no crossing uplift applied). OTCF fee: inactive (oversubscription 30% is between 25% and 50%).",
+        "claim": "Financing terms: interest rate 6.5%, arrangement fee 2%, discount rate 8%, debt share 60%, loan term 15 years. 11 kV connection (£500k-£700k/km over 0.90 km, by road): £450,000 - £630,000 (no crossing uplift applied). OTCF fee: inactive (oversubscription 30% is between 25% and 50%).",
         "source_url": "https://www.ofgem.gov.uk/",
         "file_path": null,
         "image_path": null,
@@ -170,7 +170,7 @@
       {
         "id": "financial-returns-bessible",
         "stage": "financial",
-        "claim": "25-year returns:2h (CAPEX £5,928,000, NPV £-129,294, IRR 7.6%); 4h (CAPEX £9,928,000, NPV £-2,083,312, IRR 3.6%); 8h (CAPEX £17,928,000, NPV £-8,467,896, IRR N/A). Cases with N/A IRR do not pay back equity over project life.",
+        "claim": "25-year returns:2h (CAPEX £5,340,000, NPV £434,124, IRR 9.7%); 4h (CAPEX £9,340,000, NPV £-1,519,894, IRR 4.6%); 8h (CAPEX £17,340,000, NPV £-7,904,477, IRR N/A). Cases with N/A IRR do not pay back equity over project life.",
         "source_url": "https://www.ofgem.gov.uk/",
         "file_path": null,
         "image_path": null,
@@ -282,7 +282,7 @@
       "lon": -0.3385015987376072
     },
     "route": {
-      "distance_km": 1.88,
+      "distance_km": 0.9,
       "path": [
         {
           "lat": 51.232882,
@@ -297,148 +297,72 @@
           "lon": -0.33012
         },
         {
-          "lat": 51.23284,
-          "lon": -0.3298
+          "lat": 51.23368,
+          "lon": -0.33077
         },
         {
-          "lat": 51.23206,
-          "lon": -0.33155
+          "lat": 51.23372,
+          "lon": -0.33079
         },
         {
-          "lat": 51.23176,
-          "lon": -0.33215
+          "lat": 51.23387,
+          "lon": -0.331
         },
         {
-          "lat": 51.23165,
-          "lon": -0.33244
+          "lat": 51.23402,
+          "lon": -0.33117
         },
         {
-          "lat": 51.2316,
-          "lon": -0.33263
+          "lat": 51.23396,
+          "lon": -0.33134
         },
         {
-          "lat": 51.23144,
-          "lon": -0.3331
+          "lat": 51.234,
+          "lon": -0.33159
         },
         {
-          "lat": 51.23113,
-          "lon": -0.33351
+          "lat": 51.23417,
+          "lon": -0.33185
         },
         {
-          "lat": 51.23076,
-          "lon": -0.33416
+          "lat": 51.23422,
+          "lon": -0.33201
         },
         {
-          "lat": 51.23056,
-          "lon": -0.33444
+          "lat": 51.23497,
+          "lon": -0.33258
         },
         {
-          "lat": 51.23037,
-          "lon": -0.33454
+          "lat": 51.23511,
+          "lon": -0.33266
         },
         {
-          "lat": 51.22952,
-          "lon": -0.3346
+          "lat": 51.23462,
+          "lon": -0.33473
         },
         {
-          "lat": 51.22891,
-          "lon": -0.33458
+          "lat": 51.23461,
+          "lon": -0.33562
         },
         {
-          "lat": 51.22796,
-          "lon": -0.33475
+          "lat": 51.23462,
+          "lon": -0.33617
         },
         {
-          "lat": 51.22773,
-          "lon": -0.33487
+          "lat": 51.23463,
+          "lon": -0.33623
         },
         {
-          "lat": 51.22756,
-          "lon": -0.33502
+          "lat": 51.23417,
+          "lon": -0.33657
         },
         {
-          "lat": 51.22727,
-          "lon": -0.33538
+          "lat": 51.23401,
+          "lon": -0.33662
         },
         {
-          "lat": 51.2271,
-          "lon": -0.33566
-        },
-        {
-          "lat": 51.22705,
-          "lon": -0.33587
-        },
-        {
-          "lat": 51.22703,
-          "lon": -0.33606
-        },
-        {
-          "lat": 51.22705,
-          "lon": -0.33626
-        },
-        {
-          "lat": 51.22722,
-          "lon": -0.33641
-        },
-        {
-          "lat": 51.22751,
-          "lon": -0.3366
-        },
-        {
-          "lat": 51.22793,
-          "lon": -0.33677
-        },
-        {
-          "lat": 51.22877,
-          "lon": -0.33698
-        },
-        {
-          "lat": 51.22917,
-          "lon": -0.33717
-        },
-        {
-          "lat": 51.22953,
-          "lon": -0.33738
-        },
-        {
-          "lat": 51.23041,
-          "lon": -0.33771
-        },
-        {
-          "lat": 51.23121,
-          "lon": -0.33814
-        },
-        {
-          "lat": 51.23141,
-          "lon": -0.33817
-        },
-        {
-          "lat": 51.2317,
-          "lon": -0.3381
-        },
-        {
-          "lat": 51.23169,
-          "lon": -0.33783
-        },
-        {
-          "lat": 51.23177,
-          "lon": -0.33709
-        },
-        {
-          "lat": 51.23208,
-          "lon": -0.3369
-        },
-        {
-          "lat": 51.2325,
-          "lon": -0.3368
-        },
-        {
-          "lat": 51.23285,
-          "lon": -0.3367
-        },
-        {
-          "lat": 51.2334,
-          "lon": -0.33669
+          "lat": 51.23341,
+          "lon": -0.33664
         },
         {
           "lat": 51.23341,
@@ -534,7 +458,7 @@
       {
         "id": "capacity-live-check-bessible",
         "stage": "capacity",
-        "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 2 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+        "claim": "Checked against live UKPN data at 2026-09-23 14:46 UTC: headroom at 2 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
         "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
         "file_path": null,
         "image_path": null,
@@ -544,7 +468,7 @@
       {
         "id": "capacity-cable-route-bessible",
         "stage": "capacity",
-        "claim": "Cable route to Dorking Town 11kV: 1.88 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.58 km. The DNO designs the actual route",
+        "claim": "Cable route to Dorking Town 11kV: 0.9 km; leaves the title at its edge nearest the substation (0.02 km on site), then along roads and paths; straight line 0.58 km. The DNO designs the actual route",
         "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
         "file_path": null,
         "image_path": null,
@@ -627,7 +551,7 @@
     {
       "id": "capacity-live-check-bessible",
       "stage": "capacity",
-      "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 2 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+      "claim": "Checked against live UKPN data at 2026-09-23 14:46 UTC: headroom at 2 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
       "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
       "file_path": null,
       "image_path": null,
@@ -637,7 +561,7 @@
     {
       "id": "capacity-cable-route-bessible",
       "stage": "capacity",
-      "claim": "Cable route to Dorking Town 11kV: 1.88 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.58 km. The DNO designs the actual route",
+      "claim": "Cable route to Dorking Town 11kV: 0.9 km; leaves the title at its edge nearest the substation (0.02 km on site), then along roads and paths; straight line 0.58 km. The DNO designs the actual route",
       "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
       "file_path": null,
       "image_path": null,
@@ -768,7 +692,7 @@
       "id": "site_land-substation_within_reach-bessible",
       "stage": "site_land",
       "claim": "OK: Dorking Town 11kV (UKPN, 33.0 kV) is 0.57 km away.",
-      "source_url": "https://connecteddata.nationalgrid.co.uk/api/3/action/datastore_search?resource_id=d1895bd3-d9d2-4886-a0a3-b7eadd9ab6c2&filters=%7B%22type%22%3A+%5B%22Primary%22%2C+%22BSP%22%5D%7D&limit=32000",
+      "source_url": "https://ssentransmission.opendatasoft.com/api/explore/v2.1/catalog/datasets/ssen-transmission-substation-site-supergrid/records?where=within_distance%28geo_shape%2C+geom%27POINT%28-0.330207+51.232882%29%27%2C+25000.0m%29&order_by=distance%28geo_point_2d%2C+geom%27POINT%28-0.330207+51.232882%29%27%29&limit=100",
       "file_path": null,
       "image_path": null,
       "confidence": 0.95,
@@ -778,7 +702,7 @@
       "id": "site_land-grid_headroom-bessible",
       "stage": "site_land",
       "claim": "OK: Best two-way headroom in reach: 14.7 MW at Dorking Town 11kV, for a 8 MW battery.",
-      "source_url": "https://connecteddata.nationalgrid.co.uk/api/3/action/datastore_search?resource_id=d1895bd3-d9d2-4886-a0a3-b7eadd9ab6c2&filters=%7B%22type%22%3A+%5B%22Primary%22%2C+%22BSP%22%5D%7D&limit=32000",
+      "source_url": "https://ssentransmission.opendatasoft.com/api/explore/v2.1/catalog/datasets/ssen-transmission-substation-site-supergrid/records?where=within_distance%28geo_shape%2C+geom%27POINT%28-0.330207+51.232882%29%27%2C+25000.0m%29&order_by=distance%28geo_point_2d%2C+geom%27POINT%28-0.330207+51.232882%29%27%29&limit=100",
       "file_path": null,
       "image_path": null,
       "confidence": 0.95,
@@ -788,7 +712,7 @@
       "id": "site_land-clear_of_overhead_lines-bessible",
       "stage": "site_land",
       "claim": "OK: No overhead line of 22 kV or above crosses the title.",
-      "source_url": "https://connecteddata.nationalgrid.co.uk/api/3/action/datastore_search?resource_id=d1895bd3-d9d2-4886-a0a3-b7eadd9ab6c2&filters=%7B%22type%22%3A+%5B%22Primary%22%2C+%22BSP%22%5D%7D&limit=32000",
+      "source_url": "https://ssentransmission.opendatasoft.com/api/explore/v2.1/catalog/datasets/ssen-transmission-substation-site-supergrid/records?where=within_distance%28geo_shape%2C+geom%27POINT%28-0.330207+51.232882%29%27%2C+25000.0m%29&order_by=distance%28geo_point_2d%2C+geom%27POINT%28-0.330207+51.232882%29%27%29&limit=100",
       "file_path": null,
       "image_path": null,
       "confidence": 0.95,
@@ -867,7 +791,7 @@
     {
       "id": "financial-cost-bessible",
       "stage": "financial",
-      "claim": "Financing terms: interest rate 6.5%, arrangement fee 2%, discount rate 8%, debt share 60%, loan term 15 years. 11 kV connection (£500k-£700k/km over 1.88 km, by road): £940,000 - £1,316,000 (no crossing uplift applied). OTCF fee: inactive (oversubscription 30% is between 25% and 50%).",
+      "claim": "Financing terms: interest rate 6.5%, arrangement fee 2%, discount rate 8%, debt share 60%, loan term 15 years. 11 kV connection (£500k-£700k/km over 0.90 km, by road): £450,000 - £630,000 (no crossing uplift applied). OTCF fee: inactive (oversubscription 30% is between 25% and 50%).",
       "source_url": "https://www.ofgem.gov.uk/",
       "file_path": null,
       "image_path": null,
@@ -887,7 +811,7 @@
     {
       "id": "financial-returns-bessible",
       "stage": "financial",
-      "claim": "25-year returns:2h (CAPEX £5,928,000, NPV £-129,294, IRR 7.6%); 4h (CAPEX £9,928,000, NPV £-2,083,312, IRR 3.6%); 8h (CAPEX £17,928,000, NPV £-8,467,896, IRR N/A). Cases with N/A IRR do not pay back equity over project life.",
+      "claim": "25-year returns:2h (CAPEX £5,340,000, NPV £434,124, IRR 9.7%); 4h (CAPEX £9,340,000, NPV £-1,519,894, IRR 4.6%); 8h (CAPEX £17,340,000, NPV £-7,904,477, IRR N/A). Cases with N/A IRR do not pay back equity over project life.",
       "source_url": "https://www.ofgem.gov.uk/",
       "file_path": null,
       "image_path": null,
@@ -927,7 +851,7 @@
     {
       "id": "planning-summary-bessible",
       "stage": "planning",
-      "claim": "Local planning precedent within 5 km indicates established activity and local support for battery storage, including the approved 49.5 MW Dorking BESS Facility, the 20 MW Brockham Battery Energy Storage awaiting construction, and the submitted 100 MW Mole Valley Energy Reserve application. Standalone battery storage falls under local authority planning jurisdiction regardless of capacity pursuant to the 2020 NSIP carve-out, and is supported by NPPF Chapter 14 and NPS EN-1 as critical low-carbon infrastructure for grid resilience and balancing variable renewables. Applications should adhere to Planning Practice Guidance by locating near existing grid infrastructure with appropriate landscape and acoustic mitigation, while addressing NFCC guidance through a Battery Safety Management Plan detailing thermal runaway mitigation and emergency access.",
+      "claim": "Local planning precedent within 5 km demonstrates clear support for energy storage, including the approved 49.5 MW Dorking BESS Facility, the 20 MW Brockham project awaiting construction, and the 100 MW Mole Valley Energy Reserve currently submitted. Standalone battery storage schemes are determined by local planning authorities regardless of megawatt capacity following the 2020 NSIP carve-out, supported by NPPF Chapter 14 and NPS EN-1 recognising storage as essential low carbon infrastructure for grid decarbonisation and resilience. Applications must address Planning Practice Guidance regarding landscape mitigation, acoustic fencing, and environmental screening, whilst complying with NFCC guidance requiring a Battery Safety Management Plan covering thermal runaway mitigation and emergency access.",
       "source_url": "https://www.gov.uk/government/publications/renewable-energy-planning-database-monthly-extract",
       "file_path": null,
       "image_path": null,
@@ -937,7 +861,7 @@
     {
       "id": "synthesis-bessible",
       "stage": "synthesis",
-      "claim": "Assessment report compiled with verdict 'MAYBE' and duration comparison",
+      "claim": "Assessment report compiled with verdict 'GO' and duration comparison",
       "source_url": null,
       "file_path": "report.md",
       "image_path": null,
@@ -955,5 +879,5 @@
       "model_used": "deterministic"
     }
   ],
-  "run_dir": "out/bessible-record-dorking-2e307409"
+  "run_dir": "out/bessible-record-dorking-9d0e0dfc"
 }

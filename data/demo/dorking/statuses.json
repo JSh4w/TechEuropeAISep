@@ -53,7 +53,7 @@
           "lon": -0.3385015987376072
         },
         "route": {
-          "distance_km": 1.88,
+          "distance_km": 0.9,
           "path": [
             {
               "lat": 51.232882,
@@ -68,148 +68,72 @@
               "lon": -0.33012
             },
             {
-              "lat": 51.23284,
-              "lon": -0.3298
+              "lat": 51.23368,
+              "lon": -0.33077
             },
             {
-              "lat": 51.23206,
-              "lon": -0.33155
+              "lat": 51.23372,
+              "lon": -0.33079
             },
             {
-              "lat": 51.23176,
-              "lon": -0.33215
+              "lat": 51.23387,
+              "lon": -0.331
             },
             {
-              "lat": 51.23165,
-              "lon": -0.33244
+              "lat": 51.23402,
+              "lon": -0.33117
             },
             {
-              "lat": 51.2316,
-              "lon": -0.33263
+              "lat": 51.23396,
+              "lon": -0.33134
             },
             {
-              "lat": 51.23144,
-              "lon": -0.3331
+              "lat": 51.234,
+              "lon": -0.33159
             },
             {
-              "lat": 51.23113,
-              "lon": -0.33351
+              "lat": 51.23417,
+              "lon": -0.33185
             },
             {
-              "lat": 51.23076,
-              "lon": -0.33416
+              "lat": 51.23422,
+              "lon": -0.33201
             },
             {
-              "lat": 51.23056,
-              "lon": -0.33444
+              "lat": 51.23497,
+              "lon": -0.33258
             },
             {
-              "lat": 51.23037,
-              "lon": -0.33454
+              "lat": 51.23511,
+              "lon": -0.33266
             },
             {
-              "lat": 51.22952,
-              "lon": -0.3346
+              "lat": 51.23462,
+              "lon": -0.33473
             },
             {
-              "lat": 51.22891,
-              "lon": -0.33458
+              "lat": 51.23461,
+              "lon": -0.33562
             },
             {
-              "lat": 51.22796,
-              "lon": -0.33475
+              "lat": 51.23462,
+              "lon": -0.33617
             },
             {
-              "lat": 51.22773,
-              "lon": -0.33487
+              "lat": 51.23463,
+              "lon": -0.33623
             },
             {
-              "lat": 51.22756,
-              "lon": -0.33502
+              "lat": 51.23417,
+              "lon": -0.33657
             },
             {
-              "lat": 51.22727,
-              "lon": -0.33538
+              "lat": 51.23401,
+              "lon": -0.33662
             },
             {
-              "lat": 51.2271,
-              "lon": -0.33566
-            },
-            {
-              "lat": 51.22705,
-              "lon": -0.33587
-            },
-            {
-              "lat": 51.22703,
-              "lon": -0.33606
-            },
-            {
-              "lat": 51.22705,
-              "lon": -0.33626
-            },
-            {
-              "lat": 51.22722,
-              "lon": -0.33641
-            },
-            {
-              "lat": 51.22751,
-              "lon": -0.3366
-            },
-            {
-              "lat": 51.22793,
-              "lon": -0.33677
-            },
-            {
-              "lat": 51.22877,
-              "lon": -0.33698
-            },
-            {
-              "lat": 51.22917,
-              "lon": -0.33717
-            },
-            {
-              "lat": 51.22953,
-              "lon": -0.33738
-            },
-            {
-              "lat": 51.23041,
-              "lon": -0.33771
-            },
-            {
-              "lat": 51.23121,
-              "lon": -0.33814
-            },
-            {
-              "lat": 51.23141,
-              "lon": -0.33817
-            },
-            {
-              "lat": 51.2317,
-              "lon": -0.3381
-            },
-            {
-              "lat": 51.23169,
-              "lon": -0.33783
-            },
-            {
-              "lat": 51.23177,
-              "lon": -0.33709
-            },
-            {
-              "lat": 51.23208,
-              "lon": -0.3369
-            },
-            {
-              "lat": 51.2325,
-              "lon": -0.3368
-            },
-            {
-              "lat": 51.23285,
-              "lon": -0.3367
-            },
-            {
-              "lat": 51.2334,
-              "lon": -0.33669
+              "lat": 51.23341,
+              "lon": -0.33664
             },
             {
               "lat": 51.23341,
@@ -305,7 +229,7 @@
           {
             "id": "capacity-live-check-bessible",
             "stage": "capacity",
-            "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 2 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+            "claim": "Checked against live UKPN data at 2026-09-23 14:46 UTC: headroom at 2 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -315,7 +239,7 @@
           {
             "id": "capacity-cable-route-bessible",
             "stage": "capacity",
-            "claim": "Cable route to Dorking Town 11kV: 1.88 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.58 km. The DNO designs the actual route",
+            "claim": "Cable route to Dorking Town 11kV: 0.9 km; leaves the title at its edge nearest the substation (0.02 km on site), then along roads and paths; straight line 0.58 km. The DNO designs the actual route",
             "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
             "file_path": null,
             "image_path": null,
@@ -409,7 +333,7 @@
           "lon": -0.3385015987376072
         },
         "route": {
-          "distance_km": 1.88,
+          "distance_km": 0.9,
           "path": [
             {
               "lat": 51.232882,
@@ -424,148 +348,72 @@
               "lon": -0.33012
             },
             {
-              "lat": 51.23284,
-              "lon": -0.3298
+              "lat": 51.23368,
+              "lon": -0.33077
             },
             {
-              "lat": 51.23206,
-              "lon": -0.33155
+              "lat": 51.23372,
+              "lon": -0.33079
             },
             {
-              "lat": 51.23176,
-              "lon": -0.33215
+              "lat": 51.23387,
+              "lon": -0.331
             },
             {
-              "lat": 51.23165,
-              "lon": -0.33244
+              "lat": 51.23402,
+              "lon": -0.33117
             },
             {
-              "lat": 51.2316,
-              "lon": -0.33263
+              "lat": 51.23396,
+              "lon": -0.33134
             },
             {
-              "lat": 51.23144,
-              "lon": -0.3331
+              "lat": 51.234,
+              "lon": -0.33159
             },
             {
-              "lat": 51.23113,
-              "lon": -0.33351
+              "lat": 51.23417,
+              "lon": -0.33185
             },
             {
-              "lat": 51.23076,
-              "lon": -0.33416
+              "lat": 51.23422,
+              "lon": -0.33201
             },
             {
-              "lat": 51.23056,
-              "lon": -0.33444
+              "lat": 51.23497,
+              "lon": -0.33258
             },
             {
-              "lat": 51.23037,
-              "lon": -0.33454
+              "lat": 51.23511,
+              "lon": -0.33266
             },
             {
-              "lat": 51.22952,
-              "lon": -0.3346
+              "lat": 51.23462,
+              "lon": -0.33473
             },
             {
-              "lat": 51.22891,
-              "lon": -0.33458
+              "lat": 51.23461,
+              "lon": -0.33562
             },
             {
-              "lat": 51.22796,
-              "lon": -0.33475
+              "lat": 51.23462,
+              "lon": -0.33617
             },
             {
-              "lat": 51.22773,
-              "lon": -0.33487
+              "lat": 51.23463,
+              "lon": -0.33623
             },
             {
-              "lat": 51.22756,
-              "lon": -0.33502
+              "lat": 51.23417,
+              "lon": -0.33657
             },
             {
-              "lat": 51.22727,
-              "lon": -0.33538
+              "lat": 51.23401,
+              "lon": -0.33662
             },
             {
-              "lat": 51.2271,
-              "lon": -0.33566
-            },
-            {
-              "lat": 51.22705,
-              "lon": -0.33587
-            },
-            {
-              "lat": 51.22703,
-              "lon": -0.33606
-            },
-            {
-              "lat": 51.22705,
-              "lon": -0.33626
-            },
-            {
-              "lat": 51.22722,
-              "lon": -0.33641
-            },
-            {
-              "lat": 51.22751,
-              "lon": -0.3366
-            },
-            {
-              "lat": 51.22793,
-              "lon": -0.33677
-            },
-            {
-              "lat": 51.22877,
-              "lon": -0.33698
-            },
-            {
-              "lat": 51.22917,
-              "lon": -0.33717
-            },
-            {
-              "lat": 51.22953,
-              "lon": -0.33738
-            },
-            {
-              "lat": 51.23041,
-              "lon": -0.33771
-            },
-            {
-              "lat": 51.23121,
-              "lon": -0.33814
-            },
-            {
-              "lat": 51.23141,
-              "lon": -0.33817
-            },
-            {
-              "lat": 51.2317,
-              "lon": -0.3381
-            },
-            {
-              "lat": 51.23169,
-              "lon": -0.33783
-            },
-            {
-              "lat": 51.23177,
-              "lon": -0.33709
-            },
-            {
-              "lat": 51.23208,
-              "lon": -0.3369
-            },
-            {
-              "lat": 51.2325,
-              "lon": -0.3368
-            },
-            {
-              "lat": 51.23285,
-              "lon": -0.3367
-            },
-            {
-              "lat": 51.2334,
-              "lon": -0.33669
+              "lat": 51.23341,
+              "lon": -0.33664
             },
             {
               "lat": 51.23341,
@@ -661,7 +509,7 @@
           {
             "id": "capacity-live-check-bessible",
             "stage": "capacity",
-            "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 2 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+            "claim": "Checked against live UKPN data at 2026-09-23 14:46 UTC: headroom at 2 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -671,7 +519,7 @@
           {
             "id": "capacity-cable-route-bessible",
             "stage": "capacity",
-            "claim": "Cable route to Dorking Town 11kV: 1.88 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.58 km. The DNO designs the actual route",
+            "claim": "Cable route to Dorking Town 11kV: 0.9 km; leaves the title at its edge nearest the substation (0.02 km on site), then along roads and paths; straight line 0.58 km. The DNO designs the actual route",
             "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
             "file_path": null,
             "image_path": null,
@@ -763,7 +611,7 @@
           "lon": -0.3385015987376072
         },
         "route": {
-          "distance_km": 1.88,
+          "distance_km": 0.9,
           "path": [
             {
               "lat": 51.232882,
@@ -778,148 +626,72 @@
               "lon": -0.33012
             },
             {
-              "lat": 51.23284,
-              "lon": -0.3298
+              "lat": 51.23368,
+              "lon": -0.33077
             },
             {
-              "lat": 51.23206,
-              "lon": -0.33155
+              "lat": 51.23372,
+              "lon": -0.33079
             },
             {
-              "lat": 51.23176,
-              "lon": -0.33215
+              "lat": 51.23387,
+              "lon": -0.331
             },
             {
-              "lat": 51.23165,
-              "lon": -0.33244
+              "lat": 51.23402,
+              "lon": -0.33117
             },
             {
-              "lat": 51.2316,
-              "lon": -0.33263
+              "lat": 51.23396,
+              "lon": -0.33134
             },
             {
-              "lat": 51.23144,
-              "lon": -0.3331
+              "lat": 51.234,
+              "lon": -0.33159
             },
             {
-              "lat": 51.23113,
-              "lon": -0.33351
+              "lat": 51.23417,
+              "lon": -0.33185
             },
             {
-              "lat": 51.23076,
-              "lon": -0.33416
+              "lat": 51.23422,
+              "lon": -0.33201
             },
             {
-              "lat": 51.23056,
-              "lon": -0.33444
+              "lat": 51.23497,
+              "lon": -0.33258
             },
             {
-              "lat": 51.23037,
-              "lon": -0.33454
+              "lat": 51.23511,
+              "lon": -0.33266
             },
             {
-              "lat": 51.22952,
-              "lon": -0.3346
+              "lat": 51.23462,
+              "lon": -0.33473
             },
             {
-              "lat": 51.22891,
-              "lon": -0.33458
+              "lat": 51.23461,
+              "lon": -0.33562
             },
             {
-              "lat": 51.22796,
-              "lon": -0.33475
+              "lat": 51.23462,
+              "lon": -0.33617
             },
             {
-              "lat": 51.22773,
-              "lon": -0.33487
+              "lat": 51.23463,
+              "lon": -0.33623
             },
             {
-              "lat": 51.22756,
-              "lon": -0.33502
+              "lat": 51.23417,
+              "lon": -0.33657
             },
             {
-              "lat": 51.22727,
-              "lon": -0.33538
+              "lat": 51.23401,
+              "lon": -0.33662
             },
             {
-              "lat": 51.2271,
-              "lon": -0.33566
-            },
-            {
-              "lat": 51.22705,
-              "lon": -0.33587
-            },
-            {
-              "lat": 51.22703,
-              "lon": -0.33606
-            },
-            {
-              "lat": 51.22705,
-              "lon": -0.33626
-            },
-            {
-              "lat": 51.22722,
-              "lon": -0.33641
-            },
-            {
-              "lat": 51.22751,
-              "lon": -0.3366
-            },
-            {
-              "lat": 51.22793,
-              "lon": -0.33677
-            },
-            {
-              "lat": 51.22877,
-              "lon": -0.33698
-            },
-            {
-              "lat": 51.22917,
-              "lon": -0.33717
-            },
-            {
-              "lat": 51.22953,
-              "lon": -0.33738
-            },
-            {
-              "lat": 51.23041,
-              "lon": -0.33771
-            },
-            {
-              "lat": 51.23121,
-              "lon": -0.33814
-            },
-            {
-              "lat": 51.23141,
-              "lon": -0.33817
-            },
-            {
-              "lat": 51.2317,
-              "lon": -0.3381
-            },
-            {
-              "lat": 51.23169,
-              "lon": -0.33783
-            },
-            {
-              "lat": 51.23177,
-              "lon": -0.33709
-            },
-            {
-              "lat": 51.23208,
-              "lon": -0.3369
-            },
-            {
-              "lat": 51.2325,
-              "lon": -0.3368
-            },
-            {
-              "lat": 51.23285,
-              "lon": -0.3367
-            },
-            {
-              "lat": 51.2334,
-              "lon": -0.33669
+              "lat": 51.23341,
+              "lon": -0.33664
             },
             {
               "lat": 51.23341,
@@ -1015,7 +787,7 @@
           {
             "id": "capacity-live-check-bessible",
             "stage": "capacity",
-            "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 2 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+            "claim": "Checked against live UKPN data at 2026-09-23 14:46 UTC: headroom at 2 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -1025,7 +797,7 @@
           {
             "id": "capacity-cable-route-bessible",
             "stage": "capacity",
-            "claim": "Cable route to Dorking Town 11kV: 1.88 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.58 km. The DNO designs the actual route",
+            "claim": "Cable route to Dorking Town 11kV: 0.9 km; leaves the title at its edge nearest the substation (0.02 km on site), then along roads and paths; straight line 0.58 km. The DNO designs the actual route",
             "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
             "file_path": null,
             "image_path": null,
@@ -1114,7 +886,7 @@
           "lon": -0.3385015987376072
         },
         "route": {
-          "distance_km": 1.88,
+          "distance_km": 0.9,
           "path": [
             {
               "lat": 51.232882,
@@ -1129,148 +901,72 @@
               "lon": -0.33012
             },
             {
-              "lat": 51.23284,
-              "lon": -0.3298
+              "lat": 51.23368,
+              "lon": -0.33077
             },
             {
-              "lat": 51.23206,
-              "lon": -0.33155
+              "lat": 51.23372,
+              "lon": -0.33079
             },
             {
-              "lat": 51.23176,
-              "lon": -0.33215
+              "lat": 51.23387,
+              "lon": -0.331
             },
             {
-              "lat": 51.23165,
-              "lon": -0.33244
+              "lat": 51.23402,
+              "lon": -0.33117
             },
             {
-              "lat": 51.2316,
-              "lon": -0.33263
+              "lat": 51.23396,
+              "lon": -0.33134
             },
             {
-              "lat": 51.23144,
-              "lon": -0.3331
+              "lat": 51.234,
+              "lon": -0.33159
             },
             {
-              "lat": 51.23113,
-              "lon": -0.33351
+              "lat": 51.23417,
+              "lon": -0.33185
             },
             {
-              "lat": 51.23076,
-              "lon": -0.33416
+              "lat": 51.23422,
+              "lon": -0.33201
             },
             {
-              "lat": 51.23056,
-              "lon": -0.33444
+              "lat": 51.23497,
+              "lon": -0.33258
             },
             {
-              "lat": 51.23037,
-              "lon": -0.33454
+              "lat": 51.23511,
+              "lon": -0.33266
             },
             {
-              "lat": 51.22952,
-              "lon": -0.3346
+              "lat": 51.23462,
+              "lon": -0.33473
             },
             {
-              "lat": 51.22891,
-              "lon": -0.33458
+              "lat": 51.23461,
+              "lon": -0.33562
             },
             {
-              "lat": 51.22796,
-              "lon": -0.33475
+              "lat": 51.23462,
+              "lon": -0.33617
             },
             {
-              "lat": 51.22773,
-              "lon": -0.33487
+              "lat": 51.23463,
+              "lon": -0.33623
             },
             {
-              "lat": 51.22756,
-              "lon": -0.33502
+              "lat": 51.23417,
+              "lon": -0.33657
             },
             {
-              "lat": 51.22727,
-              "lon": -0.33538
+              "lat": 51.23401,
+              "lon": -0.33662
             },
             {
-              "lat": 51.2271,
-              "lon": -0.33566
-            },
-            {
-              "lat": 51.22705,
-              "lon": -0.33587
-            },
-            {
-              "lat": 51.22703,
-              "lon": -0.33606
-            },
-            {
-              "lat": 51.22705,
-              "lon": -0.33626
-            },
-            {
-              "lat": 51.22722,
-              "lon": -0.33641
-            },
-            {
-              "lat": 51.22751,
-              "lon": -0.3366
-            },
-            {
-              "lat": 51.22793,
-              "lon": -0.33677
-            },
-            {
-              "lat": 51.22877,
-              "lon": -0.33698
-            },
-            {
-              "lat": 51.22917,
-              "lon": -0.33717
-            },
-            {
-              "lat": 51.22953,
-              "lon": -0.33738
-            },
-            {
-              "lat": 51.23041,
-              "lon": -0.33771
-            },
-            {
-              "lat": 51.23121,
-              "lon": -0.33814
-            },
-            {
-              "lat": 51.23141,
-              "lon": -0.33817
-            },
-            {
-              "lat": 51.2317,
-              "lon": -0.3381
-            },
-            {
-              "lat": 51.23169,
-              "lon": -0.33783
-            },
-            {
-              "lat": 51.23177,
-              "lon": -0.33709
-            },
-            {
-              "lat": 51.23208,
-              "lon": -0.3369
-            },
-            {
-              "lat": 51.2325,
-              "lon": -0.3368
-            },
-            {
-              "lat": 51.23285,
-              "lon": -0.3367
-            },
-            {
-              "lat": 51.2334,
-              "lon": -0.33669
+              "lat": 51.23341,
+              "lon": -0.33664
             },
             {
               "lat": 51.23341,
@@ -1366,7 +1062,7 @@
           {
             "id": "capacity-live-check-bessible",
             "stage": "capacity",
-            "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 2 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+            "claim": "Checked against live UKPN data at 2026-09-23 14:46 UTC: headroom at 2 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -1376,7 +1072,7 @@
           {
             "id": "capacity-cable-route-bessible",
             "stage": "capacity",
-            "claim": "Cable route to Dorking Town 11kV: 1.88 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.58 km. The DNO designs the actual route",
+            "claim": "Cable route to Dorking Town 11kV: 0.9 km; leaves the title at its edge nearest the substation (0.02 km on site), then along roads and paths; straight line 0.58 km. The DNO designs the actual route",
             "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
             "file_path": null,
             "image_path": null,
