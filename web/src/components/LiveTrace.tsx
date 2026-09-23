@@ -77,7 +77,7 @@ export default function LiveTrace({
   return (
     <Card className="flex flex-col h-full shadow-md rounded-2xl overflow-hidden border-border bg-card">
       <CardHeader className="p-4 border-b border-border/80 bg-muted/20">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
               <Terminal className="w-4 h-4" />
@@ -90,7 +90,7 @@ export default function LiveTrace({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 min-w-0 max-w-full">
             {isConnected ? (
               <Badge variant="outline" className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5">
                 <span className="relative flex h-2 w-2">
@@ -100,9 +100,9 @@ export default function LiveTrace({
                 SSE Active
               </Badge>
             ) : (
-              <Badge variant="outline" className="text-[11px] text-muted-foreground font-mono flex items-center gap-1 px-2 py-0.5">
-                <Clock className="w-3 h-3" />
-                <span className="capitalize">{status}</span>
+              <Badge variant="outline" className="text-[11px] text-muted-foreground font-mono flex items-center gap-1 px-2 py-0.5 max-w-full" title={status}>
+                <Clock className="w-3 h-3 shrink-0" />
+                <span className="capitalize truncate">{status.replace(/_/g, ' ')}</span>
               </Badge>
             )}
           </div>
@@ -150,7 +150,7 @@ export default function LiveTrace({
                     </span>
                   </div>
 
-                  <div className="flex-1 text-foreground text-xs leading-relaxed font-sans pt-0.5 break-words">
+                  <div className="flex-1 min-w-0 text-foreground text-xs leading-relaxed font-sans pt-0.5 [overflow-wrap:anywhere]">
                     {ev.msg}
                   </div>
 
