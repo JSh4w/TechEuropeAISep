@@ -77,8 +77,25 @@ export default function LiveTrace({
   return (
     <Card className="flex flex-col h-full shadow-md rounded-2xl overflow-hidden border-border bg-card">
       <CardHeader className="p-4 border-b border-border/80 bg-muted/20">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
+        <div className="flex flex-col items-start gap-2">
+          <div className="flex items-center min-w-0 max-w-full">
+            {isConnected ? (
+              <Badge variant="outline" className="flex items-center gap-[5px] text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold border-emerald-500/30 bg-emerald-500/10 px-[7px] py-0.5">
+                <span className="relative flex h-[7px] w-[7px]">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-[7px] w-[7px] bg-emerald-500"></span>
+                </span>
+                SSE Active
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-[10px] text-muted-foreground font-mono flex items-center gap-1 px-[7px] py-0.5 max-w-full" title={status}>
+                <Clock className="w-[11px] h-[11px] shrink-0" />
+                <span className="capitalize truncate">{status.replace(/_/g, ' ')}</span>
+              </Badge>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 min-w-0 max-w-full">
             <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
               <Terminal className="w-4 h-4" />
             </div>
@@ -88,23 +105,6 @@ export default function LiveTrace({
                 {runId ?? 'Temporal Workflow Stream'}
               </div>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2 min-w-0 max-w-full">
-            {isConnected ? (
-              <Badge variant="outline" className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                SSE Active
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="text-[11px] text-muted-foreground font-mono flex items-center gap-1 px-2 py-0.5 max-w-full" title={status}>
-                <Clock className="w-3 h-3 shrink-0" />
-                <span className="capitalize truncate">{status.replace(/_/g, ' ')}</span>
-              </Badge>
-            )}
           </div>
         </div>
       </CardHeader>
