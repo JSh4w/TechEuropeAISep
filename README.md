@@ -1,6 +1,20 @@
 # Bessible — BESS Site Assessment Agent
 
-Bessible assesses real estate properties for Battery Energy Storage Systems (BESS) feasibility and suitability in the UK. Given a property link or postcode, it coordinates grid connection analysis, title boundaries, planning policy, market revenue, local sentiment, and financial returns with full explainability and durable human-in-the-loop orchestration.
+Bessible assesses real estate properties for Battery Energy Storage Systems (BESS) feasibility and suitability in the UK. Given a **map pin location**, **UK postcode**, or **property listing URL**, it coordinates live DNO grid headroom analysis, road-following cable routing to serving substations, title boundary identification with compound sizing, planning policy and flood risk constraints, market revenue projections, community sentiment, and multi-duration financial returns—all backed by full explainability and durable human-in-the-loop orchestration.
+
+---
+
+## Key Features
+
+- **Multi-Modal Screening:** Click directly on the Google Map to drop a pin (no postcode required), enter any UK postcode, or paste a commercial property listing link.
+- **5 UK Distribution Network Operators (DNOs):** Live grid headroom checks across UK Power Networks (UKPN), National Grid Electricity Distribution (NGED), Scottish and Southern Electricity Networks (SSEN), SP Energy Networks (SPEN), and Northern Powergrid (NPg), with connection-voltage-level caps (11 kV, 33 kV, 132 kV) and clean out-of-area handling.
+- **Road Cable Routing:** Real road-following cable route calculation from site title boundaries to serving substations via Google Routes API, pricing civil engineering and cabling on real route distance.
+- **Interactive Google Maps:** Vector map with a 2 km screening radius dimming mask, draggable Reserved Compound overlay, and statutory designation boundaries.
+- **Realistic Financial Modeling:** Evaluates 1-hour, 2-hour, and 4-hour battery durations with capex breakdown (batteries, BoP, road cabling, DNO connection), revenue stacking (wholesale arbitrage, frequency response, capacity market) calibrated against Modo Energy and BNEF benchmarks, NPV, IRR, and payback calculations.
+- **Durable Orchestration (Temporal):** Resilient multi-stage pipeline with live SSE agent telemetry, automatic activity retries, and early stop for non-viable or out-of-area sites.
+- **Human-in-the-Loop Control:** Interactive proposal card allowing developers to adjust target capacity, toggle flexible connections above firm headroom, approve proposals, or reject and explore another site early.
+- **Keyless Demo Workspace:** Explore the platform without API keys or credentials using 3 pre-recorded live runs or browser simulation.
+- **Security & BYOK:** Firebase Google sign-in, Bring Your Own Key (BYOK) encrypted with AES-GCM (`KEY_ENCRYPTION_SECRET`), Traefik rate limiting, SSRF protection with DNS pinning, and prompt-injection sanitization.
 
 ---
 
@@ -8,11 +22,21 @@ Bessible assesses real estate properties for Battery Energy Storage Systems (BES
 
 ### 1. Prerequisites & Environment Check
 
-Ensure your `.env` contains your API keys (`GOOGLE_API_KEY`, `PYDANTIC_AI_GATEWAY_API_KEY` are required):
+Ensure your `.env` contains the required keys (`GOOGLE_API_KEY`, `KEY_ENCRYPTION_SECRET`, `PYDANTIC_AI_GATEWAY_API_KEY`):
 
 ```bash
+# Copy example configuration template
+cp .env.example .env
+
+# Generate a master key encryption secret (required for sealing per-user keys)
+python3 -c "import secrets; print(secrets.token_urlsafe(32))"
+# Set KEY_ENCRYPTION_SECRET=<generated_secret> in your .env
+
 # Check keys, Temporal reachability, and Modal login
 uv run python scripts/check_env.py
+
+# Optional: verify model execution with a live ping
+uv run python scripts/check_env.py --live
 ```
 
 ### 2. Start Temporal Server
@@ -39,14 +63,14 @@ uv run python -m bessible.worker
 
 ### 4. Start the FastAPI HTTP Server
 
-To serve the web UI, SSE progress traces, and fast capacity checks:
+To serve the web UI, SSE progress traces, fast capacity checks, and demo replays:
 
 ```bash
 uv run uvicorn bessible.api.app:app --host 0.0.0.0 --port 8000
 ```
 
-Each user's Google key is stored encrypted (with `KEY_ENCRYPTION_SECRET`) in `out/keys.db` (`/app/out/keys.db` in
-Docker, on the `bessible-out` volume). Set `KEY_DB_PATH` to keep it somewhere else.
+* Health check: **http://localhost:8000/health**
+* Each user's Google key is stored encrypted (with `KEY_ENCRYPTION_SECRET`) in `out/keys.db` (`/app/out/keys.db` in Docker). Set `KEY_DB_PATH` in `.env` to customize storage.
 
 ---
 
@@ -57,8 +81,9 @@ The web UI is a Next.js 16 application featuring an interactive Google Maps site
 ### 1. Prerequisites
 
 - **Node.js 20+** (`node -v` >= 20.9)
-- **FastAPI backend** running on `http://localhost:8000` (step 4 above)
-- **`GOOGLE_MAPS_API_KEY`** in the root `.env` (a browser key for the Maps JavaScript API; without it the map shows a "Map unavailable" notice). `GOOGLE_MAPS_MAP_ID` is optional locally. `GOOGLE_ROUTES_API_KEY` (a separate server key) turns on road cable routes; without it cable runs are straight lines. See `.env.example`.
+- **FastAPI backend** running on `http://localhost:8000`
+- **`GOOGLE_MAPS_API_KEY`** in the root `.env` (a browser key for the Maps JavaScript API; without it the map displays a "Map unavailable" fallback). `GOOGLE_MAPS_MAP_ID` is optional for vector map styling.
+- **`GOOGLE_ROUTES_API_KEY`** in the root `.env` (a server key for road cable routing; without it cable runs fall back to straight lines).
 
 ### 2. Install Dependencies
 
@@ -78,6 +103,21 @@ npm run dev
 * The frontend is accessible at **http://localhost:3000**.
 * By default, it communicates with the API at `http://localhost:8000`. If running on a different port or host, set `NEXT_PUBLIC_API_URL` (e.g. `NEXT_PUBLIC_API_URL=http://localhost:8080 npm run dev`).
 
+### Workspaces: Live vs Keyless Demo
+
+The web app supports two workspace modes:
+
+1. **Live Workspace:** Authenticated mode (Firebase Google sign-in) with Bring Your Own Key (BYOK) for live agent reasoning, live DNO headroom queries, road cable routing, and full report generation.
+2. **Demo Workspace:** Keyless mode requiring no login, no API keys, and no Temporal server. Includes 3 pre-recorded presets from live runs:
+   - **Dorking (RH4 1AD):** Primary substation connection with viable headroom in UK Power Networks (UKPN) territory.
+   - **Histon (CB24 9LQ):** Primary substation connection near Cambridge in UKPN territory.
+   - **Manchester (M1 1AE):** Out-of-area scenario in Electricity North West (ENWL) territory, demonstrating clean early termination and supported operator guidance.
+   - **Browser Simulation:** Entering any other UK postcode or coordinate in demo mode simulates realistic screening client-side.
+   - **URL State Shortcuts:**
+     - `http://localhost:3000/?state=demo` — open Demo Workspace directly.
+     - `http://localhost:3000/?state=confirm` — inspect the human-in-the-loop confirmation card UI.
+     - `http://localhost:3000/?state=report` — inspect the synthesized report viewer UI.
+
 ### Alternative: All-in-One Dev Script
 
 To start Temporal dev server, the Python worker, FastAPI API server, and the Next.js frontend all together in a single command:
@@ -90,30 +130,30 @@ To start Temporal dev server, the Python worker, FastAPI API server, and the Nex
 
 ## CLI Usage
 
-The backend CLI (`bessible.cli`) allows you to start assessments, confirm site parameters, and inspect results.
+The backend CLI (`bessible.cli`) allows you to start assessments, confirm site parameters, record demo runs, and inspect results.
 
 ### Starting an Assessment
 
 ```bash
-# Attached interactive mode (guides you through progress & asks for confirmation)
+# Interactive mode (guides you through progress & prompts for human-in-the-loop decision)
 uv run python -m bessible.cli start --postcode "OX14 4TE"
 
-# Start with property link and target parameters
+# Start with property link, target capacity, and budget
 uv run python -m bessible.cli start "https://example.com/property" --battery-mw 20 --budget-gbp 10000000
 
-# Enable flexible connection (allows connecting above firm headroom up to ceiling)
+# Enable flexible connection (allows connecting above firm headroom up to network ceiling)
 uv run python -m bessible.cli start --postcode "OX14 4TE" --flexible
 
 # Auto-confirm defaults without interactive prompting
 uv run python -m bessible.cli start --postcode "OX14 4TE" --yes
 
-# Detached mode (starts run in background and prints run ID)
+# Detached mode (starts workflow in background and prints run ID)
 uv run python -m bessible.cli start --postcode "OX14 4TE" --detach
 ```
 
 ### Confirming a Paused Run (Human-in-the-Loop)
 
-When a run reaches the `awaiting_confirmation` checkpoint, use `confirm`:
+When a run reaches the `awaiting_confirmation` checkpoint:
 
 ```bash
 # Confirm using recommended capacity
@@ -122,19 +162,64 @@ uv run python -m bessible.cli confirm <run-id>
 # Confirm with custom capacity within approved range
 uv run python -m bessible.cli confirm <run-id> --capacity-mw 15.0
 
-# Reject site proposal
+# Reject site proposal (cancels downstream stages cleanly)
 uv run python -m bessible.cli confirm <run-id> --reject
 ```
 
 ### Viewing Run Results & Reports
 
 ```bash
-# View active progress or final report, duration comparison table, and artifact path
+# View active progress, duration comparison table, and artifact paths
 uv run python -m bessible.cli result <run-id>
 ```
 
 All generated evidence artifacts, GeoJSON boundaries, and Markdown reports are saved to:
 `out/<run-id>/report.md`
+
+### Recording a Demo Preset
+
+To record a live run into `data/demo/<slug>` for keyless demo replay:
+
+```bash
+uv run python -m bessible.cli record <slug> <postcode> [--flexible]
+
+# Example:
+uv run python -m bessible.cli record dorking "RH4 1AD"
+```
+
+The recorder handles runs that end before confirmation (such as out-of-area sites), assigns unique run IDs, sanitizes all configured secrets from recorded event streams, and preserves exact financial and capacity outputs.
+
+---
+
+## Grid & DNO Coverage
+
+Bessible supports live grid headroom checks across **5 UK Distribution Network Operators (DNOs)**:
+
+| Operator | Coverage Area | Headroom Check |
+|---|---|---|
+| **UK Power Networks (UKPN)** | East of England, London, South East | Bundled snapshot + live heatmap API verification |
+| **National Grid Electricity Distribution (NGED)** | East & West Midlands, South West, South Wales | Live Connected Data Portal API |
+| **Scottish and Southern Electricity Networks (SSEN)** | North of Scotland, Central Southern England | Live Open Data Portal API |
+| **SP Energy Networks (SPEN)** | Central & Southern Scotland, Merseyside, North Wales | Live Open Data Portal API |
+| **Northern Powergrid (NPg)** | North East England, Yorkshire | Live Open Data Portal API |
+
+* **Live Headroom by Default:** `settings.live_capacity` is enabled by default. UKPN snapshot headroom is verified against live heatmap data on every run; other operators query live portal endpoints.
+* **Per-Operator Connection Voltage Limits:** Caps headroom by proposed connection voltage (e.g. 8 MW for 11 kV busbars, 50 MW for 33 kV primaries, and grid-level connections for 132 kV+).
+* **Out-of-Area Guidance:** Sites outside supported DNO license areas (e.g. Electricity North West / ENWL) cleanly terminate early with an informative explanation listing supported networks.
+
+---
+
+## Authoritative Data Sources
+
+Bessible combines and cross-references data across public and commercial energy infrastructure sources:
+
+- **Grid Headroom & Substations:** DNO Long Term Development Statements (LTDS) and Open Data Portals (UKPN, NGED, SSEN, SPEN, NPg).
+- **Existing & Queued Generation:** DESNZ Renewable Energy Planning Database (REPD).
+- **Title Boundaries & Sizing:** HM Land Registry INSPIRE Index Polygons.
+- **Cable Routing:** Google Routes API (Essentials) for road network distance and routing to serving substations.
+- **Environmental & Statutory Constraints:** Environment Agency Flood Zones (2 and 3), Areas of Outstanding Natural Beauty (AONB / National Landscapes), Sites of Special Scientific Interest (SSSI), Green Belt, Ramsar, SPAs, and SACs.
+- **Planning Data:** Local Planning Authority (LPA) datasets, Article 4 directions, conservation areas, and listed buildings.
+- **Financial Benchmarks:** Capex benchmarks from BloombergNEF (BNEF) and battery revenue projections calibrated with Modo Energy market data.
 
 ---
 
@@ -142,10 +227,10 @@ All generated evidence artifacts, GeoJSON boundaries, and Markdown reports are s
 
 ### Site Data Report
 
-Generate a consolidated raw environmental and grid data report for any location:
+Generate a consolidated raw environmental and grid data HTML report for any coordinate:
 
 ```bash
-uv run python scripts/site_report.py --postcode "RH3 7EZ"
+uv run python scripts/site_report.py 51.2362 -0.3323 [radius_km]
 ```
 
 ### Location Pipeline Collation
@@ -153,13 +238,13 @@ uv run python scripts/site_report.py --postcode "RH3 7EZ"
 Test coordinate geocoding, boundary retrieval, flood zones, and designations:
 
 ```bash
-uv run python -m bessible.location 51.2471 -0.2668
+uv run python -m bessible.location 51.2471 -0.2668 --full
 ```
 
 ### Automated Tests & Linting
 
 ```bash
-# Run all backend unit and integration tests
+# Run backend test suite
 uv run pytest
 
 # Check code formatting and linting
@@ -172,8 +257,8 @@ uv run ruff check src/ tests/
 
 The pipeline runs as a durable Temporal workflow (`AssessmentWorkflow`):
 
-1. **Sequential Front**: `resolve_location` &rarr; `propose_capacity` (with early stop for out-of-area/non-viable sites) &rarr; `find_title_boundaries`.
-2. **Human-in-the-Loop**: Pauses with `status="awaiting_confirmation"`. Validates user decision via `decide_site` update.
+1. **Sequential Front**: `resolve_location` &rarr; `propose_capacity` (with early stop for out-of-area or non-viable sites) &rarr; `find_title_boundaries`.
+2. **Human-in-the-Loop Checkpoint**: Pauses with `status="awaiting_confirmation"`. Validates user decision via `decide_site` update signal (approve capacity, adjust slider, or early rejection).
 3. **Parallel Group 1**: `grid_connection`, `site_land`, `market_revenue`, `local_sentiment`.
 4. **Parallel Group 2**: `financial_model`, `regulatory_planning`.
 5. **Synthesis**: Compiles Markdown report and verifies that all claims cite evidence artifact IDs.
@@ -225,22 +310,32 @@ async def synthesise(inp: SynthesisInput) -> ReportOutput: ...
 
 ---
 
+## Security & Privacy
+
+- **Bring Your Own Key (BYOK):** Each user enters their own Google Gemini API key via the web UI Key Panel. Keys are stored encrypted with AES-GCM (`KEY_ENCRYPTION_SECRET`) in `out/keys.db`.
+- **Run Isolation:** Encrypted user keys are decrypted strictly in-memory inside Temporal activities for the duration of a run; keys are never logged or stored in workflow history.
+- **SSRF Defense:** Property link resolution enforces public IP validation and DNS pinning, rejecting attempts to access loopback, link-local, or private IP addresses.
+- **Prompt Injection Defense:** External page content scraped from listing URLs or news articles is sanitized to strip prompt-injection patterns before insertion into LLM prompts.
+- **Rate Limiting:** Traefik Docker labels and API middleware enforce per-IP rate limits on sensitive endpoints (`/runs`, `/capacity`, `/me`).
+
+---
+
 ## Setup Script Reference
 
 ```bash
 ./scripts/setup.sh    # Installs uv, Temporal CLI, Node, Python deps, creates .env, logs in to Modal
-./scripts/dev.sh      # Starts Temporal + worker + web UI in one command
+./scripts/dev.sh      # Starts Temporal + worker + FastAPI + web UI in one command
 ```
 
 ---
 
 ## Containerisation & Deployment (GHCR & Docker)
 
-Bessible is fully containerised and configured for automated continuous deployment to the **GitHub Container Registry (GHCR)** (`ghcr.io`).
+Bessible is containerised and configured for automated continuous deployment to the **GitHub Container Registry (GHCR)** (`ghcr.io`).
 
 ### 1. Docker Compose (Run Everything in Containers)
 
-You can launch the complete stack—Temporal Server, FastAPI Backend, Background Worker, and Next.js Frontend—with a single command:
+You can launch the complete stack—Temporal Server (with SQLite persistence), FastAPI Backend, Background Worker, and Next.js Frontend—with a single command:
 
 ```bash
 # Ensure your API keys are in .env
@@ -254,7 +349,7 @@ Services started:
 * **Web UI:** [http://localhost:3000](http://localhost:3000)
 * **FastAPI Backend:** [http://localhost:8000](http://localhost:8000) (Health check: `/health`)
 * **Temporal Web UI:** [http://localhost:8233](http://localhost:8233)
-* **Temporal Server:** `localhost:7233`
+* **Temporal Server:** `localhost:7233` (backed by SQLite database in `temporal-data` volume)
 * **Temporal Worker:** Background worker listening on queue `bessible`
 
 To stop the containers:
@@ -324,4 +419,3 @@ docker run -d --env-file .env ghcr.io/<owner>/bessible-backend:latest python -m 
 # Run Frontend
 docker run -d -p 3000:3000 -e BACKEND_URL="http://<api-host>:8000" ghcr.io/<owner>/bessible-web:latest
 ```
-
