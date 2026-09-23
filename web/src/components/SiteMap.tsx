@@ -30,6 +30,8 @@ interface SiteMapProps {
   siteData?: SiteData | null;
   siteDataLoading?: boolean;
   maxDistanceKm?: number;
+  /** No run holds the site: a click places the pin anywhere and drags are not held to the screening radius. */
+  freePlacement?: boolean;
 }
 
 type MapsError = 'missing' | 'rejected' | 'failed';
@@ -182,6 +184,7 @@ export default function SiteMap({
   siteData,
   siteDataLoading = false,
   maxDistanceKm = 2.0,
+  freePlacement = false,
 }: SiteMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -205,9 +208,9 @@ export default function SiteMap({
   const distanceFromOrigin = distanceKm(initialCenter, currentPosition);
 
   // Latest props for the marker's dragend handler and the clamp, which must not re-bind on every render
-  const latestRef = useRef({ initialCenter, maxDistanceKm, capacityMw, onPositionChange, onPositionClamped });
+  const latestRef = useRef({ initialCenter, maxDistanceKm, capacityMw, onPositionChange, onPositionClamped, freePlacement });
   useEffect(() => {
-    latestRef.current = { initialCenter, maxDistanceKm, capacityMw, onPositionChange, onPositionClamped };
+    latestRef.current = { initialCenter, maxDistanceKm, capacityMw, onPositionChange, onPositionClamped, freePlacement };
   });
 
   // Initialize Map
@@ -235,7 +238,14 @@ export default function SiteMap({
           clickableIcons: false,
         });
         const infoWindow = new google.maps.InfoWindow();
-        map.addListener('click', () => infoWindow.close());
+        map.addListener('click', (e: google.maps.MapMouseEvent) => {
+          infoWindow.close();
+          // With no run holding the site, a click drops the pin there
+          if (!latestRef.current.freePlacement || !e.latLng) return;
+          const pos: [number, number] = [e.latLng.lng(), e.latLng.lat()];
+          if (pinMarkerRef.current) pinMarkerRef.current.position = toLatLng(pos);
+          latestRef.current.onPositionChange(pos);
+        });
         infoWindowRef.current = infoWindow;
         mapRef.current = map;
         setMapLoaded(true);
@@ -287,9 +297,7 @@ export default function SiteMap({
           <div class="absolute -bottom-6 bg-zinc-950 text-white font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap border border-zinc-800 pointer-events-none">
             BESS Point
           </div>
-          <div data-drag-hint class="absolute bottom-full mb-3 bg-zinc-950 text-white text-[10px] font-medium px-2 py-1 rounded shadow-lg whitespace-nowrap pointer-events-none opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-hover:delay-500 group-active:opacity-0 group-active:delay-0">
-            Drag to move within ${latestRef.current.maxDistanceKm} km
-          </div>
+          <div data-drag-hint class="absolute bottom-full mb-3 bg-zinc-950 text-white text-[10px] font-medium px-2 py-1 rounded shadow-lg whitespace-nowrap pointer-events-none opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-hover:delay-500 group-active:opacity-0 group-active:delay-0"></div>
         </div>
       `;
 
@@ -324,7 +332,7 @@ export default function SiteMap({
         const rawPos: [number, number] = p instanceof google.maps.LatLng ? [p.lng(), p.lat()] : [p.lng, p.lat];
         const latest = latestRef.current;
         const limit = Math.max(0, latest.maxDistanceKm - footprintHalfDiagonalKm(latest.capacityMw));
-        const clamped = clampPositionWithinDistance(latest.initialCenter, rawPos, limit);
+        const clamped = latest.freePlacement ? rawPos : clampPositionWithinDistance(latest.initialCenter, rawPos, limit);
         marker.position = toLatLng(clamped);
         // The user has found the drag, so the hover hint has done its job
         el.querySelector('[data-drag-hint]')?.remove();
@@ -337,12 +345,23 @@ export default function SiteMap({
     }
   }, [mapLoaded, currentPosition]);
 
+  // The hover hint says what a drag can do now
+  useEffect(() => {
+    const hint = (pinMarkerRef.current?.content as HTMLElement | null)?.querySelector('[data-drag-hint]');
+    if (hint) {
+      hint.textContent = freePlacement
+        ? 'Drag, or click the map, to place the site'
+        : `Drag to move within ${maxDistanceKm} km`;
+    }
+  }, [mapLoaded, freePlacement, maxDistanceKm]);
+
   // Keep the whole Reserved Compound inside the screening radius after a capacity or centre change, not just on drag
   useEffect(() => {
+    if (freePlacement) return;
     const limit = Math.max(0, maxDistanceKm - footprintHalfDiagonalKm(capacityMw));
     if (distanceKm(initialCenter, currentPosition) <= limit + 0.001) return;
     latestRef.current.onPositionClamped?.(clampPositionWithinDistance(initialCenter, currentPosition, limit));
-  }, [currentPosition, capacityMw, initialCenter, maxDistanceKm]);
+  }, [currentPosition, capacityMw, initialCenter, maxDistanceKm, freePlacement]);
 
   // Reserved Compound: outlined square plus a diagonal-stripe hatch over the same bounds
   useEffect(() => {
@@ -424,6 +443,12 @@ export default function SiteMap({
       });
     }
   }, [mapLoaded, initialCenter, maxDistanceKm]);
+
+  // The screening radius only means something around a run's site
+  useEffect(() => {
+    radiusMaskRef.current?.setVisible(!freePlacement);
+    radiusLineRef.current?.setVisible(!freePlacement);
+  }, [mapLoaded, initialCenter, freePlacement]);
 
   // Render estimated substation markers (live site data draws the real ones below)
   useEffect(() => {
@@ -746,9 +771,11 @@ export default function SiteMap({
           <span className="font-mono text-foreground font-semibold">
             {currentPosition[1].toFixed(5)}°N, {Math.abs(currentPosition[0]).toFixed(5)}°{currentPosition[0] >= 0 ? 'E' : 'W'}
           </span>
-          <span className="text-muted-foreground text-[11px] font-mono border-l border-border pl-2">
-            +{distanceFromOrigin.toFixed(2)} km offset
-          </span>
+          {!freePlacement && (
+            <span className="text-muted-foreground text-[11px] font-mono border-l border-border pl-2">
+              +{distanceFromOrigin.toFixed(2)} km offset
+            </span>
+          )}
         </div>
 
         {substations.length > 0 && (

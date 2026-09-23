@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import KeyPanel from '../KeyPanel';
 import FirstLoadModal from '../FirstLoadModal';
 import AppHeader from './AppHeader';
@@ -11,8 +11,7 @@ import { LogOut, Search, Settings } from 'lucide-react';
 import { AssessmentRequest, SiteData } from '../../lib/types';
 import { ApiError, KeyStatus, checkCapacity, getKeyStatus, getSiteData, startRun } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
-import { distanceKm } from '../../lib/footprint';
-import { geocodePostcode, nearestPostcode } from '../../lib/geocode';
+import { geocodePostcode } from '../../lib/geocode';
 import { CapacityChecker, DEFAULT_CENTER, useSiteRun } from '../../lib/useSiteRun';
 
 const checkLiveCapacity: CapacityChecker = (pos, flexible) => checkCapacity(pos, flexible).catch(() => null);
@@ -57,8 +56,10 @@ export default function LiveWorkspace({ onViewDemo, welcomeDismissed, onDismissW
   const user = auth.user;
   const run = useSiteRun(checkLiveCapacity);
   const { siteData, siteDataLoading } = useSiteData(run.currentPosition);
+  // Empty text means the pin is the site; placing the pin clears the text
   const [postcode, setPostcode] = useState('SE1 7PB');
-  const lastRunPostcodeRef = useRef<string | null>(null);
+  // No run holds the site: the pin can go anywhere
+  const freePlacement = !run.starting && !['running', 'awaiting_confirmation'].includes(run.runStatus?.status ?? '');
 
   // Google key (BYOK), for the signed-in user only. Local mode (no Firebase config) has no key UI.
   const [keyStatus, setKeyStatus] = useState<KeyStatus | null>(null);
@@ -79,31 +80,19 @@ export default function LiveWorkspace({ onViewDemo, welcomeDismissed, onDismissW
   const handleStartRun = async (flexibleOverride?: boolean) => {
     const input = postcode.trim();
     const isUrl = /^https?:\/\//.test(input);
-    let target = isUrl ? 'SE1 7PB' : input;
     const flexible = flexibleOverride ?? run.flexibleConnection;
+    const [lon, lat] = run.currentPosition;
 
     run.setStarting(true);
-    // Pin dragged away from the last assessed postcode (and the postcode text untouched): assess where the pin is.
-    // A run starts from a postcode, so use the nearest one and keep the pin where the user put it.
-    let pin: [number, number] | undefined;
-    const pinMoved = distanceKm(run.initialCenter, run.currentPosition) > 0.05;
-    if (!isUrl && pinMoved && postcode === lastRunPostcodeRef.current) {
-      const nearest = await nearestPostcode(run.currentPosition);
-      if (nearest) {
-        target = nearest;
-        setPostcode(nearest);
-        pin = run.currentPosition;
-      }
-    }
-    lastRunPostcodeRef.current = target;
-
-    const center = (!isUrl && (await geocodePostcode(target))) || run.currentPosition;
-    run.begin(center, pin);
+    const center = (input && !isUrl && (await geocodePostcode(input))) || run.currentPosition;
+    run.begin(center);
 
     try {
-      const payload: AssessmentRequest = isUrl
-        ? { link: input, property_url: input, flexible_connection: flexible }
-        : { postcode: target, flexible_connection: flexible };
+      const payload: AssessmentRequest = !input
+        ? { position: { lat, lon }, flexible_connection: flexible }
+        : isUrl
+          ? { link: input, property_url: input, flexible_connection: flexible }
+          : { postcode: input, flexible_connection: flexible };
       const res = await startRun(payload);
       run.track(res.run_id);
     } catch (err) {
@@ -125,7 +114,6 @@ export default function LiveWorkspace({ onViewDemo, welcomeDismissed, onDismissW
   const handleReset = () => {
     run.reset();
     setPostcode('');
-    lastRunPostcodeRef.current = null;
   };
 
   return (
@@ -194,13 +182,13 @@ export default function LiveWorkspace({ onViewDemo, welcomeDismissed, onDismissW
                 value={postcode}
                 onChange={setPostcode}
                 onSubmit={() => void handleStartRun()}
-                placeholder="Enter UK Postcode (e.g. SE1 7PB) or Property URL"
+                placeholder={`Pin at ${run.currentPosition[1].toFixed(5)}, ${run.currentPosition[0].toFixed(5)}. Or enter a UK postcode or property URL`}
                 disabled={run.starting}
               />
               <Button
                 type="button"
                 onClick={() => void handleStartRun()}
-                disabled={run.starting || !postcode.trim()}
+                disabled={run.starting}
                 className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 h-11 rounded-xl gap-2 shadow-xs cursor-pointer text-sm"
               >
                 <Search className="w-4 h-4 stroke-[2.5]" />
@@ -210,6 +198,8 @@ export default function LiveWorkspace({ onViewDemo, welcomeDismissed, onDismissW
           }
           siteData={siteData}
           siteDataLoading={siteDataLoading}
+          freePlacement={freePlacement}
+          onPinPlaced={() => setPostcode('')}
         />
       </main>
     </div>

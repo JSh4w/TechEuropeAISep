@@ -87,7 +87,7 @@ def test_start_run_validation(client: TestClient) -> None:
     res = client.post("/runs", json={"battery_mw": 10.0})
     assert res.status_code == 422
     errors = res.json()["detail"]
-    assert any("Either property_url or postcode must be provided" in str(e) for e in errors)
+    assert any("One of property_url, postcode or position must be provided" in str(e) for e in errors)
 
 
 def test_temporal_unavailable_returns_503(client: TestClient) -> None:

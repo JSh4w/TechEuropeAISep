@@ -31,11 +31,30 @@ class EncryptedCredentials(BaseModel):
     google_ct: str
 
 
+class Position(BaseModel):
+    """Geographic coordinates in WGS84."""
+
+    lat: float
+    lon: float
+
+    @model_validator(mode="before")
+    @classmethod
+    def parse_coords(cls, data: Any) -> Any:  # ruff: ignore[any-type]
+        """Accept [lon, lat] pairs or dicts with lng instead of lon."""
+        coord_pair_len = 2
+        if isinstance(data, (list, tuple)) and len(data) == coord_pair_len:
+            return {"lon": float(data[0]), "lat": float(data[1])}
+        if isinstance(data, dict) and "lng" in data and "lon" not in data:
+            return {**data, "lon": data["lng"]}
+        return data
+
+
 class AssessmentRequest(BaseModel):
     """User request to assess a site for BESS development."""
 
     property_url: HttpUrl | None = None
     postcode: str | None = None
+    position: Position | None = None  # a pin on the map: the exact site, no postcode needed
     battery_mw: float | None = None
     budget_gbp: float | None = None
     flexible_connection: bool = False
@@ -58,29 +77,11 @@ class AssessmentRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_site_provided(self) -> AssessmentRequest:
-        """Ensure either a property URL or UK postcode is supplied."""
-        if self.property_url is None and not self.postcode:
-            msg = "Either property_url or postcode must be provided"
+        """Ensure a property URL, UK postcode or map position is supplied."""
+        if self.property_url is None and not self.postcode and self.position is None:
+            msg = "One of property_url, postcode or position must be provided"
             raise ValueError(msg)
         return self
-
-
-class Position(BaseModel):
-    """Geographic coordinates in WGS84."""
-
-    lat: float
-    lon: float
-
-    @model_validator(mode="before")
-    @classmethod
-    def parse_coords(cls, data: Any) -> Any:  # ruff: ignore[any-type]
-        """Accept [lon, lat] pairs or dicts with lng instead of lon."""
-        coord_pair_len = 2
-        if isinstance(data, (list, tuple)) and len(data) == coord_pair_len:
-            return {"lon": float(data[0]), "lat": float(data[1])}
-        if isinstance(data, dict) and "lng" in data and "lon" not in data:
-            return {**data, "lon": data["lng"]}
-        return data
 
 
 class Artifact(BaseModel):

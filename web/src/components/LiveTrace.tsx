@@ -123,7 +123,7 @@ export default function LiveTrace({
             <div className="text-muted-foreground text-center py-16 font-sans text-xs flex flex-col items-center gap-2">
               <Activity className="w-6 h-6 text-muted-foreground/40 animate-pulse" />
               <span>Awaiting pipeline execution events...</span>
-              <span className="text-[10px] text-muted-foreground/70">Enter a UK postcode or click a demo site above</span>
+              <span className="text-[10px] text-muted-foreground/70">Enter a UK postcode or place the pin on the map</span>
             </div>
           ) : (
             events.map((ev) => {
