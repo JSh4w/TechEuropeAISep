@@ -44,7 +44,7 @@ export default function SignedOutLanding({ onSignIn, onViewDemo, signingIn, erro
           >
             Google AI Studio key
           </a>{' '}
-          is required to use Gemini 3.8 Flash.You add it after you sign in.
+          is required to use Gemini 3.8 Flash. You add it after you sign in.
         </p>
         <div className="flex flex-col gap-2">
           <Button
