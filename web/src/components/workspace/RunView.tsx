@@ -8,6 +8,7 @@ import ReportView from '../ReportView';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Compass, Sparkles } from 'lucide-react';
 import type { SiteRun } from '../../lib/useSiteRun';
+import type { SiteData } from '../../lib/types';
 
 interface RunViewProps {
   run: SiteRun;
@@ -19,7 +20,7 @@ interface RunViewProps {
   errorAction?: React.ReactNode;
   /** Location input (and anything with it); sits above the map so the trace column starts at the top. */
   locationBar?: React.ReactNode;
-  siteData?: unknown;
+  siteData?: SiteData | null;
   siteDataLoading?: boolean;
 }
 

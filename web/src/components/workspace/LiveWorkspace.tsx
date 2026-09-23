@@ -8,7 +8,7 @@ import PostcodeInput from './PostcodeInput';
 import RunView from './RunView';
 import { Button } from '@/components/ui/button';
 import { LogOut, Search, Settings } from 'lucide-react';
-import { AssessmentRequest } from '../../lib/types';
+import { AssessmentRequest, SiteData } from '../../lib/types';
 import { ApiError, KeyStatus, checkCapacity, getKeyStatus, getSiteData, startRun } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { distanceKm } from '../../lib/footprint';
@@ -19,7 +19,7 @@ const checkLiveCapacity: CapacityChecker = (pos, flexible) => checkCapacity(pos,
 
 /** Real data for wherever the pin is: coordinate -> location.collate -> LocationData. */
 function useSiteData([lon, lat]: [number, number]) {
-  const [siteData, setSiteData] = useState<unknown>(null);
+  const [siteData, setSiteData] = useState<SiteData | null>(null);
   const [siteDataLoading, setSiteDataLoading] = useState(false);
 
   useEffect(() => {

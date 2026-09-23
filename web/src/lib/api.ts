@@ -2,8 +2,11 @@ import {
   AssessmentRequest,
   AssessmentResult,
   CapacityOutput,
+  RawSubstationOption,
   RunStatus,
+  SiteData,
   SiteDecision,
+  SubstationOption,
   TraceEvent,
 } from './types';
 
@@ -321,7 +324,7 @@ export async function testKey(googleKey?: string): Promise<KeyTestResult> {
 }
 
 // LocationData for a coordinate: title boundary, substations with headroom, nearby projects, overhead lines.
-export async function getSiteData(lat: number, lon: number): Promise<any> {
+export async function getSiteData(lat: number, lon: number): Promise<SiteData | null> {
   const res = await apiFetch(`/site-data?lat=${lat}&lon=${lon}`);
   if (!res.ok) {
     return null;
@@ -329,18 +332,23 @@ export async function getSiteData(lat: number, lon: number): Promise<any> {
   return res.json();
 }
 
+type RawCapacityOutput = Omit<CapacityOutput, 'alternates'> & { alternates?: RawSubstationOption[] };
+
 // The backend names things slightly differently from the UI types: map them once here.
-function normalizeCapacity(cap: any): any {
+function normalizeCapacity(cap: RawCapacityOutput): CapacityOutput {
   if (!cap) return cap;
   return {
     ...cap,
     serving_substation: cap.serving_substation ?? cap.substation,
     voltage_kv: cap.voltage_kv ?? cap.connection_voltage_kv,
-    alternates: (cap.alternates ?? []).map((a: any) => ({
-      ...a,
-      name: a.name ?? a.substation,
-      effective_headroom_mw: a.effective_headroom_mw ?? a.size_mw,
-      is_marginal: a.is_marginal ?? a.marginal,
-    })),
+    alternates: (cap.alternates ?? []).map(
+      (a) =>
+        ({
+          ...a,
+          name: a.name ?? a.substation,
+          effective_headroom_mw: a.effective_headroom_mw ?? a.size_mw,
+          is_marginal: a.is_marginal ?? a.marginal,
+        }) as SubstationOption
+    ),
   };
 }
