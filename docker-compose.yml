@@ -1,10 +1,9 @@
 services:
   temporal:
-    image: temporalio/auto-setup:latest
+    image: temporalio/admin-tools:latest
     container_name: bessible-temporal
-    environment:
-      - DB=sqlite
-      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+    user: root
+    command: ["temporal", "server", "start-dev", "--ip", "0.0.0.0", "--db-filename", "/etc/temporal/schema/temporal.db"]
     volumes:
       - temporal-data:/etc/temporal/schema
     networks:
@@ -36,6 +35,8 @@ services:
         required: false
     volumes:
       - bessible-data:/var/lib/bessible
+      # The worker writes trace events to out/<run_id>/events.jsonl; the API streams them over SSE.
+      - bessible-out:/app/out
     networks:
       - bessible-internal
       - proxy
@@ -89,6 +90,8 @@ services:
         required: false
     volumes:
       - bessible-data:/var/lib/bessible
+      # The worker writes trace events to out/<run_id>/events.jsonl; the API streams them over SSE.
+      - bessible-out:/app/out
     networks:
       - bessible-internal
     depends_on:
@@ -139,6 +142,7 @@ services:
 volumes:
   temporal-data:
   bessible-data:
+  bessible-out:
 
 networks:
   bessible-internal:
