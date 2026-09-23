@@ -235,7 +235,7 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
       <div className="px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-950 dark:text-amber-200 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
-          <span><strong>Screening Estimate:</strong> Feasibility figures are derived from open distribution snapshots (UKPN/LTDS/INSPIRE) and do not substitute a formal DNO Connection Offer.</span>
+          <span><strong>Screening Estimate:</strong> Feasibility figures are derived from open data (UKPN capacity heatmap and LTDS queue tables, DESNZ REPD) and Modo/BNEF cost and revenue benchmarks, and do not substitute a formal DNO Connection Offer.</span>
         </div>
         <span className="text-[10px] font-mono text-amber-700 dark:text-amber-300 whitespace-nowrap hidden sm:inline">Model v1.2</span>
       </div>
