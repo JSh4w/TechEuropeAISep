@@ -191,7 +191,7 @@ export default function DemoWorkspace({ preview, onExit, onSignIn, signingIn }: 
                   value={postcode}
                   onChange={setPostcode}
                   onSubmit={() => startSite(postcode.trim())}
-                  placeholder="Enter UK Postcode (e.g. RH4 1AD, CB24 9ZR)"
+                  placeholder="Enter UK Postcode (e.g. CB24 9ZR, RH4 1AD)"
                   disabled={run.starting}
                 />
                 <div className="relative min-w-[280px]">
