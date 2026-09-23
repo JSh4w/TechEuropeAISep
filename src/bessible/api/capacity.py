@@ -49,4 +49,4 @@ async def check_capacity(req: CapacityCheckRequest) -> CapacityOutput:
     out = propose(req.position, snapshot, run_id="check", flexible=req.flexible, requested_mw=mw)
     if out.out_of_area:
         out = await propose_live(req.position, "check", fallback=out)
-    return await with_cable_route(req.position, out, "check")
+    return with_cable_route(req.position, out, "check")

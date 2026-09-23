@@ -27,11 +27,12 @@ async def financial_model(inp: FinancialInput) -> FinancialOutput:
     """Evaluate financial returns across 2-hour, 4-hour, and 8-hour duration cases in plain code."""
     await asyncio.sleep(0)
     mw = inp.site.capacity_mw
-    # The cable is priced on the route (by road when found); without one, on the straight line as before
+    # The cable is priced on the route (straight line x detour factor); without one, on the straight line as before
     route = inp.capacity.route
     straight = inp.capacity.distance_km
     if route is not None and route.distance_km > 0:
-        distance_km, distance_basis = route.distance_km, "by road" if route.method == "road" else "straight line"
+        distance_km = route.distance_km
+        distance_basis = f"{route.straight_km:g} km straight line x{route.detour_factor:g} detour"
     else:
         distance_km = straight if (straight is not None and straight > 0) else 1.0
         distance_basis = "straight line" if straight else "assumed"

@@ -839,6 +839,6 @@ async def propose_capacity(inp: CapacityInput) -> CapacityOutput:
         out = await verify_live(
             inp.location.position, snapshot, out, inp.run_id, flexible=flexible, requested_mw=requested_mw
         )
-    out = await with_cable_route(inp.location.position, out, inp.run_id)
+    out = with_cable_route(inp.location.position, out, inp.run_id)
     await asyncio.to_thread(_append_check_log, inp, out)
     return out

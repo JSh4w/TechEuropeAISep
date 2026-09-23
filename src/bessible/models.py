@@ -140,11 +140,12 @@ class AlternateOption(BaseModel):
 
 
 class CableRoute(BaseModel):
-    """Cable from the site to the serving substation: by road when a route was found, else a straight line."""
+    """Cable from the site to the serving substation: the straight line, priced with a detour factor."""
 
-    distance_km: float
-    path: list[Position]  # site first, substation last
-    method: Literal["road", "straight_line"]
+    distance_km: float  # priced length: straight_km x detour_factor
+    straight_km: float
+    detour_factor: float
+    path: list[Position]  # site, substation
 
 
 class CapacityOutput(BaseModel):

@@ -8,7 +8,7 @@ Bessible assesses real estate properties for Battery Energy Storage Systems (BES
 
 - **Multi-Modal Screening:** Click directly on the Google Map to drop a pin (no postcode required), enter any UK postcode, or paste a commercial property listing link.
 - **5 UK Distribution Network Operators (DNOs):** Live grid headroom checks across UK Power Networks (UKPN), National Grid Electricity Distribution (NGED), Scottish and Southern Electricity Networks (SSEN), SP Energy Networks (SPEN), and Northern Powergrid (NPg), with connection-voltage-level caps (11 kV, 33 kV, 132 kV) and clean out-of-area handling.
-- **Road Cable Routing:** Real road-following cable route calculation from site title boundaries to serving substations via Google Routes API, pricing civil engineering and cabling on real route distance.
+- **Cable Run Pricing:** The map draws the straight line from the site to the serving substation; the cable is priced on that line times a detour factor (`cable_detour_factor` in `data/assumptions/finance.json`, default 1.5x).
 - **Interactive Google Maps:** Vector map with a 2 km screening radius dimming mask, draggable Reserved Compound overlay, and statutory designation boundaries.
 - **Realistic Financial Modeling:** Evaluates 1-hour, 2-hour, and 4-hour battery durations with capex breakdown (batteries, BoP, road cabling, DNO connection), revenue stacking (wholesale arbitrage, frequency response, capacity market) calibrated against Modo Energy and BNEF benchmarks, NPV, IRR, and payback calculations.
 - **Durable Orchestration (Temporal):** Resilient multi-stage pipeline with live SSE agent telemetry, automatic activity retries, and early stop for non-viable or out-of-area sites.
@@ -127,7 +127,6 @@ The web UI is a Next.js 16 application featuring an interactive Google Maps site
 - **Node.js 20+** (`node -v` >= 20.9)
 - **FastAPI backend** running on `http://localhost:8000`
 - **`GOOGLE_MAPS_API_KEY`** in the root `.env` (a browser key for the Maps JavaScript API; without it the map displays a "Map unavailable" fallback). `GOOGLE_MAPS_MAP_ID` is optional for vector map styling.
-- **`GOOGLE_ROUTES_API_KEY`** in the root `.env` (a server key for road cable routing; without it cable runs fall back to straight lines).
 
 ### 2. Install Dependencies
 
