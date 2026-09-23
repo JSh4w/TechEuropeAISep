@@ -136,7 +136,7 @@ export default function RunView({
       </div>
 
       {/* Right col: live agent trace, level with the location bar */}
-      <div className="lg:col-span-1">
+      <div className="lg:col-span-1 min-w-0">
         <LiveTrace events={run.events} isConnected={run.isStreaming} status={runStatus?.status || 'idle'} runId={run.runId} />
       </div>
     </div>
