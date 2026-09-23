@@ -4,6 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export PATH="$PATH:$HOME/.temporalio/bin"
+export PYTHONUNBUFFERED=1
 
 WEB_DIR=web
 WEB_PORT="${WEB_PORT:-3000}"
@@ -17,7 +18,9 @@ stop_all() {
   trap - INT TERM EXIT
   echo
   echo "==> Stopping"
-  for pid in $PIDS; do kill -TERM -- "-$pid" 2>/dev/null || true; done
+  for pid in $PIDS; do
+    kill -TERM -- "-$pid" 2>/dev/null || kill -TERM "$pid" 2>/dev/null || true
+  done
   wait 2>/dev/null || true
 }
 trap stop_all INT TERM EXIT
@@ -43,6 +46,7 @@ else
 fi
 
 # 2. Worker
+pkill -f "bessible.worker" 2>/dev/null || true
 echo "==> Starting worker"
 uv run python -m bessible.worker >"$LOGS/worker.log" 2>&1 &
 PIDS="$PIDS $!"

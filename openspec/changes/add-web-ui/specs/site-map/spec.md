@@ -37,11 +37,15 @@ The map page SHALL show a slider that resizes the footprint and shows the capaci
 - **THEN** the slider runs from 5 to 14 MW and shows curtailment above 9 MW
 
 ### Requirement: Flexible connection toggle
-The page SHALL show a flexible-connection toggle that is off by default. Its state SHALL be sent with the decision and held in the run state, not only in the browser. When no capacity is viable with the toggle off, the page SHALL offer the toggle as the next step.
+The page SHALL show a flexible-connection toggle that is off by default. Its state SHALL be sent with the decision and held in the run state, not only in the browser. When no capacity is viable with the toggle off, the page SHALL offer the toggle as the next step. The page SHALL hide the toggle when the ceiling is not above the firm capacity, because the toggle would then change nothing.
 
 #### Scenario: Default off
 - **WHEN** the page loads
 - **THEN** the toggle is off
+
+#### Scenario: No flexible headroom
+- **WHEN** the ceiling equals the firm capacity, as with live data from operators that publish only firm headroom
+- **THEN** the page does not show the toggle
 
 #### Scenario: Empty firm view
 - **WHEN** the run ended not viable with a message about flexible connection
