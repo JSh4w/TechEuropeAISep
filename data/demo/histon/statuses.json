@@ -24,8 +24,8 @@
       "capacity": null,
       "boundary": null,
       "position": {
-        "lat": 51.232882,
-        "lon": -0.330207
+        "lat": 52.244997,
+        "lon": 0.108173
       },
       "message": null
     }
@@ -40,212 +40,170 @@
         "viable": true,
         "message": null,
         "out_of_area": false,
-        "substation": "Dorking Town 11kV",
-        "connection_voltage_kv": 11.0,
-        "firm_mw": 8.0,
-        "ceiling_mw": 8.0,
-        "recommended_mw": 8.0,
-        "binding_direction": "import",
+        "substation": "Histon Grid 33kV",
+        "connection_voltage_kv": 33.0,
+        "firm_mw": 37.7,
+        "ceiling_mw": 50.0,
+        "recommended_mw": 37.7,
+        "binding_direction": "export",
         "binding_season": null,
-        "distance_km": 0.58,
+        "distance_km": 0.22,
         "substation_position": {
-          "lat": 51.23362991074961,
-          "lon": -0.3385015987376072
+          "lat": 52.24319473076745,
+          "lon": 0.1068681484881494
         },
         "route": {
-          "distance_km": 1.88,
+          "distance_km": 0.9,
           "path": [
             {
-              "lat": 51.232882,
-              "lon": -0.330207
+              "lat": 52.244997,
+              "lon": 0.108173
             },
             {
-              "lat": 51.233008,
-              "lon": -0.330376
+              "lat": 52.244871,
+              "lon": 0.108049
             },
             {
-              "lat": 51.23311,
-              "lon": -0.33012
+              "lat": 52.24478,
+              "lon": 0.10795
             },
             {
-              "lat": 51.23284,
-              "lon": -0.3298
+              "lat": 52.24466,
+              "lon": 0.10821
             },
             {
-              "lat": 51.23206,
-              "lon": -0.33155
+              "lat": 52.2443,
+              "lon": 0.10868
             },
             {
-              "lat": 51.23176,
-              "lon": -0.33215
+              "lat": 52.24422,
+              "lon": 0.10892
             },
             {
-              "lat": 51.23165,
-              "lon": -0.33244
+              "lat": 52.24418,
+              "lon": 0.10919
             },
             {
-              "lat": 51.2316,
-              "lon": -0.33263
+              "lat": 52.24419,
+              "lon": 0.10941
             },
             {
-              "lat": 51.23144,
-              "lon": -0.3331
+              "lat": 52.24431,
+              "lon": 0.11006
             },
             {
-              "lat": 51.23113,
-              "lon": -0.33351
+              "lat": 52.24309,
+              "lon": 0.11061
             },
             {
-              "lat": 51.23076,
-              "lon": -0.33416
+              "lat": 52.24289,
+              "lon": 0.11065
             },
             {
-              "lat": 51.23056,
-              "lon": -0.33444
+              "lat": 52.24214,
+              "lon": 0.11067
             },
             {
-              "lat": 51.23037,
-              "lon": -0.33454
+              "lat": 52.2413,
+              "lon": 0.11059
             },
             {
-              "lat": 51.22952,
-              "lon": -0.3346
+              "lat": 52.24132,
+              "lon": 0.11043
             },
             {
-              "lat": 51.22891,
-              "lon": -0.33458
+              "lat": 52.24143,
+              "lon": 0.11027
             },
             {
-              "lat": 51.22796,
-              "lon": -0.33475
+              "lat": 52.24158,
+              "lon": 0.10989
             },
             {
-              "lat": 51.22773,
-              "lon": -0.33487
+              "lat": 52.2416,
+              "lon": 0.10974
             },
             {
-              "lat": 51.22756,
-              "lon": -0.33502
+              "lat": 52.242,
+              "lon": 0.1089
             },
             {
-              "lat": 51.22727,
-              "lon": -0.33538
+              "lat": 52.24222,
+              "lon": 0.10862
             },
             {
-              "lat": 51.2271,
-              "lon": -0.33566
+              "lat": 52.24304,
+              "lon": 0.10772
             },
             {
-              "lat": 51.22705,
-              "lon": -0.33587
+              "lat": 52.24313,
+              "lon": 0.1076
             },
             {
-              "lat": 51.22703,
-              "lon": -0.33606
+              "lat": 52.24311,
+              "lon": 0.10753
             },
             {
-              "lat": 51.22705,
-              "lon": -0.33626
+              "lat": 52.24313,
+              "lon": 0.1073
             },
             {
-              "lat": 51.22722,
-              "lon": -0.33641
+              "lat": 52.2431,
+              "lon": 0.10705
             },
             {
-              "lat": 51.22751,
-              "lon": -0.3366
+              "lat": 52.24307,
+              "lon": 0.10699
             },
             {
-              "lat": 51.22793,
-              "lon": -0.33677
-            },
-            {
-              "lat": 51.22877,
-              "lon": -0.33698
-            },
-            {
-              "lat": 51.22917,
-              "lon": -0.33717
-            },
-            {
-              "lat": 51.22953,
-              "lon": -0.33738
-            },
-            {
-              "lat": 51.23041,
-              "lon": -0.33771
-            },
-            {
-              "lat": 51.23121,
-              "lon": -0.33814
-            },
-            {
-              "lat": 51.23141,
-              "lon": -0.33817
-            },
-            {
-              "lat": 51.2317,
-              "lon": -0.3381
-            },
-            {
-              "lat": 51.23169,
-              "lon": -0.33783
-            },
-            {
-              "lat": 51.23177,
-              "lon": -0.33709
-            },
-            {
-              "lat": 51.23208,
-              "lon": -0.3369
-            },
-            {
-              "lat": 51.2325,
-              "lon": -0.3368
-            },
-            {
-              "lat": 51.23285,
-              "lon": -0.3367
-            },
-            {
-              "lat": 51.2334,
-              "lon": -0.33669
-            },
-            {
-              "lat": 51.23341,
-              "lon": -0.33847
-            },
-            {
-              "lat": 51.23362991074961,
-              "lon": -0.3385015987376072
+              "lat": 52.24319473076745,
+              "lon": 0.1068681484881494
             }
           ],
           "method": "road"
         },
         "alternates": [
           {
-            "substation": "Betchworth 11kV",
-            "distance_km": 4.69,
-            "size_mw": 2.2,
+            "substation": "Histon Primary 11kV",
+            "distance_km": 0.22,
+            "size_mw": 8.0,
+            "marginal": false
+          },
+          {
+            "substation": "Arbury Grid 33kV",
+            "distance_km": 1.93,
+            "size_mw": 35.1,
+            "marginal": true
+          },
+          {
+            "substation": "Arbury Grid 11kV",
+            "distance_km": 1.9,
+            "size_mw": 8.0,
+            "marginal": true
+          },
+          {
+            "substation": "Storeys Way Primary 11kV",
+            "distance_km": 3.52,
+            "size_mw": 5.0,
             "marginal": true
           }
         ],
         "tia_threshold_mw": 1,
         "snapshot_date": "2026-09-22",
         "competition": {
-          "offers_not_accepted_mw": 2.6,
-          "budget_estimates_mw": 0.0,
+          "offers_not_accepted_mw": 0.0,
+          "budget_estimates_mw": 164.8,
           "enquiries_mw": 0.0,
-          "weighted_mw": 1.3,
-          "pressure": "low"
+          "weighted_mw": 41.2,
+          "pressure": "high"
         },
-        "export_ceiling_mw": 60.0,
-        "gsp": "West Weybridge",
+        "export_ceiling_mw": 180.0,
+        "gsp": "Eaton Socon",
         "artifacts": [
           {
             "id": "capacity-substation-bessible",
             "stage": "capacity",
-            "claim": "Predicted point of connection: Dorking Town 11kV (11 kV), 0.58 km away. Nearest primary substation by distance (distribution-area polygons not in the snapshot) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+            "claim": "Predicted point of connection: Histon Grid 33kV (33 kV), 0.22 km away. Nearest primary substation by distance (distribution-area polygons not in the snapshot) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -255,7 +213,7 @@
           {
             "id": "capacity-headroom-bessible",
             "stage": "capacity",
-            "claim": "Effective headroom at Dorking Town 11kV: import 14.7 MW, export 30.9 MW (available capacity minus accepted offers; export adds reverse power flow when minimum demand is negative) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+            "claim": "Effective headroom at Histon Grid 33kV: import 57.9 MW, export 37.7 MW (available capacity minus accepted offers; export adds reverse power flow when minimum demand is negative) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -265,7 +223,7 @@
           {
             "id": "capacity-range-bessible",
             "stage": "capacity",
-            "claim": "Firm 8.0 MW, ceiling 8.0 MW, limited by import; 11 kV caps size at 8 MW. Ceiling = lower of import-side formula and Table 2a export ceiling (60 MW). No seasonal split in this dataset [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+            "claim": "Firm 37.7 MW, ceiling 50.0 MW, limited by export; 33 kV caps size at 50 MW. Ceiling = lower of import-side formula and Table 2a export ceiling (180 MW). No seasonal split in this dataset [ukpn-capacity-heatmap, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -275,7 +233,7 @@
           {
             "id": "capacity-context-bessible",
             "stage": "capacity",
-            "claim": "Context only, not used in the verdict: RAG demand GREEN, generation GREEN; parent GSP West Weybridge; TIA threshold 1 MW [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+            "claim": "Context only, not used in the verdict: RAG demand GREEN, generation GREEN; parent GSP Eaton Socon; TIA threshold 1 MW [ukpn-capacity-heatmap, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -285,7 +243,7 @@
           {
             "id": "capacity-competition-bessible",
             "stage": "capacity",
-            "claim": "Connection competition at Dorking Town 11kV: 2.6 MW offers not accepted, 0.0 MW budget estimates, 0.0 MW enquiries; weighted total 1.3 MW (pressure: low). Context only; not subtracted from effective headroom [ukpn-ltds-table-6-interest-connections, snapshot 2026-09-22]",
+            "claim": "Connection competition at Histon Grid 33kV: 0.0 MW offers not accepted, 164.8 MW budget estimates, 0.0 MW enquiries; weighted total 41.2 MW (pressure: high). Context only; not subtracted from effective headroom [ukpn-ltds-table-6-interest-connections, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-ltds-table-6-interest-connections/",
             "file_path": null,
             "image_path": null,
@@ -305,7 +263,7 @@
           {
             "id": "capacity-live-check-bessible",
             "stage": "capacity",
-            "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 2 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+            "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -315,7 +273,7 @@
           {
             "id": "capacity-cable-route-bessible",
             "stage": "capacity",
-            "claim": "Cable route to Dorking Town 11kV: 1.88 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.58 km. The DNO designs the actual route",
+            "claim": "Cable route to Histon Grid 33kV: 0.9 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.22 km. The DNO designs the actual route",
             "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
             "file_path": null,
             "image_path": null,
@@ -333,24 +291,24 @@
             "coordinates": [
               [
                 [
-                  -0.332207,
-                  51.230881999999994
+                  0.106173,
+                  52.242996999999995
                 ],
                 [
-                  -0.32820699999999997,
-                  51.230881999999994
+                  0.11017300000000001,
+                  52.242996999999995
                 ],
                 [
-                  -0.32820699999999997,
-                  51.234882
+                  0.11017300000000001,
+                  52.246997
                 ],
                 [
-                  -0.332207,
-                  51.234882
+                  0.106173,
+                  52.246997
                 ],
                 [
-                  -0.332207,
-                  51.230881999999994
+                  0.106173,
+                  52.242996999999995
                 ]
               ]
             ]
@@ -375,8 +333,8 @@
         ]
       },
       "position": {
-        "lat": 51.232882,
-        "lon": -0.330207
+        "lat": 52.244997,
+        "lon": 0.108173
       },
       "message": null
     }
@@ -396,212 +354,170 @@
         "viable": true,
         "message": null,
         "out_of_area": false,
-        "substation": "Dorking Town 11kV",
-        "connection_voltage_kv": 11.0,
-        "firm_mw": 8.0,
-        "ceiling_mw": 8.0,
-        "recommended_mw": 8.0,
-        "binding_direction": "import",
+        "substation": "Histon Grid 33kV",
+        "connection_voltage_kv": 33.0,
+        "firm_mw": 37.7,
+        "ceiling_mw": 50.0,
+        "recommended_mw": 37.7,
+        "binding_direction": "export",
         "binding_season": null,
-        "distance_km": 0.58,
+        "distance_km": 0.22,
         "substation_position": {
-          "lat": 51.23362991074961,
-          "lon": -0.3385015987376072
+          "lat": 52.24319473076745,
+          "lon": 0.1068681484881494
         },
         "route": {
-          "distance_km": 1.88,
+          "distance_km": 0.9,
           "path": [
             {
-              "lat": 51.232882,
-              "lon": -0.330207
+              "lat": 52.244997,
+              "lon": 0.108173
             },
             {
-              "lat": 51.233008,
-              "lon": -0.330376
+              "lat": 52.244871,
+              "lon": 0.108049
             },
             {
-              "lat": 51.23311,
-              "lon": -0.33012
+              "lat": 52.24478,
+              "lon": 0.10795
             },
             {
-              "lat": 51.23284,
-              "lon": -0.3298
+              "lat": 52.24466,
+              "lon": 0.10821
             },
             {
-              "lat": 51.23206,
-              "lon": -0.33155
+              "lat": 52.2443,
+              "lon": 0.10868
             },
             {
-              "lat": 51.23176,
-              "lon": -0.33215
+              "lat": 52.24422,
+              "lon": 0.10892
             },
             {
-              "lat": 51.23165,
-              "lon": -0.33244
+              "lat": 52.24418,
+              "lon": 0.10919
             },
             {
-              "lat": 51.2316,
-              "lon": -0.33263
+              "lat": 52.24419,
+              "lon": 0.10941
             },
             {
-              "lat": 51.23144,
-              "lon": -0.3331
+              "lat": 52.24431,
+              "lon": 0.11006
             },
             {
-              "lat": 51.23113,
-              "lon": -0.33351
+              "lat": 52.24309,
+              "lon": 0.11061
             },
             {
-              "lat": 51.23076,
-              "lon": -0.33416
+              "lat": 52.24289,
+              "lon": 0.11065
             },
             {
-              "lat": 51.23056,
-              "lon": -0.33444
+              "lat": 52.24214,
+              "lon": 0.11067
             },
             {
-              "lat": 51.23037,
-              "lon": -0.33454
+              "lat": 52.2413,
+              "lon": 0.11059
             },
             {
-              "lat": 51.22952,
-              "lon": -0.3346
+              "lat": 52.24132,
+              "lon": 0.11043
             },
             {
-              "lat": 51.22891,
-              "lon": -0.33458
+              "lat": 52.24143,
+              "lon": 0.11027
             },
             {
-              "lat": 51.22796,
-              "lon": -0.33475
+              "lat": 52.24158,
+              "lon": 0.10989
             },
             {
-              "lat": 51.22773,
-              "lon": -0.33487
+              "lat": 52.2416,
+              "lon": 0.10974
             },
             {
-              "lat": 51.22756,
-              "lon": -0.33502
+              "lat": 52.242,
+              "lon": 0.1089
             },
             {
-              "lat": 51.22727,
-              "lon": -0.33538
+              "lat": 52.24222,
+              "lon": 0.10862
             },
             {
-              "lat": 51.2271,
-              "lon": -0.33566
+              "lat": 52.24304,
+              "lon": 0.10772
             },
             {
-              "lat": 51.22705,
-              "lon": -0.33587
+              "lat": 52.24313,
+              "lon": 0.1076
             },
             {
-              "lat": 51.22703,
-              "lon": -0.33606
+              "lat": 52.24311,
+              "lon": 0.10753
             },
             {
-              "lat": 51.22705,
-              "lon": -0.33626
+              "lat": 52.24313,
+              "lon": 0.1073
             },
             {
-              "lat": 51.22722,
-              "lon": -0.33641
+              "lat": 52.2431,
+              "lon": 0.10705
             },
             {
-              "lat": 51.22751,
-              "lon": -0.3366
+              "lat": 52.24307,
+              "lon": 0.10699
             },
             {
-              "lat": 51.22793,
-              "lon": -0.33677
-            },
-            {
-              "lat": 51.22877,
-              "lon": -0.33698
-            },
-            {
-              "lat": 51.22917,
-              "lon": -0.33717
-            },
-            {
-              "lat": 51.22953,
-              "lon": -0.33738
-            },
-            {
-              "lat": 51.23041,
-              "lon": -0.33771
-            },
-            {
-              "lat": 51.23121,
-              "lon": -0.33814
-            },
-            {
-              "lat": 51.23141,
-              "lon": -0.33817
-            },
-            {
-              "lat": 51.2317,
-              "lon": -0.3381
-            },
-            {
-              "lat": 51.23169,
-              "lon": -0.33783
-            },
-            {
-              "lat": 51.23177,
-              "lon": -0.33709
-            },
-            {
-              "lat": 51.23208,
-              "lon": -0.3369
-            },
-            {
-              "lat": 51.2325,
-              "lon": -0.3368
-            },
-            {
-              "lat": 51.23285,
-              "lon": -0.3367
-            },
-            {
-              "lat": 51.2334,
-              "lon": -0.33669
-            },
-            {
-              "lat": 51.23341,
-              "lon": -0.33847
-            },
-            {
-              "lat": 51.23362991074961,
-              "lon": -0.3385015987376072
+              "lat": 52.24319473076745,
+              "lon": 0.1068681484881494
             }
           ],
           "method": "road"
         },
         "alternates": [
           {
-            "substation": "Betchworth 11kV",
-            "distance_km": 4.69,
-            "size_mw": 2.2,
+            "substation": "Histon Primary 11kV",
+            "distance_km": 0.22,
+            "size_mw": 8.0,
+            "marginal": false
+          },
+          {
+            "substation": "Arbury Grid 33kV",
+            "distance_km": 1.93,
+            "size_mw": 35.1,
+            "marginal": true
+          },
+          {
+            "substation": "Arbury Grid 11kV",
+            "distance_km": 1.9,
+            "size_mw": 8.0,
+            "marginal": true
+          },
+          {
+            "substation": "Storeys Way Primary 11kV",
+            "distance_km": 3.52,
+            "size_mw": 5.0,
             "marginal": true
           }
         ],
         "tia_threshold_mw": 1,
         "snapshot_date": "2026-09-22",
         "competition": {
-          "offers_not_accepted_mw": 2.6,
-          "budget_estimates_mw": 0.0,
+          "offers_not_accepted_mw": 0.0,
+          "budget_estimates_mw": 164.8,
           "enquiries_mw": 0.0,
-          "weighted_mw": 1.3,
-          "pressure": "low"
+          "weighted_mw": 41.2,
+          "pressure": "high"
         },
-        "export_ceiling_mw": 60.0,
-        "gsp": "West Weybridge",
+        "export_ceiling_mw": 180.0,
+        "gsp": "Eaton Socon",
         "artifacts": [
           {
             "id": "capacity-substation-bessible",
             "stage": "capacity",
-            "claim": "Predicted point of connection: Dorking Town 11kV (11 kV), 0.58 km away. Nearest primary substation by distance (distribution-area polygons not in the snapshot) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+            "claim": "Predicted point of connection: Histon Grid 33kV (33 kV), 0.22 km away. Nearest primary substation by distance (distribution-area polygons not in the snapshot) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -611,7 +527,7 @@
           {
             "id": "capacity-headroom-bessible",
             "stage": "capacity",
-            "claim": "Effective headroom at Dorking Town 11kV: import 14.7 MW, export 30.9 MW (available capacity minus accepted offers; export adds reverse power flow when minimum demand is negative) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+            "claim": "Effective headroom at Histon Grid 33kV: import 57.9 MW, export 37.7 MW (available capacity minus accepted offers; export adds reverse power flow when minimum demand is negative) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -621,7 +537,7 @@
           {
             "id": "capacity-range-bessible",
             "stage": "capacity",
-            "claim": "Firm 8.0 MW, ceiling 8.0 MW, limited by import; 11 kV caps size at 8 MW. Ceiling = lower of import-side formula and Table 2a export ceiling (60 MW). No seasonal split in this dataset [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+            "claim": "Firm 37.7 MW, ceiling 50.0 MW, limited by export; 33 kV caps size at 50 MW. Ceiling = lower of import-side formula and Table 2a export ceiling (180 MW). No seasonal split in this dataset [ukpn-capacity-heatmap, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -631,7 +547,7 @@
           {
             "id": "capacity-context-bessible",
             "stage": "capacity",
-            "claim": "Context only, not used in the verdict: RAG demand GREEN, generation GREEN; parent GSP West Weybridge; TIA threshold 1 MW [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+            "claim": "Context only, not used in the verdict: RAG demand GREEN, generation GREEN; parent GSP Eaton Socon; TIA threshold 1 MW [ukpn-capacity-heatmap, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -641,7 +557,7 @@
           {
             "id": "capacity-competition-bessible",
             "stage": "capacity",
-            "claim": "Connection competition at Dorking Town 11kV: 2.6 MW offers not accepted, 0.0 MW budget estimates, 0.0 MW enquiries; weighted total 1.3 MW (pressure: low). Context only; not subtracted from effective headroom [ukpn-ltds-table-6-interest-connections, snapshot 2026-09-22]",
+            "claim": "Connection competition at Histon Grid 33kV: 0.0 MW offers not accepted, 164.8 MW budget estimates, 0.0 MW enquiries; weighted total 41.2 MW (pressure: high). Context only; not subtracted from effective headroom [ukpn-ltds-table-6-interest-connections, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-ltds-table-6-interest-connections/",
             "file_path": null,
             "image_path": null,
@@ -661,7 +577,7 @@
           {
             "id": "capacity-live-check-bessible",
             "stage": "capacity",
-            "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 2 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+            "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -671,7 +587,7 @@
           {
             "id": "capacity-cable-route-bessible",
             "stage": "capacity",
-            "claim": "Cable route to Dorking Town 11kV: 1.88 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.58 km. The DNO designs the actual route",
+            "claim": "Cable route to Histon Grid 33kV: 0.9 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.22 km. The DNO designs the actual route",
             "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
             "file_path": null,
             "image_path": null,
@@ -689,24 +605,24 @@
             "coordinates": [
               [
                 [
-                  -0.332207,
-                  51.230881999999994
+                  0.106173,
+                  52.242996999999995
                 ],
                 [
-                  -0.32820699999999997,
-                  51.230881999999994
+                  0.11017300000000001,
+                  52.242996999999995
                 ],
                 [
-                  -0.32820699999999997,
-                  51.234882
+                  0.11017300000000001,
+                  52.246997
                 ],
                 [
-                  -0.332207,
-                  51.234882
+                  0.106173,
+                  52.246997
                 ],
                 [
-                  -0.332207,
-                  51.230881999999994
+                  0.106173,
+                  52.242996999999995
                 ]
               ]
             ]
@@ -731,8 +647,8 @@
         ]
       },
       "position": {
-        "lat": 51.232882,
-        "lon": -0.330207
+        "lat": 52.244997,
+        "lon": 0.108173
       },
       "message": null
     }
@@ -750,212 +666,170 @@
         "viable": true,
         "message": null,
         "out_of_area": false,
-        "substation": "Dorking Town 11kV",
-        "connection_voltage_kv": 11.0,
-        "firm_mw": 8.0,
-        "ceiling_mw": 8.0,
-        "recommended_mw": 8.0,
-        "binding_direction": "import",
+        "substation": "Histon Grid 33kV",
+        "connection_voltage_kv": 33.0,
+        "firm_mw": 37.7,
+        "ceiling_mw": 50.0,
+        "recommended_mw": 37.7,
+        "binding_direction": "export",
         "binding_season": null,
-        "distance_km": 0.58,
+        "distance_km": 0.22,
         "substation_position": {
-          "lat": 51.23362991074961,
-          "lon": -0.3385015987376072
+          "lat": 52.24319473076745,
+          "lon": 0.1068681484881494
         },
         "route": {
-          "distance_km": 1.88,
+          "distance_km": 0.9,
           "path": [
             {
-              "lat": 51.232882,
-              "lon": -0.330207
+              "lat": 52.244997,
+              "lon": 0.108173
             },
             {
-              "lat": 51.233008,
-              "lon": -0.330376
+              "lat": 52.244871,
+              "lon": 0.108049
             },
             {
-              "lat": 51.23311,
-              "lon": -0.33012
+              "lat": 52.24478,
+              "lon": 0.10795
             },
             {
-              "lat": 51.23284,
-              "lon": -0.3298
+              "lat": 52.24466,
+              "lon": 0.10821
             },
             {
-              "lat": 51.23206,
-              "lon": -0.33155
+              "lat": 52.2443,
+              "lon": 0.10868
             },
             {
-              "lat": 51.23176,
-              "lon": -0.33215
+              "lat": 52.24422,
+              "lon": 0.10892
             },
             {
-              "lat": 51.23165,
-              "lon": -0.33244
+              "lat": 52.24418,
+              "lon": 0.10919
             },
             {
-              "lat": 51.2316,
-              "lon": -0.33263
+              "lat": 52.24419,
+              "lon": 0.10941
             },
             {
-              "lat": 51.23144,
-              "lon": -0.3331
+              "lat": 52.24431,
+              "lon": 0.11006
             },
             {
-              "lat": 51.23113,
-              "lon": -0.33351
+              "lat": 52.24309,
+              "lon": 0.11061
             },
             {
-              "lat": 51.23076,
-              "lon": -0.33416
+              "lat": 52.24289,
+              "lon": 0.11065
             },
             {
-              "lat": 51.23056,
-              "lon": -0.33444
+              "lat": 52.24214,
+              "lon": 0.11067
             },
             {
-              "lat": 51.23037,
-              "lon": -0.33454
+              "lat": 52.2413,
+              "lon": 0.11059
             },
             {
-              "lat": 51.22952,
-              "lon": -0.3346
+              "lat": 52.24132,
+              "lon": 0.11043
             },
             {
-              "lat": 51.22891,
-              "lon": -0.33458
+              "lat": 52.24143,
+              "lon": 0.11027
             },
             {
-              "lat": 51.22796,
-              "lon": -0.33475
+              "lat": 52.24158,
+              "lon": 0.10989
             },
             {
-              "lat": 51.22773,
-              "lon": -0.33487
+              "lat": 52.2416,
+              "lon": 0.10974
             },
             {
-              "lat": 51.22756,
-              "lon": -0.33502
+              "lat": 52.242,
+              "lon": 0.1089
             },
             {
-              "lat": 51.22727,
-              "lon": -0.33538
+              "lat": 52.24222,
+              "lon": 0.10862
             },
             {
-              "lat": 51.2271,
-              "lon": -0.33566
+              "lat": 52.24304,
+              "lon": 0.10772
             },
             {
-              "lat": 51.22705,
-              "lon": -0.33587
+              "lat": 52.24313,
+              "lon": 0.1076
             },
             {
-              "lat": 51.22703,
-              "lon": -0.33606
+              "lat": 52.24311,
+              "lon": 0.10753
             },
             {
-              "lat": 51.22705,
-              "lon": -0.33626
+              "lat": 52.24313,
+              "lon": 0.1073
             },
             {
-              "lat": 51.22722,
-              "lon": -0.33641
+              "lat": 52.2431,
+              "lon": 0.10705
             },
             {
-              "lat": 51.22751,
-              "lon": -0.3366
+              "lat": 52.24307,
+              "lon": 0.10699
             },
             {
-              "lat": 51.22793,
-              "lon": -0.33677
-            },
-            {
-              "lat": 51.22877,
-              "lon": -0.33698
-            },
-            {
-              "lat": 51.22917,
-              "lon": -0.33717
-            },
-            {
-              "lat": 51.22953,
-              "lon": -0.33738
-            },
-            {
-              "lat": 51.23041,
-              "lon": -0.33771
-            },
-            {
-              "lat": 51.23121,
-              "lon": -0.33814
-            },
-            {
-              "lat": 51.23141,
-              "lon": -0.33817
-            },
-            {
-              "lat": 51.2317,
-              "lon": -0.3381
-            },
-            {
-              "lat": 51.23169,
-              "lon": -0.33783
-            },
-            {
-              "lat": 51.23177,
-              "lon": -0.33709
-            },
-            {
-              "lat": 51.23208,
-              "lon": -0.3369
-            },
-            {
-              "lat": 51.2325,
-              "lon": -0.3368
-            },
-            {
-              "lat": 51.23285,
-              "lon": -0.3367
-            },
-            {
-              "lat": 51.2334,
-              "lon": -0.33669
-            },
-            {
-              "lat": 51.23341,
-              "lon": -0.33847
-            },
-            {
-              "lat": 51.23362991074961,
-              "lon": -0.3385015987376072
+              "lat": 52.24319473076745,
+              "lon": 0.1068681484881494
             }
           ],
           "method": "road"
         },
         "alternates": [
           {
-            "substation": "Betchworth 11kV",
-            "distance_km": 4.69,
-            "size_mw": 2.2,
+            "substation": "Histon Primary 11kV",
+            "distance_km": 0.22,
+            "size_mw": 8.0,
+            "marginal": false
+          },
+          {
+            "substation": "Arbury Grid 33kV",
+            "distance_km": 1.93,
+            "size_mw": 35.1,
+            "marginal": true
+          },
+          {
+            "substation": "Arbury Grid 11kV",
+            "distance_km": 1.9,
+            "size_mw": 8.0,
+            "marginal": true
+          },
+          {
+            "substation": "Storeys Way Primary 11kV",
+            "distance_km": 3.52,
+            "size_mw": 5.0,
             "marginal": true
           }
         ],
         "tia_threshold_mw": 1,
         "snapshot_date": "2026-09-22",
         "competition": {
-          "offers_not_accepted_mw": 2.6,
-          "budget_estimates_mw": 0.0,
+          "offers_not_accepted_mw": 0.0,
+          "budget_estimates_mw": 164.8,
           "enquiries_mw": 0.0,
-          "weighted_mw": 1.3,
-          "pressure": "low"
+          "weighted_mw": 41.2,
+          "pressure": "high"
         },
-        "export_ceiling_mw": 60.0,
-        "gsp": "West Weybridge",
+        "export_ceiling_mw": 180.0,
+        "gsp": "Eaton Socon",
         "artifacts": [
           {
             "id": "capacity-substation-bessible",
             "stage": "capacity",
-            "claim": "Predicted point of connection: Dorking Town 11kV (11 kV), 0.58 km away. Nearest primary substation by distance (distribution-area polygons not in the snapshot) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+            "claim": "Predicted point of connection: Histon Grid 33kV (33 kV), 0.22 km away. Nearest primary substation by distance (distribution-area polygons not in the snapshot) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -965,7 +839,7 @@
           {
             "id": "capacity-headroom-bessible",
             "stage": "capacity",
-            "claim": "Effective headroom at Dorking Town 11kV: import 14.7 MW, export 30.9 MW (available capacity minus accepted offers; export adds reverse power flow when minimum demand is negative) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+            "claim": "Effective headroom at Histon Grid 33kV: import 57.9 MW, export 37.7 MW (available capacity minus accepted offers; export adds reverse power flow when minimum demand is negative) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -975,7 +849,7 @@
           {
             "id": "capacity-range-bessible",
             "stage": "capacity",
-            "claim": "Firm 8.0 MW, ceiling 8.0 MW, limited by import; 11 kV caps size at 8 MW. Ceiling = lower of import-side formula and Table 2a export ceiling (60 MW). No seasonal split in this dataset [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+            "claim": "Firm 37.7 MW, ceiling 50.0 MW, limited by export; 33 kV caps size at 50 MW. Ceiling = lower of import-side formula and Table 2a export ceiling (180 MW). No seasonal split in this dataset [ukpn-capacity-heatmap, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -985,7 +859,7 @@
           {
             "id": "capacity-context-bessible",
             "stage": "capacity",
-            "claim": "Context only, not used in the verdict: RAG demand GREEN, generation GREEN; parent GSP West Weybridge; TIA threshold 1 MW [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+            "claim": "Context only, not used in the verdict: RAG demand GREEN, generation GREEN; parent GSP Eaton Socon; TIA threshold 1 MW [ukpn-capacity-heatmap, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -995,7 +869,7 @@
           {
             "id": "capacity-competition-bessible",
             "stage": "capacity",
-            "claim": "Connection competition at Dorking Town 11kV: 2.6 MW offers not accepted, 0.0 MW budget estimates, 0.0 MW enquiries; weighted total 1.3 MW (pressure: low). Context only; not subtracted from effective headroom [ukpn-ltds-table-6-interest-connections, snapshot 2026-09-22]",
+            "claim": "Connection competition at Histon Grid 33kV: 0.0 MW offers not accepted, 164.8 MW budget estimates, 0.0 MW enquiries; weighted total 41.2 MW (pressure: high). Context only; not subtracted from effective headroom [ukpn-ltds-table-6-interest-connections, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-ltds-table-6-interest-connections/",
             "file_path": null,
             "image_path": null,
@@ -1015,7 +889,7 @@
           {
             "id": "capacity-live-check-bessible",
             "stage": "capacity",
-            "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 2 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+            "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -1025,7 +899,7 @@
           {
             "id": "capacity-cable-route-bessible",
             "stage": "capacity",
-            "claim": "Cable route to Dorking Town 11kV: 1.88 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.58 km. The DNO designs the actual route",
+            "claim": "Cable route to Histon Grid 33kV: 0.9 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.22 km. The DNO designs the actual route",
             "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
             "file_path": null,
             "image_path": null,
@@ -1043,24 +917,24 @@
             "coordinates": [
               [
                 [
-                  -0.332207,
-                  51.230881999999994
+                  0.106173,
+                  52.242996999999995
                 ],
                 [
-                  -0.32820699999999997,
-                  51.230881999999994
+                  0.11017300000000001,
+                  52.242996999999995
                 ],
                 [
-                  -0.32820699999999997,
-                  51.234882
+                  0.11017300000000001,
+                  52.246997
                 ],
                 [
-                  -0.332207,
-                  51.234882
+                  0.106173,
+                  52.246997
                 ],
                 [
-                  -0.332207,
-                  51.230881999999994
+                  0.106173,
+                  52.242996999999995
                 ]
               ]
             ]
@@ -1085,8 +959,8 @@
         ]
       },
       "position": {
-        "lat": 51.232882,
-        "lon": -0.330207
+        "lat": 52.244997,
+        "lon": 0.108173
       },
       "message": null
     }
@@ -1101,212 +975,170 @@
         "viable": true,
         "message": null,
         "out_of_area": false,
-        "substation": "Dorking Town 11kV",
-        "connection_voltage_kv": 11.0,
-        "firm_mw": 8.0,
-        "ceiling_mw": 8.0,
-        "recommended_mw": 8.0,
-        "binding_direction": "import",
+        "substation": "Histon Grid 33kV",
+        "connection_voltage_kv": 33.0,
+        "firm_mw": 37.7,
+        "ceiling_mw": 50.0,
+        "recommended_mw": 37.7,
+        "binding_direction": "export",
         "binding_season": null,
-        "distance_km": 0.58,
+        "distance_km": 0.22,
         "substation_position": {
-          "lat": 51.23362991074961,
-          "lon": -0.3385015987376072
+          "lat": 52.24319473076745,
+          "lon": 0.1068681484881494
         },
         "route": {
-          "distance_km": 1.88,
+          "distance_km": 0.9,
           "path": [
             {
-              "lat": 51.232882,
-              "lon": -0.330207
+              "lat": 52.244997,
+              "lon": 0.108173
             },
             {
-              "lat": 51.233008,
-              "lon": -0.330376
+              "lat": 52.244871,
+              "lon": 0.108049
             },
             {
-              "lat": 51.23311,
-              "lon": -0.33012
+              "lat": 52.24478,
+              "lon": 0.10795
             },
             {
-              "lat": 51.23284,
-              "lon": -0.3298
+              "lat": 52.24466,
+              "lon": 0.10821
             },
             {
-              "lat": 51.23206,
-              "lon": -0.33155
+              "lat": 52.2443,
+              "lon": 0.10868
             },
             {
-              "lat": 51.23176,
-              "lon": -0.33215
+              "lat": 52.24422,
+              "lon": 0.10892
             },
             {
-              "lat": 51.23165,
-              "lon": -0.33244
+              "lat": 52.24418,
+              "lon": 0.10919
             },
             {
-              "lat": 51.2316,
-              "lon": -0.33263
+              "lat": 52.24419,
+              "lon": 0.10941
             },
             {
-              "lat": 51.23144,
-              "lon": -0.3331
+              "lat": 52.24431,
+              "lon": 0.11006
             },
             {
-              "lat": 51.23113,
-              "lon": -0.33351
+              "lat": 52.24309,
+              "lon": 0.11061
             },
             {
-              "lat": 51.23076,
-              "lon": -0.33416
+              "lat": 52.24289,
+              "lon": 0.11065
             },
             {
-              "lat": 51.23056,
-              "lon": -0.33444
+              "lat": 52.24214,
+              "lon": 0.11067
             },
             {
-              "lat": 51.23037,
-              "lon": -0.33454
+              "lat": 52.2413,
+              "lon": 0.11059
             },
             {
-              "lat": 51.22952,
-              "lon": -0.3346
+              "lat": 52.24132,
+              "lon": 0.11043
             },
             {
-              "lat": 51.22891,
-              "lon": -0.33458
+              "lat": 52.24143,
+              "lon": 0.11027
             },
             {
-              "lat": 51.22796,
-              "lon": -0.33475
+              "lat": 52.24158,
+              "lon": 0.10989
             },
             {
-              "lat": 51.22773,
-              "lon": -0.33487
+              "lat": 52.2416,
+              "lon": 0.10974
             },
             {
-              "lat": 51.22756,
-              "lon": -0.33502
+              "lat": 52.242,
+              "lon": 0.1089
             },
             {
-              "lat": 51.22727,
-              "lon": -0.33538
+              "lat": 52.24222,
+              "lon": 0.10862
             },
             {
-              "lat": 51.2271,
-              "lon": -0.33566
+              "lat": 52.24304,
+              "lon": 0.10772
             },
             {
-              "lat": 51.22705,
-              "lon": -0.33587
+              "lat": 52.24313,
+              "lon": 0.1076
             },
             {
-              "lat": 51.22703,
-              "lon": -0.33606
+              "lat": 52.24311,
+              "lon": 0.10753
             },
             {
-              "lat": 51.22705,
-              "lon": -0.33626
+              "lat": 52.24313,
+              "lon": 0.1073
             },
             {
-              "lat": 51.22722,
-              "lon": -0.33641
+              "lat": 52.2431,
+              "lon": 0.10705
             },
             {
-              "lat": 51.22751,
-              "lon": -0.3366
+              "lat": 52.24307,
+              "lon": 0.10699
             },
             {
-              "lat": 51.22793,
-              "lon": -0.33677
-            },
-            {
-              "lat": 51.22877,
-              "lon": -0.33698
-            },
-            {
-              "lat": 51.22917,
-              "lon": -0.33717
-            },
-            {
-              "lat": 51.22953,
-              "lon": -0.33738
-            },
-            {
-              "lat": 51.23041,
-              "lon": -0.33771
-            },
-            {
-              "lat": 51.23121,
-              "lon": -0.33814
-            },
-            {
-              "lat": 51.23141,
-              "lon": -0.33817
-            },
-            {
-              "lat": 51.2317,
-              "lon": -0.3381
-            },
-            {
-              "lat": 51.23169,
-              "lon": -0.33783
-            },
-            {
-              "lat": 51.23177,
-              "lon": -0.33709
-            },
-            {
-              "lat": 51.23208,
-              "lon": -0.3369
-            },
-            {
-              "lat": 51.2325,
-              "lon": -0.3368
-            },
-            {
-              "lat": 51.23285,
-              "lon": -0.3367
-            },
-            {
-              "lat": 51.2334,
-              "lon": -0.33669
-            },
-            {
-              "lat": 51.23341,
-              "lon": -0.33847
-            },
-            {
-              "lat": 51.23362991074961,
-              "lon": -0.3385015987376072
+              "lat": 52.24319473076745,
+              "lon": 0.1068681484881494
             }
           ],
           "method": "road"
         },
         "alternates": [
           {
-            "substation": "Betchworth 11kV",
-            "distance_km": 4.69,
-            "size_mw": 2.2,
+            "substation": "Histon Primary 11kV",
+            "distance_km": 0.22,
+            "size_mw": 8.0,
+            "marginal": false
+          },
+          {
+            "substation": "Arbury Grid 33kV",
+            "distance_km": 1.93,
+            "size_mw": 35.1,
+            "marginal": true
+          },
+          {
+            "substation": "Arbury Grid 11kV",
+            "distance_km": 1.9,
+            "size_mw": 8.0,
+            "marginal": true
+          },
+          {
+            "substation": "Storeys Way Primary 11kV",
+            "distance_km": 3.52,
+            "size_mw": 5.0,
             "marginal": true
           }
         ],
         "tia_threshold_mw": 1,
         "snapshot_date": "2026-09-22",
         "competition": {
-          "offers_not_accepted_mw": 2.6,
-          "budget_estimates_mw": 0.0,
+          "offers_not_accepted_mw": 0.0,
+          "budget_estimates_mw": 164.8,
           "enquiries_mw": 0.0,
-          "weighted_mw": 1.3,
-          "pressure": "low"
+          "weighted_mw": 41.2,
+          "pressure": "high"
         },
-        "export_ceiling_mw": 60.0,
-        "gsp": "West Weybridge",
+        "export_ceiling_mw": 180.0,
+        "gsp": "Eaton Socon",
         "artifacts": [
           {
             "id": "capacity-substation-bessible",
             "stage": "capacity",
-            "claim": "Predicted point of connection: Dorking Town 11kV (11 kV), 0.58 km away. Nearest primary substation by distance (distribution-area polygons not in the snapshot) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+            "claim": "Predicted point of connection: Histon Grid 33kV (33 kV), 0.22 km away. Nearest primary substation by distance (distribution-area polygons not in the snapshot) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -1316,7 +1148,7 @@
           {
             "id": "capacity-headroom-bessible",
             "stage": "capacity",
-            "claim": "Effective headroom at Dorking Town 11kV: import 14.7 MW, export 30.9 MW (available capacity minus accepted offers; export adds reverse power flow when minimum demand is negative) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+            "claim": "Effective headroom at Histon Grid 33kV: import 57.9 MW, export 37.7 MW (available capacity minus accepted offers; export adds reverse power flow when minimum demand is negative) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -1326,7 +1158,7 @@
           {
             "id": "capacity-range-bessible",
             "stage": "capacity",
-            "claim": "Firm 8.0 MW, ceiling 8.0 MW, limited by import; 11 kV caps size at 8 MW. Ceiling = lower of import-side formula and Table 2a export ceiling (60 MW). No seasonal split in this dataset [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+            "claim": "Firm 37.7 MW, ceiling 50.0 MW, limited by export; 33 kV caps size at 50 MW. Ceiling = lower of import-side formula and Table 2a export ceiling (180 MW). No seasonal split in this dataset [ukpn-capacity-heatmap, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -1336,7 +1168,7 @@
           {
             "id": "capacity-context-bessible",
             "stage": "capacity",
-            "claim": "Context only, not used in the verdict: RAG demand GREEN, generation GREEN; parent GSP West Weybridge; TIA threshold 1 MW [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+            "claim": "Context only, not used in the verdict: RAG demand GREEN, generation GREEN; parent GSP Eaton Socon; TIA threshold 1 MW [ukpn-capacity-heatmap, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -1346,7 +1178,7 @@
           {
             "id": "capacity-competition-bessible",
             "stage": "capacity",
-            "claim": "Connection competition at Dorking Town 11kV: 2.6 MW offers not accepted, 0.0 MW budget estimates, 0.0 MW enquiries; weighted total 1.3 MW (pressure: low). Context only; not subtracted from effective headroom [ukpn-ltds-table-6-interest-connections, snapshot 2026-09-22]",
+            "claim": "Connection competition at Histon Grid 33kV: 0.0 MW offers not accepted, 164.8 MW budget estimates, 0.0 MW enquiries; weighted total 41.2 MW (pressure: high). Context only; not subtracted from effective headroom [ukpn-ltds-table-6-interest-connections, snapshot 2026-09-22]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-ltds-table-6-interest-connections/",
             "file_path": null,
             "image_path": null,
@@ -1366,7 +1198,7 @@
           {
             "id": "capacity-live-check-bessible",
             "stage": "capacity",
-            "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 2 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+            "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
             "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
             "file_path": null,
             "image_path": null,
@@ -1376,7 +1208,7 @@
           {
             "id": "capacity-cable-route-bessible",
             "stage": "capacity",
-            "claim": "Cable route to Dorking Town 11kV: 1.88 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.58 km. The DNO designs the actual route",
+            "claim": "Cable route to Histon Grid 33kV: 0.9 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.22 km. The DNO designs the actual route",
             "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
             "file_path": null,
             "image_path": null,
@@ -1394,24 +1226,24 @@
             "coordinates": [
               [
                 [
-                  -0.332207,
-                  51.230881999999994
+                  0.106173,
+                  52.242996999999995
                 ],
                 [
-                  -0.32820699999999997,
-                  51.230881999999994
+                  0.11017300000000001,
+                  52.242996999999995
                 ],
                 [
-                  -0.32820699999999997,
-                  51.234882
+                  0.11017300000000001,
+                  52.246997
                 ],
                 [
-                  -0.332207,
-                  51.234882
+                  0.106173,
+                  52.246997
                 ],
                 [
-                  -0.332207,
-                  51.230881999999994
+                  0.106173,
+                  52.242996999999995
                 ]
               ]
             ]
@@ -1436,8 +1268,8 @@
         ]
       },
       "position": {
-        "lat": 51.232882,
-        "lon": -0.330207
+        "lat": 52.244997,
+        "lon": 0.108173
       },
       "message": null
     }

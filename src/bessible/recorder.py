@@ -9,7 +9,10 @@ import json
 import logging
 from pathlib import Path
 import re
+import uuid
 from typing import TYPE_CHECKING, Any
+
+from pydantic import SecretStr
 
 from bessible.config import settings
 from bessible.models import (
@@ -90,6 +93,13 @@ def assert_no_secrets(target: Path | str, known_secrets: Sequence[str] | None = 
         raise SecretDetectedError(msg)
 
 
+def _configured_secrets() -> list[str]:
+    """Every secret value set in `settings`, so a recording that echoes a real key fails the scan."""
+    values = [getattr(settings, name) for name in type(settings).model_fields]
+    values += list(settings.key_encryption_previous.values())
+    return [v.get_secret_value() for v in values if isinstance(v, SecretStr)]
+
+
 def normalize_events_relative_timings(raw_events: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
     """Compute relative elapsed time in seconds (`offset_s`) for each event relative to the start."""
     if not raw_events:
@@ -134,10 +144,13 @@ def save_run_recording(
     request: AssessmentRequest,
     events: Sequence[dict[str, Any]],
     statuses: Sequence[dict[str, Any] | RunStatus],
-    decision: SiteDecision,
+    decision: SiteDecision | None,
     result: AssessmentResult,
 ) -> Path:
     """Save all five recorded artifacts into `dest_dir` and assert no secrets are present.
+
+    A run that stops before site confirmation (out of area, not viable) has no decision, so it has no
+    `decision.json`.
 
     Artifacts saved:
       - `request.json`
@@ -174,8 +187,10 @@ def save_run_recording(
     (out_dir / "statuses.json").write_text(statuses_json, encoding="utf-8")
 
     # 4. Human-in-the-loop decision
-    dec_json = decision.model_dump_json(indent=2)
-    (out_dir / "decision.json").write_text(dec_json, encoding="utf-8")
+    if decision is None:
+        (out_dir / "decision.json").unlink(missing_ok=True)
+    else:
+        (out_dir / "decision.json").write_text(decision.model_dump_json(indent=2), encoding="utf-8")
 
     # 5. Assessment result
     res_json = result.model_dump_json(indent=2)
@@ -183,7 +198,7 @@ def save_run_recording(
 
     # Mandatory security check
     try:
-        assert_no_secrets(out_dir)
+        assert_no_secrets(out_dir, known_secrets=_configured_secrets())
     except SecretDetectedError:
         # Clean up any partial files if secret detected
         for fname in ["request.json", "events.jsonl", "statuses.json", "decision.json", "result.json"]:
@@ -209,7 +224,7 @@ async def record_live_run(
     target_dir = dest_dir or (settings.data_dir / "demo" / slug)
     c = client or await get_temporal_client()
 
-    run_id = f"bessible-record-{slug}"
+    run_id = f"bessible-record-{slug}-{uuid.uuid4().hex[:8]}"  # unique, so events never append to an older recording
     handle = await c.start_workflow(
         AssessmentWorkflow.run,
         request,
@@ -222,6 +237,7 @@ async def record_live_run(
 
     # Track status transitions through the execution
     confirmed = False
+    dec: SiteDecision | None = None
     while True:
         status: RunStatus = await handle.query(AssessmentWorkflow.status)
         current_key = (status.status, tuple(status.stages))

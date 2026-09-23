@@ -170,12 +170,16 @@ class AssessmentWorkflow:
         if cap.out_of_area:
             self._status = "out_of_area"
             self._stages = []
-            return AssessmentResult(status="out_of_area", message=cap.message, artifacts=all_artifacts, run_dir=run_dir)
+            return AssessmentResult(
+                status="out_of_area", message=cap.message, capacity=cap, artifacts=all_artifacts, run_dir=run_dir
+            )
 
         if not cap.viable:
             self._status = "not_viable"
             self._stages = []
-            return AssessmentResult(status="not_viable", message=cap.message, artifacts=all_artifacts, run_dir=run_dir)
+            return AssessmentResult(
+                status="not_viable", message=cap.message, capacity=cap, artifacts=all_artifacts, run_dir=run_dir
+            )
 
         return None
 
@@ -343,6 +347,8 @@ class AssessmentWorkflow:
             status="completed",
             report=report,
             financial=analysis[3],
+            site=site,
+            capacity=self._capacity,
             artifacts=all_artifacts,
             run_dir=f"out/{run_id}",
         )

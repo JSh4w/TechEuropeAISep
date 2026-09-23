@@ -1,0 +1,906 @@
+{
+  "status": "completed",
+  "message": null,
+  "report": {
+    "verdict": "maybe",
+    "findings": [
+      {
+        "text": "Grid capacity confirmed: 37.7 MW firm connection (50 MW ceiling) at Histon Grid 33kV.",
+        "artifact_ids": [
+          "capacity-substation-bessible",
+          "capacity-headroom-bessible",
+          "capacity-range-bessible",
+          "capacity-context-bessible",
+          "capacity-competition-bessible",
+          "capacity-caveat-bessible",
+          "capacity-live-check-bessible",
+          "capacity-cable-route-bessible"
+        ]
+      },
+      {
+        "text": "Gate 2 queue position 33 with indicative connection timescale of None months.",
+        "artifact_ids": [
+          "grid-queue-bessible",
+          "grid-timescale-bessible"
+        ]
+      },
+      {
+        "text": "Feasibility criteria satisfied across grid, land, and market models.",
+        "artifact_ids": [
+          "site_land-title_found-bessible",
+          "site_land-enough_area-bessible",
+          "site_land-buildable_slope-bessible",
+          "site_land-outside_flood_zone_3-bessible",
+          "site_land-outside_green_belt-bessible",
+          "site_land-avoids_best_farmland-bessible",
+          "site_land-clear_of_protected_ecology-bessible",
+          "site_land-clear_of_protected_heritage-bessible",
+          "site_land-clear_of_protected_landscape-bessible",
+          "site_land-substation_within_reach-bessible",
+          "site_land-grid_headroom-bessible",
+          "site_land-clear_of_overhead_lines-bessible"
+        ]
+      },
+      {
+        "text": "Feasibility criteria satisfied across grid, land, and market models.",
+        "artifact_ids": [
+          "financial-cost-bessible",
+          "financial-curtailment-bessible",
+          "financial-returns-bessible"
+        ]
+      },
+      {
+        "text": "Feasibility criteria satisfied across grid, land, and market models.",
+        "artifact_ids": [
+          "planning-bessible",
+          "planning-tia-bessible",
+          "planning-repd-bessible",
+          "planning-summary-bessible"
+        ]
+      },
+      {
+        "text": "Market revenue projected across storage durations.",
+        "artifact_ids": [
+          "market-capacity_market-bessible",
+          "market-balancing_ancillary-bessible",
+          "market-wholesale-bessible"
+        ]
+      },
+      {
+        "text": "Community sentiment analysis completed with key concerns: noise, fire safety.",
+        "artifact_ids": [
+          "sentiment-p1-bessible",
+          "sentiment-p2-bessible",
+          "sentiment-index-bessible"
+        ]
+      },
+      {
+        "text": "Reserved area requirement: 7.5 to 11.3 acres for 37.7 MW (planning-grade estimate at 4-hour duration).",
+        "artifact_ids": [
+          "title-bessible"
+        ]
+      }
+    ],
+    "report_path": "report.md",
+    "artifacts": [
+      {
+        "id": "synthesis-bessible",
+        "stage": "synthesis",
+        "claim": "Assessment report compiled with verdict 'MAYBE' and duration comparison",
+        "source_url": null,
+        "file_path": "report.md",
+        "image_path": null,
+        "confidence": 0.95,
+        "model_used": "deterministic"
+      },
+      {
+        "id": "footprint-bessible",
+        "stage": "synthesis",
+        "claim": "Planning-grade reserved area estimate: 7.5 to 11.3 acres for 37.7 MW (4-hour duration)",
+        "source_url": null,
+        "file_path": "footprint.json",
+        "image_path": null,
+        "confidence": 0.95,
+        "model_used": "deterministic"
+      }
+    ]
+  },
+  "financial": {
+    "cases": [
+      {
+        "duration_h": 2,
+        "capex_gbp": 23160000.0,
+        "npv_gbp": 3966751.48,
+        "irr": 0.11528932719125506,
+        "over_budget": false,
+        "curtailment_pct": 0.0,
+        "low": null,
+        "high": null,
+        "payback_years": null
+      },
+      {
+        "duration_h": 4,
+        "capex_gbp": 42010000.0,
+        "npv_gbp": -5241557.88,
+        "irr": 0.054129855769045165,
+        "over_budget": false,
+        "curtailment_pct": 0.0,
+        "low": null,
+        "high": null,
+        "payback_years": null
+      },
+      {
+        "duration_h": 8,
+        "capex_gbp": 79710000.0,
+        "npv_gbp": -35328909.4,
+        "irr": null,
+        "over_budget": false,
+        "curtailment_pct": 0.0,
+        "low": null,
+        "high": null,
+        "payback_years": null
+      }
+    ],
+    "recommended_h": 2,
+    "rationale": "Optimal returns at 2-hour duration based on financial model projections.",
+    "discount_rate_pct": 8.0,
+    "project_life_years": 25,
+    "artifacts": [
+      {
+        "id": "financial-cost-bessible",
+        "stage": "financial",
+        "claim": "Financing terms: interest rate 6.5%, arrangement fee 2%, discount rate 8%, debt share 60%, loan term 15 years. 33 kV connection (£500k-£700k/km over 0.90 km, by road): £450,000 - £630,000 (no crossing uplift applied). OTCF fee: inactive (oversubscription 30% is between 25% and 50%).",
+        "source_url": "https://www.ofgem.gov.uk/",
+        "file_path": null,
+        "image_path": null,
+        "confidence": 0.9,
+        "model_used": "financial-model"
+      },
+      {
+        "id": "financial-curtailment-bessible",
+        "stage": "financial",
+        "claim": "Curtailment estimate (documented assumption, not measured data): 2h: 0.0%, 4h: 0.0%, 8h: 0.0%. Demand profile: PLACEHOLDER - synthetic UK distribution demand shape (evening peak, overnight trough, winter-heavy); not an Elexon or UKPN profile (2026-09-19), scaled between 10 MW and 40 MW. Applied to overlap between dispatch hours and grid constraints above firm capacity (37.7 MW).",
+        "source_url": "https://www.elexon.co.uk/",
+        "file_path": null,
+        "image_path": null,
+        "confidence": 0.85,
+        "model_used": "financial-model"
+      },
+      {
+        "id": "financial-returns-bessible",
+        "stage": "financial",
+        "claim": "25-year returns:2h (CAPEX £23,160,000, NPV £3,966,751, IRR 11.5%); 4h (CAPEX £42,010,000, NPV £-5,241,558, IRR 5.4%); 8h (CAPEX £79,710,000, NPV £-35,328,909, IRR N/A). Cases with N/A IRR do not pay back equity over project life.",
+        "source_url": "https://www.ofgem.gov.uk/",
+        "file_path": null,
+        "image_path": null,
+        "confidence": 0.9,
+        "model_used": "financial-model"
+      }
+    ]
+  },
+  "site": {
+    "position": {
+      "lat": 52.244997,
+      "lon": 0.108173
+    },
+    "capacity_mw": 37.7,
+    "boundary": {
+      "title_number": "BK123456",
+      "boundary_geojson": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                0.106173,
+                52.242996999999995
+              ],
+              [
+                0.11017300000000001,
+                52.242996999999995
+              ],
+              [
+                0.11017300000000001,
+                52.246997
+              ],
+              [
+                0.106173,
+                52.246997
+              ],
+              [
+                0.106173,
+                52.242996999999995
+              ]
+            ]
+          ]
+        },
+        "properties": {
+          "title_number": "BK123456",
+          "area_m2": 25000.0
+        }
+      },
+      "area_m2": 25000.0,
+      "artifacts": [
+        {
+          "id": "title-bessible",
+          "stage": "title",
+          "claim": "HM Land Registry title BK123456 boundary confirmed covering 25,000 m²",
+          "source_url": null,
+          "file_path": "boundary.geojson",
+          "image_path": null,
+          "confidence": 0.96,
+          "model_used": "dummy"
+        }
+      ]
+    },
+    "footprint_geojson": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            0.10614691889689121,
+            52.244372352330636
+          ],
+          [
+            0.1101990811031088,
+            52.244372352330636
+          ],
+          [
+            0.1101990811031088,
+            52.24562164766936
+          ],
+          [
+            0.10614691889689121,
+            52.24562164766936
+          ],
+          [
+            0.10614691889689121,
+            52.244372352330636
+          ]
+        ]
+      ]
+    },
+    "capacity": null,
+    "flexible_connection": false
+  },
+  "capacity": {
+    "viable": true,
+    "message": null,
+    "out_of_area": false,
+    "substation": "Histon Grid 33kV",
+    "connection_voltage_kv": 33.0,
+    "firm_mw": 37.7,
+    "ceiling_mw": 50.0,
+    "recommended_mw": 37.7,
+    "binding_direction": "export",
+    "binding_season": null,
+    "distance_km": 0.22,
+    "substation_position": {
+      "lat": 52.24319473076745,
+      "lon": 0.1068681484881494
+    },
+    "route": {
+      "distance_km": 0.9,
+      "path": [
+        {
+          "lat": 52.244997,
+          "lon": 0.108173
+        },
+        {
+          "lat": 52.244871,
+          "lon": 0.108049
+        },
+        {
+          "lat": 52.24478,
+          "lon": 0.10795
+        },
+        {
+          "lat": 52.24466,
+          "lon": 0.10821
+        },
+        {
+          "lat": 52.2443,
+          "lon": 0.10868
+        },
+        {
+          "lat": 52.24422,
+          "lon": 0.10892
+        },
+        {
+          "lat": 52.24418,
+          "lon": 0.10919
+        },
+        {
+          "lat": 52.24419,
+          "lon": 0.10941
+        },
+        {
+          "lat": 52.24431,
+          "lon": 0.11006
+        },
+        {
+          "lat": 52.24309,
+          "lon": 0.11061
+        },
+        {
+          "lat": 52.24289,
+          "lon": 0.11065
+        },
+        {
+          "lat": 52.24214,
+          "lon": 0.11067
+        },
+        {
+          "lat": 52.2413,
+          "lon": 0.11059
+        },
+        {
+          "lat": 52.24132,
+          "lon": 0.11043
+        },
+        {
+          "lat": 52.24143,
+          "lon": 0.11027
+        },
+        {
+          "lat": 52.24158,
+          "lon": 0.10989
+        },
+        {
+          "lat": 52.2416,
+          "lon": 0.10974
+        },
+        {
+          "lat": 52.242,
+          "lon": 0.1089
+        },
+        {
+          "lat": 52.24222,
+          "lon": 0.10862
+        },
+        {
+          "lat": 52.24304,
+          "lon": 0.10772
+        },
+        {
+          "lat": 52.24313,
+          "lon": 0.1076
+        },
+        {
+          "lat": 52.24311,
+          "lon": 0.10753
+        },
+        {
+          "lat": 52.24313,
+          "lon": 0.1073
+        },
+        {
+          "lat": 52.2431,
+          "lon": 0.10705
+        },
+        {
+          "lat": 52.24307,
+          "lon": 0.10699
+        },
+        {
+          "lat": 52.24319473076745,
+          "lon": 0.1068681484881494
+        }
+      ],
+      "method": "road"
+    },
+    "alternates": [
+      {
+        "substation": "Histon Primary 11kV",
+        "distance_km": 0.22,
+        "size_mw": 8.0,
+        "marginal": false
+      },
+      {
+        "substation": "Arbury Grid 33kV",
+        "distance_km": 1.93,
+        "size_mw": 35.1,
+        "marginal": true
+      },
+      {
+        "substation": "Arbury Grid 11kV",
+        "distance_km": 1.9,
+        "size_mw": 8.0,
+        "marginal": true
+      },
+      {
+        "substation": "Storeys Way Primary 11kV",
+        "distance_km": 3.52,
+        "size_mw": 5.0,
+        "marginal": true
+      }
+    ],
+    "tia_threshold_mw": 1,
+    "snapshot_date": "2026-09-22",
+    "competition": {
+      "offers_not_accepted_mw": 0.0,
+      "budget_estimates_mw": 164.8,
+      "enquiries_mw": 0.0,
+      "weighted_mw": 41.2,
+      "pressure": "high"
+    },
+    "export_ceiling_mw": 180.0,
+    "gsp": "Eaton Socon",
+    "artifacts": [
+      {
+        "id": "capacity-substation-bessible",
+        "stage": "capacity",
+        "claim": "Predicted point of connection: Histon Grid 33kV (33 kV), 0.22 km away. Nearest primary substation by distance (distribution-area polygons not in the snapshot) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+        "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+        "file_path": null,
+        "image_path": null,
+        "confidence": 0.9,
+        "model_used": "ukpn-snapshot"
+      },
+      {
+        "id": "capacity-headroom-bessible",
+        "stage": "capacity",
+        "claim": "Effective headroom at Histon Grid 33kV: import 57.9 MW, export 37.7 MW (available capacity minus accepted offers; export adds reverse power flow when minimum demand is negative) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+        "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+        "file_path": null,
+        "image_path": null,
+        "confidence": 0.9,
+        "model_used": "ukpn-snapshot"
+      },
+      {
+        "id": "capacity-range-bessible",
+        "stage": "capacity",
+        "claim": "Firm 37.7 MW, ceiling 50.0 MW, limited by export; 33 kV caps size at 50 MW. Ceiling = lower of import-side formula and Table 2a export ceiling (180 MW). No seasonal split in this dataset [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+        "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+        "file_path": null,
+        "image_path": null,
+        "confidence": 0.9,
+        "model_used": "ukpn-snapshot"
+      },
+      {
+        "id": "capacity-context-bessible",
+        "stage": "capacity",
+        "claim": "Context only, not used in the verdict: RAG demand GREEN, generation GREEN; parent GSP Eaton Socon; TIA threshold 1 MW [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+        "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+        "file_path": null,
+        "image_path": null,
+        "confidence": 0.9,
+        "model_used": "ukpn-snapshot"
+      },
+      {
+        "id": "capacity-competition-bessible",
+        "stage": "capacity",
+        "claim": "Connection competition at Histon Grid 33kV: 0.0 MW offers not accepted, 164.8 MW budget estimates, 0.0 MW enquiries; weighted total 41.2 MW (pressure: high). Context only; not subtracted from effective headroom [ukpn-ltds-table-6-interest-connections, snapshot 2026-09-22]",
+        "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-ltds-table-6-interest-connections/",
+        "file_path": null,
+        "image_path": null,
+        "confidence": 0.9,
+        "model_used": "ukpn-snapshot"
+      },
+      {
+        "id": "capacity-caveat-bessible",
+        "stage": "capacity",
+        "claim": "Effective headroom subtracts the current accepted connection queue; this may be pessimistic if speculative projects leave the queue under proposed Ofgem reforms [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+        "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+        "file_path": null,
+        "image_path": null,
+        "confidence": 0.9,
+        "model_used": "ukpn-snapshot"
+      },
+      {
+        "id": "capacity-live-check-bessible",
+        "stage": "capacity",
+        "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+        "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+        "file_path": null,
+        "image_path": null,
+        "confidence": 0.95,
+        "model_used": "live-ukpn-check"
+      },
+      {
+        "id": "capacity-cable-route-bessible",
+        "stage": "capacity",
+        "claim": "Cable route to Histon Grid 33kV: 0.9 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.22 km. The DNO designs the actual route",
+        "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
+        "file_path": null,
+        "image_path": null,
+        "confidence": 0.7,
+        "model_used": "google-routes-api"
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "id": "location-bessible",
+      "stage": "location",
+      "claim": "Postcode CB24 9ZR geocodes to (52.2450, 0.1082) in South Cambridgeshire",
+      "source_url": "https://api.postcodes.io/postcodes/CB249ZR",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "postcodes.io"
+    },
+    {
+      "id": "capacity-substation-bessible",
+      "stage": "capacity",
+      "claim": "Predicted point of connection: Histon Grid 33kV (33 kV), 0.22 km away. Nearest primary substation by distance (distribution-area polygons not in the snapshot) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "ukpn-snapshot"
+    },
+    {
+      "id": "capacity-headroom-bessible",
+      "stage": "capacity",
+      "claim": "Effective headroom at Histon Grid 33kV: import 57.9 MW, export 37.7 MW (available capacity minus accepted offers; export adds reverse power flow when minimum demand is negative) [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "ukpn-snapshot"
+    },
+    {
+      "id": "capacity-range-bessible",
+      "stage": "capacity",
+      "claim": "Firm 37.7 MW, ceiling 50.0 MW, limited by export; 33 kV caps size at 50 MW. Ceiling = lower of import-side formula and Table 2a export ceiling (180 MW). No seasonal split in this dataset [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "ukpn-snapshot"
+    },
+    {
+      "id": "capacity-context-bessible",
+      "stage": "capacity",
+      "claim": "Context only, not used in the verdict: RAG demand GREEN, generation GREEN; parent GSP Eaton Socon; TIA threshold 1 MW [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "ukpn-snapshot"
+    },
+    {
+      "id": "capacity-competition-bessible",
+      "stage": "capacity",
+      "claim": "Connection competition at Histon Grid 33kV: 0.0 MW offers not accepted, 164.8 MW budget estimates, 0.0 MW enquiries; weighted total 41.2 MW (pressure: high). Context only; not subtracted from effective headroom [ukpn-ltds-table-6-interest-connections, snapshot 2026-09-22]",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-ltds-table-6-interest-connections/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "ukpn-snapshot"
+    },
+    {
+      "id": "capacity-caveat-bessible",
+      "stage": "capacity",
+      "claim": "Effective headroom subtracts the current accepted connection queue; this may be pessimistic if speculative projects leave the queue under proposed Ofgem reforms [ukpn-capacity-heatmap, snapshot 2026-09-22]",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "ukpn-snapshot"
+    },
+    {
+      "id": "capacity-live-check-bessible",
+      "stage": "capacity",
+      "claim": "Checked against live UKPN data at 2026-09-23 10:12 UTC: headroom at 9 substation(s) within 5 km matches the snapshot dated 2026-09-22 [ukpn-capacity-heatmap, live]",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "live-ukpn-check"
+    },
+    {
+      "id": "capacity-cable-route-bessible",
+      "stage": "capacity",
+      "claim": "Cable route to Histon Grid 33kV: 0.9 km; leaves the title at its edge nearest the substation (0.02 km on site), then by road (local roads, motorways avoided); straight line 0.22 km. The DNO designs the actual route",
+      "source_url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.7,
+      "model_used": "google-routes-api"
+    },
+    {
+      "id": "title-bessible",
+      "stage": "title",
+      "claim": "HM Land Registry title BK123456 boundary confirmed covering 25,000 m²",
+      "source_url": null,
+      "file_path": "boundary.geojson",
+      "image_path": null,
+      "confidence": 0.96,
+      "model_used": "dummy"
+    },
+    {
+      "id": "grid-queue-bessible",
+      "stage": "grid",
+      "claim": "Parent GSP Eaton Socon has 32 queued projects (1235.2 MW); new application estimated position 33 [ukpn-gsp-project-status, snapshot 2026-09-22]",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-gsp-project-status/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.88,
+      "model_used": "ukpn-snapshot"
+    },
+    {
+      "id": "grid-timescale-bessible",
+      "stage": "grid",
+      "claim": "Indicative connection timescale unavailable for Histon Grid 33kV [ukpn-gsp-project-status, snapshot 2026-09-22]",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-gsp-project-status/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.5,
+      "model_used": "ukpn-snapshot"
+    },
+    {
+      "id": "site_land-title_found-bessible",
+      "stage": "site_land",
+      "claim": "OK: Title 39165193 covers 0.18 ha.",
+      "source_url": "https://www.planning.data.gov.uk/entity.geojson?dataset=title-boundary&longitude=0.108173&latitude=52.244997&geometry_relation=intersects",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-enough_area-bessible",
+      "stage": "site_land",
+      "claim": "Blocker: 150.8 MWh needs 3.05-4.58 ha; the title has 0.18.",
+      "source_url": "https://www.planning.data.gov.uk/entity.geojson?dataset=title-boundary&longitude=0.108173&latitude=52.244997&geometry_relation=intersects",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-buildable_slope-bessible",
+      "stage": "site_land",
+      "claim": "OK: Median slope 1.9% (limit 10%), relief 0.53 m.",
+      "source_url": "https://environment.data.gov.uk/spatialdata/lidar-composite-digital-terrain-model-dtm-1m/wcs?service=WCS&version=2.0.1&request=GetCoverage&coverageId=13787b9a-26a4-4775-8523-806d13af58fc__Lidar_Composite_Elevation_DTM_1m&format=image%2Ftiff&subset=Lat%2852.244859%2C52.245289%29&subset=Long%280.107724%2C0.10858%29&subsettingCrs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FEPSG%2F0%2F4326",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-outside_flood_zone_3-bessible",
+      "stage": "site_land",
+      "claim": "OK: 0.0% of the title is in Flood Zone 3, 0.0% in Zone 2 (limit 80%).",
+      "source_url": "https://environment.data.gov.uk/spatialdata/flood-map-for-planning-flood-zones/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=dataset-04532375-a198-476e-985e-0579a0a11b47%3AFlood_Zones_2_3_Rivers_and_Sea&outputFormat=application%2Fjson&count=200&cql_filter=BBOX%28shape%2C0.1040561382136283%2C52.24259737524878%2C0.1122478617863717%2C52.24755062475122%2C%27EPSG%3A4326%27%29&srsName=EPSG%3A4326",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-outside_green_belt-bessible",
+      "stage": "site_land",
+      "claim": "OK: Not in the green belt.",
+      "source_url": "https://www.planning.data.gov.uk/entity.json?dataset=green-belt&dataset=flood-risk-zone&dataset=flood-storage-area&dataset=agricultural-land-classification&dataset=conservation-area&dataset=listed-building&dataset=listed-building-outline&dataset=scheduled-monument&dataset=heritage-at-risk&dataset=park-and-garden&dataset=battlefield&dataset=world-heritage-site&dataset=world-heritage-site-buffer-zone&dataset=archaeological-priority-area&dataset=area-of-outstanding-natural-beauty&dataset=national-park&dataset=heritage-coast&dataset=site-of-special-scientific-interest&dataset=special-area-of-conservation&dataset=special-protection-area&dataset=ramsar&dataset=ancient-woodland&dataset=local-nature-reserve&dataset=national-nature-reserve&dataset=tree-preservation-zone&dataset=article-4-direction-area&dataset=brownfield-land&dataset=built-up-area&dataset=central-activities-zone&dataset=infrastructure-project&dataset=planning-application&dataset=local-planning-authority&dataset=local-authority-district&dataset=parish&dataset=ward&dataset=region&dataset=local-plan-boundary&geometry=POLYGON+%28%280.107931+52.245289%2C+0.108404+52.245208%2C+0.108428+52.24514%2C+0.108484+52.245149%2C+0.10858+52.244895%2C+0.108346+52.244859%2C+0.108326+52.244911%2C+0.108049+52.244871%2C+0.107933+52.245067%2C+0.107893+52.244987%2C+0.107724+52.245015%2C+0.107856+52.245266%2C+0.107934+52.245249%2C+0.107931+52.245289%29%29&geometry_relation=intersects&limit=500&exclude_field=geometry",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-avoids_best_farmland-bessible",
+      "stage": "site_land",
+      "claim": "OK: No best and most versatile farmland (Urban 100%).",
+      "source_url": "https://www.planning.data.gov.uk/entity.json?dataset=green-belt&dataset=flood-risk-zone&dataset=flood-storage-area&dataset=agricultural-land-classification&dataset=conservation-area&dataset=listed-building&dataset=listed-building-outline&dataset=scheduled-monument&dataset=heritage-at-risk&dataset=park-and-garden&dataset=battlefield&dataset=world-heritage-site&dataset=world-heritage-site-buffer-zone&dataset=archaeological-priority-area&dataset=area-of-outstanding-natural-beauty&dataset=national-park&dataset=heritage-coast&dataset=site-of-special-scientific-interest&dataset=special-area-of-conservation&dataset=special-protection-area&dataset=ramsar&dataset=ancient-woodland&dataset=local-nature-reserve&dataset=national-nature-reserve&dataset=tree-preservation-zone&dataset=article-4-direction-area&dataset=brownfield-land&dataset=built-up-area&dataset=central-activities-zone&dataset=infrastructure-project&dataset=planning-application&dataset=local-planning-authority&dataset=local-authority-district&dataset=parish&dataset=ward&dataset=region&dataset=local-plan-boundary&geometry=POLYGON+%28%280.107931+52.245289%2C+0.108404+52.245208%2C+0.108428+52.24514%2C+0.108484+52.245149%2C+0.10858+52.244895%2C+0.108346+52.244859%2C+0.108326+52.244911%2C+0.108049+52.244871%2C+0.107933+52.245067%2C+0.107893+52.244987%2C+0.107724+52.245015%2C+0.107856+52.245266%2C+0.107934+52.245249%2C+0.107931+52.245289%29%29&geometry_relation=intersects&limit=500&exclude_field=geometry",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-clear_of_protected_ecology-bessible",
+      "stage": "site_land",
+      "claim": "OK: None on the title (sssi, sac, spa, ramsar, national_nature_reserve, ancient_woodland).",
+      "source_url": "https://www.planning.data.gov.uk/entity.json?dataset=green-belt&dataset=flood-risk-zone&dataset=flood-storage-area&dataset=agricultural-land-classification&dataset=conservation-area&dataset=listed-building&dataset=listed-building-outline&dataset=scheduled-monument&dataset=heritage-at-risk&dataset=park-and-garden&dataset=battlefield&dataset=world-heritage-site&dataset=world-heritage-site-buffer-zone&dataset=archaeological-priority-area&dataset=area-of-outstanding-natural-beauty&dataset=national-park&dataset=heritage-coast&dataset=site-of-special-scientific-interest&dataset=special-area-of-conservation&dataset=special-protection-area&dataset=ramsar&dataset=ancient-woodland&dataset=local-nature-reserve&dataset=national-nature-reserve&dataset=tree-preservation-zone&dataset=article-4-direction-area&dataset=brownfield-land&dataset=built-up-area&dataset=central-activities-zone&dataset=infrastructure-project&dataset=planning-application&dataset=local-planning-authority&dataset=local-authority-district&dataset=parish&dataset=ward&dataset=region&dataset=local-plan-boundary&geometry=POLYGON+%28%280.107931+52.245289%2C+0.108404+52.245208%2C+0.108428+52.24514%2C+0.108484+52.245149%2C+0.10858+52.244895%2C+0.108346+52.244859%2C+0.108326+52.244911%2C+0.108049+52.244871%2C+0.107933+52.245067%2C+0.107893+52.244987%2C+0.107724+52.245015%2C+0.107856+52.245266%2C+0.107934+52.245249%2C+0.107931+52.245289%29%29&geometry_relation=intersects&limit=500&exclude_field=geometry",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-clear_of_protected_heritage-bessible",
+      "stage": "site_land",
+      "claim": "OK: None on the title (scheduled_monument, registered_park_or_garden, registered_battlefield, world_heritage_site).",
+      "source_url": "https://www.planning.data.gov.uk/entity.json?dataset=green-belt&dataset=flood-risk-zone&dataset=flood-storage-area&dataset=agricultural-land-classification&dataset=conservation-area&dataset=listed-building&dataset=listed-building-outline&dataset=scheduled-monument&dataset=heritage-at-risk&dataset=park-and-garden&dataset=battlefield&dataset=world-heritage-site&dataset=world-heritage-site-buffer-zone&dataset=archaeological-priority-area&dataset=area-of-outstanding-natural-beauty&dataset=national-park&dataset=heritage-coast&dataset=site-of-special-scientific-interest&dataset=special-area-of-conservation&dataset=special-protection-area&dataset=ramsar&dataset=ancient-woodland&dataset=local-nature-reserve&dataset=national-nature-reserve&dataset=tree-preservation-zone&dataset=article-4-direction-area&dataset=brownfield-land&dataset=built-up-area&dataset=central-activities-zone&dataset=infrastructure-project&dataset=planning-application&dataset=local-planning-authority&dataset=local-authority-district&dataset=parish&dataset=ward&dataset=region&dataset=local-plan-boundary&geometry=POLYGON+%28%280.107931+52.245289%2C+0.108404+52.245208%2C+0.108428+52.24514%2C+0.108484+52.245149%2C+0.10858+52.244895%2C+0.108346+52.244859%2C+0.108326+52.244911%2C+0.108049+52.244871%2C+0.107933+52.245067%2C+0.107893+52.244987%2C+0.107724+52.245015%2C+0.107856+52.245266%2C+0.107934+52.245249%2C+0.107931+52.245289%29%29&geometry_relation=intersects&limit=500&exclude_field=geometry",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-clear_of_protected_landscape-bessible",
+      "stage": "site_land",
+      "claim": "OK: None on the title (national_park, national_landscape).",
+      "source_url": "https://www.planning.data.gov.uk/entity.json?dataset=green-belt&dataset=flood-risk-zone&dataset=flood-storage-area&dataset=agricultural-land-classification&dataset=conservation-area&dataset=listed-building&dataset=listed-building-outline&dataset=scheduled-monument&dataset=heritage-at-risk&dataset=park-and-garden&dataset=battlefield&dataset=world-heritage-site&dataset=world-heritage-site-buffer-zone&dataset=archaeological-priority-area&dataset=area-of-outstanding-natural-beauty&dataset=national-park&dataset=heritage-coast&dataset=site-of-special-scientific-interest&dataset=special-area-of-conservation&dataset=special-protection-area&dataset=ramsar&dataset=ancient-woodland&dataset=local-nature-reserve&dataset=national-nature-reserve&dataset=tree-preservation-zone&dataset=article-4-direction-area&dataset=brownfield-land&dataset=built-up-area&dataset=central-activities-zone&dataset=infrastructure-project&dataset=planning-application&dataset=local-planning-authority&dataset=local-authority-district&dataset=parish&dataset=ward&dataset=region&dataset=local-plan-boundary&geometry=POLYGON+%28%280.107931+52.245289%2C+0.108404+52.245208%2C+0.108428+52.24514%2C+0.108484+52.245149%2C+0.10858+52.244895%2C+0.108346+52.244859%2C+0.108326+52.244911%2C+0.108049+52.244871%2C+0.107933+52.245067%2C+0.107893+52.244987%2C+0.107724+52.245015%2C+0.107856+52.245266%2C+0.107934+52.245249%2C+0.107931+52.245289%29%29&geometry_relation=intersects&limit=500&exclude_field=geometry",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-substation_within_reach-bessible",
+      "stage": "site_land",
+      "claim": "OK: Histon Grid 33kV (UKPN, 33.0 kV) is 0.2 km away.",
+      "source_url": "https://connecteddata.nationalgrid.co.uk/api/3/action/datastore_search?resource_id=d1895bd3-d9d2-4886-a0a3-b7eadd9ab6c2&filters=%7B%22type%22%3A+%5B%22Primary%22%2C+%22BSP%22%5D%7D&limit=32000",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-grid_headroom-bessible",
+      "stage": "site_land",
+      "claim": "OK: Best two-way headroom in reach: 37.7 MW at Histon Grid 33kV, for a 37.7 MW battery.",
+      "source_url": "https://connecteddata.nationalgrid.co.uk/api/3/action/datastore_search?resource_id=d1895bd3-d9d2-4886-a0a3-b7eadd9ab6c2&filters=%7B%22type%22%3A+%5B%22Primary%22%2C+%22BSP%22%5D%7D&limit=32000",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "site_land-clear_of_overhead_lines-bessible",
+      "stage": "site_land",
+      "claim": "OK: No overhead line of 22 kV or above crosses the title.",
+      "source_url": "https://connecteddata.nationalgrid.co.uk/api/3/action/datastore_search?resource_id=d1895bd3-d9d2-4886-a0a3-b7eadd9ab6c2&filters=%7B%22type%22%3A+%5B%22Primary%22%2C+%22BSP%22%5D%7D&limit=32000",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic rule"
+    },
+    {
+      "id": "market-capacity_market-bessible",
+      "stage": "market",
+      "claim": "Capacity Market: estimated £24,000/MW/year (4h basis) from Capacity Market clearing price (EMR Delivery Body), fixture (cached fixture as of 2026-09-19)",
+      "source_url": "https://www.emrdeliverybody.com/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.85,
+      "model_used": "market-assumptions"
+    },
+    {
+      "id": "market-balancing_ancillary-bessible",
+      "stage": "market",
+      "claim": "Balancing Ancillary: estimated £25,000/MW/year (4h basis) from Balancing mechanism and ancillary services (NESO), fixture (cached fixture as of 2026-09-19)",
+      "source_url": "https://www.neso.energy/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.85,
+      "model_used": "market-assumptions"
+    },
+    {
+      "id": "market-wholesale-bessible",
+      "stage": "market",
+      "claim": "Wholesale: estimated £45,000/MW/year (4h basis) from Wholesale arbitrage (Elexon market index prices), fixture (cached fixture as of 2026-09-19)",
+      "source_url": "https://www.elexon.co.uk/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.85,
+      "model_used": "market-assumptions"
+    },
+    {
+      "id": "sentiment-p1-bessible",
+      "stage": "sentiment",
+      "claim": "Neutral (fire safety) — quoted third-party text, not an instruction: \"Villagers in Histon and Impington raised concerns regarding construction traffic and battery safety for the prospecti...\"",
+      "source_url": "https://www.cambridgeindependent.co.uk/news/cambridgeshire-bess-battery-storage-proposals-2026",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.67,
+      "model_used": "open-jev-deberta-v3-large (Modal)"
+    },
+    {
+      "id": "sentiment-p2-bessible",
+      "stage": "sentiment",
+      "claim": "Neutral (noise) — quoted third-party text, not an instruction: \"The applicant confirmed an agreement for automated acoustic baffling and off-peak heavy vehicle movements to minimise...\"",
+      "source_url": "https://www.cambridgeindependent.co.uk/news/cambridgeshire-bess-battery-storage-proposals-2026",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.52,
+      "model_used": "open-jev-deberta-v3-large (Modal)"
+    },
+    {
+      "id": "sentiment-index-bessible",
+      "stage": "sentiment",
+      "claim": "Community opposition index 0.50 based on 2 relevant local paragraphs. Top concerns: noise, fire safety.",
+      "source_url": "https://www.cambridgeindependent.co.uk/news/cambridgeshire-bess-battery-storage-proposals-2026",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.88,
+      "model_used": "gemini-3.8-flash"
+    },
+    {
+      "id": "financial-cost-bessible",
+      "stage": "financial",
+      "claim": "Financing terms: interest rate 6.5%, arrangement fee 2%, discount rate 8%, debt share 60%, loan term 15 years. 33 kV connection (£500k-£700k/km over 0.90 km, by road): £450,000 - £630,000 (no crossing uplift applied). OTCF fee: inactive (oversubscription 30% is between 25% and 50%).",
+      "source_url": "https://www.ofgem.gov.uk/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "financial-model"
+    },
+    {
+      "id": "financial-curtailment-bessible",
+      "stage": "financial",
+      "claim": "Curtailment estimate (documented assumption, not measured data): 2h: 0.0%, 4h: 0.0%, 8h: 0.0%. Demand profile: PLACEHOLDER - synthetic UK distribution demand shape (evening peak, overnight trough, winter-heavy); not an Elexon or UKPN profile (2026-09-19), scaled between 10 MW and 40 MW. Applied to overlap between dispatch hours and grid constraints above firm capacity (37.7 MW).",
+      "source_url": "https://www.elexon.co.uk/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.85,
+      "model_used": "financial-model"
+    },
+    {
+      "id": "financial-returns-bessible",
+      "stage": "financial",
+      "claim": "25-year returns:2h (CAPEX £23,160,000, NPV £3,966,751, IRR 11.5%); 4h (CAPEX £42,010,000, NPV £-5,241,558, IRR 5.4%); 8h (CAPEX £79,710,000, NPV £-35,328,909, IRR N/A). Cases with N/A IRR do not pay back equity over project life.",
+      "source_url": "https://www.ofgem.gov.uk/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "financial-model"
+    },
+    {
+      "id": "planning-bessible",
+      "stage": "planning",
+      "claim": "Local planning authority consent (Town and Country Planning Act 1990). Authority: South Cambridgeshire LPA (E60000153). Standalone battery storage was removed from the Nationally Significant Infrastructure regime in England in 2020, so any size is consented by the local planning authority and no Development Consent Order threshold applies.",
+      "source_url": "https://www.planning.data.gov.uk/entity/626153",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "none (planning.data.gov.uk lookup)"
+    },
+    {
+      "id": "planning-tia-bessible",
+      "stage": "planning",
+      "claim": "Transmission Impact Assessment (TIA) triggered: confirmed capacity (37.7 MW) is at or above the serving substation's 1 MW threshold (from UKPN capacity snapshot). NESO involvement and Gate 2 timescales apply.",
+      "source_url": "https://ukpowernetworks.opendatasoft.com/explore/dataset/ukpn-capacity-heatmap/",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "none (deterministic rule)"
+    },
+    {
+      "id": "planning-repd-bessible",
+      "stage": "planning",
+      "claim": "Found 1 battery storage project(s) within 5 km from DESNZ REPD snapshot (dated 2026-09-19): Cottenham BESS Substation (40 MW, Application Approved, 4.59 km)",
+      "source_url": "https://www.gov.uk/government/publications/renewable-energy-planning-database-monthly-extract",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "none (DESNZ REPD snapshot)"
+    },
+    {
+      "id": "planning-summary-bessible",
+      "stage": "planning",
+      "claim": "Local planning precedent is established nearby by the approved 40 MW Cottenham BESS Substation (4.59 km away), falling under local planning authority jurisdiction pursuant to the 2020 removal of standalone battery storage from the NSIP regime. National policy framework provides strong support for the proposal, with NPS EN-1 establishing the urgent national need for electricity storage to support grid resilience and NPPF Chapter 14 directing authorities to support low carbon infrastructure critical to net zero. Development proposals must incorporate landscape mitigation, acoustic fencing, and co-location with grid infrastructure per PPG guidance, while also providing a Battery Safety Management Plan detailing thermal runaway mitigation and emergency access in line with NFCC guidance.",
+      "source_url": "https://www.gov.uk/government/publications/renewable-energy-planning-database-monthly-extract",
+      "file_path": null,
+      "image_path": null,
+      "confidence": 0.9,
+      "model_used": "gemini-3.8-flash"
+    },
+    {
+      "id": "synthesis-bessible",
+      "stage": "synthesis",
+      "claim": "Assessment report compiled with verdict 'MAYBE' and duration comparison",
+      "source_url": null,
+      "file_path": "report.md",
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic"
+    },
+    {
+      "id": "footprint-bessible",
+      "stage": "synthesis",
+      "claim": "Planning-grade reserved area estimate: 7.5 to 11.3 acres for 37.7 MW (4-hour duration)",
+      "source_url": null,
+      "file_path": "footprint.json",
+      "image_path": null,
+      "confidence": 0.95,
+      "model_used": "deterministic"
+    }
+  ],
+  "run_dir": "out/bessible-record-histon-da2a8393"
+}

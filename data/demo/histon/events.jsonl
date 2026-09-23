@@ -1,0 +1,22 @@
+{"id": 1, "offset_s": 0.0, "t": "2026-09-23T10:12:18.760234+00:00", "stage": "location", "msg": "Resolving site location and postcode"}
+{"id": 2, "offset_s": 0.01, "t": "2026-09-23T10:12:18.767872+00:00", "stage": "location", "msg": "Location resolved: CB24 9ZR (52.2450, 0.1082)"}
+{"id": 3, "offset_s": 0.02, "t": "2026-09-23T10:12:18.779947+00:00", "stage": "capacity", "msg": "Evaluating grid capacity and primary substations"}
+{"id": 4, "offset_s": 0.86, "t": "2026-09-23T10:12:19.624412+00:00", "stage": "capacity", "msg": "Grid capacity evaluated: 37.7 MW at Histon Grid 33kV (viable)"}
+{"id": 5, "offset_s": 0.87, "t": "2026-09-23T10:12:19.629365+00:00", "stage": "title", "msg": "Querying HM Land Registry for title boundaries"}
+{"id": 6, "offset_s": 0.87, "t": "2026-09-23T10:12:19.629775+00:00", "stage": "title", "msg": "Title boundary identified: BK123456 (25,000 m\u00b2)"}
+{"id": 7, "offset_s": 1.0, "t": "2026-09-23T10:12:19.762345+00:00", "stage": "grid", "msg": "Assessing grid connection queue and timescales"}
+{"id": 8, "offset_s": 1.0, "t": "2026-09-23T10:12:19.763998+00:00", "stage": "grid", "msg": "Grid connection assessment complete (Gate 2 position: 33)"}
+{"id": 9, "offset_s": 1.0, "t": "2026-09-23T10:12:19.764464+00:00", "stage": "site_land", "msg": "Analyzing environmental constraints and land classification"}
+{"id": 10, "offset_s": 1.02, "t": "2026-09-23T10:12:19.784984+00:00", "stage": "market", "msg": "Modeling wholesale, capacity market, and ancillary service revenues"}
+{"id": 11, "offset_s": 1.03, "t": "2026-09-23T10:12:19.785497+00:00", "stage": "market", "msg": "Market revenue projected: \u00a394,000/MW/yr"}
+{"id": 12, "offset_s": 1.03, "t": "2026-09-23T10:12:19.787090+00:00", "stage": "sentiment", "msg": "Analyzing local community sentiment and planning records"}
+{"id": 13, "offset_s": 1.03, "t": "2026-09-23T10:12:19.794035+00:00", "stage": "sentiment", "msg": "Gathering news articles and planning notices for substation area Histon Grid 33kV"}
+{"id": 14, "offset_s": 1.03, "t": "2026-09-23T10:12:19.794374+00:00", "stage": "sentiment", "msg": "Retrieved 1 sources; analyzing planning sentiment"}
+{"id": 15, "offset_s": 2.3, "t": "2026-09-23T10:12:21.063959+00:00", "stage": "sentiment", "msg": "Local sentiment assessed (opposition index: 0.50)"}
+{"id": 16, "offset_s": 3.25, "t": "2026-09-23T10:12:22.009784+00:00", "stage": "site_land", "msg": "Site land constraints assessed: 1 constraints noted"}
+{"id": 17, "offset_s": 3.26, "t": "2026-09-23T10:12:22.016190+00:00", "stage": "financial", "msg": "Simulating 25-year financial models across 2h, 4h, and 8h durations"}
+{"id": 18, "offset_s": 3.26, "t": "2026-09-23T10:12:22.018131+00:00", "stage": "financial", "msg": "Financial returns modeled (recommended: 2h duration)"}
+{"id": 19, "offset_s": 3.26, "t": "2026-09-23T10:12:22.018611+00:00", "stage": "planning", "msg": "Evaluating consenting routes and planning risk profile"}
+{"id": 20, "offset_s": 6.88, "t": "2026-09-23T10:12:25.643103+00:00", "stage": "planning", "msg": "Consenting route determined: Local planning authority consent (Town and Country Planning Act 1990) - South Cambridgeshire LPA"}
+{"id": 21, "offset_s": 6.89, "t": "2026-09-23T10:12:25.654841+00:00", "stage": "synthesis", "msg": "Synthesising final recommendation and generating assessment report"}
+{"id": 22, "offset_s": 6.9, "t": "2026-09-23T10:12:25.656090+00:00", "stage": "synthesis", "msg": "Assessment complete: overall verdict MAYBE"}

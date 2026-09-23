@@ -1,22 +1,22 @@
-{"id": 1, "offset_s": 0.0, "t": "2026-09-21T23:06:24.376964+00:00", "stage": "location", "msg": "Resolving site location and postcode"}
-{"id": 2, "offset_s": 0.04, "t": "2026-09-21T23:06:24.414239+00:00", "stage": "location", "msg": "Location resolved: RH4 1AD (51.2329, -0.3302)"}
-{"id": 3, "offset_s": 0.04, "t": "2026-09-21T23:06:24.419543+00:00", "stage": "capacity", "msg": "Evaluating grid capacity and primary substations"}
-{"id": 4, "offset_s": 0.04, "t": "2026-09-21T23:06:24.421307+00:00", "stage": "capacity", "msg": "Grid capacity evaluated: 8 MW at Dorking Town 11kV (viable)"}
-{"id": 5, "offset_s": 0.05, "t": "2026-09-21T23:06:24.425062+00:00", "stage": "title", "msg": "Querying HM Land Registry for title boundaries"}
-{"id": 6, "offset_s": 0.05, "t": "2026-09-21T23:06:24.425414+00:00", "stage": "title", "msg": "Title boundary identified: BK123456 (25,000 m\u00b2)"}
-{"id": 7, "offset_s": 0.36, "t": "2026-09-21T23:06:24.737767+00:00", "stage": "grid", "msg": "Assessing grid connection queue and timescales"}
-{"id": 8, "offset_s": 0.36, "t": "2026-09-21T23:06:24.738229+00:00", "stage": "grid", "msg": "Grid connection assessment complete (Gate 2 position: 28)"}
-{"id": 9, "offset_s": 0.36, "t": "2026-09-21T23:06:24.738719+00:00", "stage": "site_land", "msg": "Analyzing environmental constraints and land classification"}
-{"id": 10, "offset_s": 0.38, "t": "2026-09-21T23:06:24.759849+00:00", "stage": "market", "msg": "Modeling wholesale, capacity market, and ancillary service revenues"}
-{"id": 11, "offset_s": 0.38, "t": "2026-09-21T23:06:24.761611+00:00", "stage": "market", "msg": "Market revenue projected: \u00a394,000/MW/yr"}
-{"id": 12, "offset_s": 0.39, "t": "2026-09-21T23:06:24.762419+00:00", "stage": "sentiment", "msg": "Analyzing local community sentiment and planning records"}
-{"id": 13, "offset_s": 0.39, "t": "2026-09-21T23:06:24.771024+00:00", "stage": "sentiment", "msg": "Gathering news articles and planning notices for substation area Dorking Town 11kV"}
-{"id": 14, "offset_s": 0.39, "t": "2026-09-21T23:06:24.771505+00:00", "stage": "sentiment", "msg": "Retrieved 2 sources; analyzing planning sentiment"}
-{"id": 15, "offset_s": 1.79, "t": "2026-09-21T23:06:26.163201+00:00", "stage": "sentiment", "msg": "Local sentiment assessed (opposition index: 0.47)"}
-{"id": 16, "offset_s": 2.81, "t": "2026-09-21T23:06:27.191154+00:00", "stage": "site_land", "msg": "Site land constraints assessed: 2 constraints noted"}
-{"id": 17, "offset_s": 2.82, "t": "2026-09-21T23:06:27.200249+00:00", "stage": "financial", "msg": "Simulating 25-year financial models across 2h, 4h, and 8h durations"}
-{"id": 18, "offset_s": 2.83, "t": "2026-09-21T23:06:27.202543+00:00", "stage": "financial", "msg": "Financial returns modeled (recommended: 2h duration)"}
-{"id": 19, "offset_s": 2.83, "t": "2026-09-21T23:06:27.203033+00:00", "stage": "planning", "msg": "Evaluating consenting routes and planning risk profile"}
-{"id": 20, "offset_s": 6.83, "t": "2026-09-21T23:06:31.203918+00:00", "stage": "planning", "msg": "Consenting route determined: Local planning authority consent (Town and Country Planning Act 1990) - Mole Valley LPA"}
-{"id": 21, "offset_s": 6.84, "t": "2026-09-21T23:06:31.220911+00:00", "stage": "synthesis", "msg": "Synthesising final recommendation and generating assessment report"}
-{"id": 22, "offset_s": 6.85, "t": "2026-09-21T23:06:31.222225+00:00", "stage": "synthesis", "msg": "Assessment complete: overall verdict GO"}
+{"id": 1, "offset_s": 0.0, "t": "2026-09-23T10:12:18.732243+00:00", "stage": "location", "msg": "Resolving site location and postcode"}
+{"id": 2, "offset_s": 0.03, "t": "2026-09-23T10:12:18.759046+00:00", "stage": "location", "msg": "Location resolved: RH4 1AD (51.2329, -0.3302)"}
+{"id": 3, "offset_s": 0.05, "t": "2026-09-23T10:12:18.779223+00:00", "stage": "capacity", "msg": "Evaluating grid capacity and primary substations"}
+{"id": 4, "offset_s": 1.03, "t": "2026-09-23T10:12:19.758502+00:00", "stage": "capacity", "msg": "Grid capacity evaluated: 8 MW at Dorking Town 11kV (viable)"}
+{"id": 5, "offset_s": 1.05, "t": "2026-09-23T10:12:19.786637+00:00", "stage": "title", "msg": "Querying HM Land Registry for title boundaries"}
+{"id": 6, "offset_s": 1.14, "t": "2026-09-23T10:12:19.877075+00:00", "stage": "title", "msg": "Title boundary identified: BK123456 (25,000 m\u00b2)"}
+{"id": 7, "offset_s": 1.24, "t": "2026-09-23T10:12:19.967511+00:00", "stage": "grid", "msg": "Assessing grid connection queue and timescales"}
+{"id": 8, "offset_s": 1.24, "t": "2026-09-23T10:12:19.969014+00:00", "stage": "grid", "msg": "Grid connection assessment complete (Gate 2 position: 1)"}
+{"id": 9, "offset_s": 1.24, "t": "2026-09-23T10:12:19.969412+00:00", "stage": "site_land", "msg": "Analyzing environmental constraints and land classification"}
+{"id": 10, "offset_s": 1.25, "t": "2026-09-23T10:12:19.986162+00:00", "stage": "market", "msg": "Modeling wholesale, capacity market, and ancillary service revenues"}
+{"id": 11, "offset_s": 1.25, "t": "2026-09-23T10:12:19.986648+00:00", "stage": "market", "msg": "Market revenue projected: \u00a394,000/MW/yr"}
+{"id": 12, "offset_s": 1.26, "t": "2026-09-23T10:12:19.990735+00:00", "stage": "sentiment", "msg": "Analyzing local community sentiment and planning records"}
+{"id": 13, "offset_s": 1.27, "t": "2026-09-23T10:12:19.997687+00:00", "stage": "sentiment", "msg": "Gathering news articles and planning notices for substation area Dorking Town 11kV"}
+{"id": 14, "offset_s": 1.27, "t": "2026-09-23T10:12:19.997889+00:00", "stage": "sentiment", "msg": "Retrieved 2 sources; analyzing planning sentiment"}
+{"id": 15, "offset_s": 2.68, "t": "2026-09-23T10:12:21.408290+00:00", "stage": "sentiment", "msg": "Local sentiment assessed (opposition index: 0.47)"}
+{"id": 16, "offset_s": 4.12, "t": "2026-09-23T10:12:22.852690+00:00", "stage": "site_land", "msg": "Site land constraints assessed: 2 constraints noted"}
+{"id": 17, "offset_s": 4.13, "t": "2026-09-23T10:12:22.859452+00:00", "stage": "financial", "msg": "Simulating 25-year financial models across 2h, 4h, and 8h durations"}
+{"id": 18, "offset_s": 4.13, "t": "2026-09-23T10:12:22.861435+00:00", "stage": "financial", "msg": "Financial returns modeled (recommended: 2h duration)"}
+{"id": 19, "offset_s": 4.13, "t": "2026-09-23T10:12:22.861989+00:00", "stage": "planning", "msg": "Evaluating consenting routes and planning risk profile"}
+{"id": 20, "offset_s": 14.89, "t": "2026-09-23T10:12:33.617753+00:00", "stage": "planning", "msg": "Consenting route determined: Local planning authority consent (Town and Country Planning Act 1990) - Mole Valley LPA"}
+{"id": 21, "offset_s": 14.89, "t": "2026-09-23T10:12:33.624651+00:00", "stage": "synthesis", "msg": "Synthesising final recommendation and generating assessment report"}
+{"id": 22, "offset_s": 14.89, "t": "2026-09-23T10:12:33.625607+00:00", "stage": "synthesis", "msg": "Assessment complete: overall verdict MAYBE"}

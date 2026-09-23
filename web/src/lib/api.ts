@@ -84,9 +84,13 @@ export async function startRun(
   return res.json();
 }
 
-/** Starts the recorded example run: public route, no sign-in, no keys, no live model calls. */
-export async function startDemoRun(): Promise<{ run_id: string }> {
-  const res = await apiFetch('/demo/runs', { method: 'POST' }, { auth: false });
+/** Replays the recorded run in `data/demo/<slug>`: public route, no sign-in, no keys, no live model calls. */
+export async function startDemoRun(slug: string): Promise<{ run_id: string }> {
+  const res = await apiFetch(
+    '/demo/runs',
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug }) },
+    { auth: false }
+  );
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
     throw new ApiError(res.status, errorData.detail || 'Failed to start demo run', errorData);

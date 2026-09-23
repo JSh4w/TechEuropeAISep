@@ -455,5 +455,7 @@ class AssessmentResult(BaseModel):
     message: str | None = None
     report: ReportOutput | None = None
     financial: FinancialOutput | None = None
+    site: ConfirmedSite | None = None  # the site the user confirmed; the report's MW and MWh come from it
+    capacity: CapacityOutput | None = None
     artifacts: list[Artifact] = Field(default_factory=list)
     run_dir: str

@@ -59,11 +59,13 @@ export default function RunView({
 
   const notices = (
     <>
-      {runStatus?.status === 'not_viable' && (
+      {(runStatus?.status === 'not_viable' || runStatus?.status === 'out_of_area') && (
         <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-xl flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
           <div className="text-xs text-foreground space-y-1">
-            <p className="font-bold text-sm text-destructive">Site Not Viable for BESS Connection</p>
+            <p className="font-bold text-sm text-destructive">
+              {runStatus.status === 'out_of_area' ? 'Site Outside Supported Grid Areas' : 'Site Not Viable for BESS Connection'}
+            </p>
             <p>{notViableMessage}</p>
             {onRetryFlexible && !run.flexibleConnection && /flexible/i.test(notViableMessage) && (
               <div className="pt-2">
