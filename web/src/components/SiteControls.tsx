@@ -307,12 +307,12 @@ export default function SiteControls({
         </div>
       </CardContent>
 
-      <CardFooter ref={footerRef} className={`p-5 flex items-center gap-3 ${blurred}`}>
+      <CardFooter ref={footerRef} className={`p-5 grid grid-cols-2 items-stretch sm:flex sm:items-center gap-3 ${blurred}`}>
         <Button
           type="button"
           onClick={onConfirm}
           disabled={busy || selectedCapacityMw < minFloorMw || selectedCapacityMw > maxAllowedMw}
-          className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold gap-2 text-sm h-11 rounded-xl shadow-md cursor-pointer transition active:scale-[0.99]"
+          className="flex-1 min-w-0 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold gap-2 text-sm h-auto min-h-11 py-2 whitespace-normal leading-tight rounded-xl shadow-md cursor-pointer transition active:scale-[0.99]"
         >
           {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
           <span>{busy ? 'Running Feasibility & Valuation...' : 'Run feasibility'}</span>
@@ -323,7 +323,7 @@ export default function SiteControls({
           variant="outline"
           onClick={onExploreAnother}
           disabled={busy}
-          className="w-1/3 shrink-0 gap-2 text-sm h-auto min-h-11 py-2 px-4 whitespace-normal text-center leading-tight rounded-xl border-border hover:bg-muted/80 cursor-pointer"
+          className="min-w-0 sm:w-1/3 shrink-0 gap-1.5 sm:gap-2 text-sm h-auto min-h-11 py-2 px-2 sm:px-4 whitespace-normal text-center leading-tight rounded-xl border-border hover:bg-muted/80 cursor-pointer"
         >
           <Compass className="w-4 h-4 shrink-0" />
           <span>Explore another location</span>
