@@ -8,7 +8,14 @@ from typing import TYPE_CHECKING
 
 import httpx
 
-from bessible.api.postcodes_io import PostcodeLookupRequest, PostcodeLookupResponse, PostcodeResult, PostcodesIoError
+from bessible.api.postcodes_io import (
+    PostcodeLookupRequest,
+    PostcodeLookupResponse,
+    PostcodeResult,
+    PostcodesIoError,
+    ReverseGeocodeRequest,
+    ReverseGeocodeResponse,
+)
 from bessible.config import settings
 
 if TYPE_CHECKING:
@@ -72,3 +79,16 @@ async def geocode_postcode(postcode: str, *, client: httpx.AsyncClient | None = 
         msg = f"postcodes.io has no coordinates for '{postcode}' (crown dependency or unmapped)"
         raise PostcodeNotFoundError(msg)
     return result
+
+
+async def nearest_postcode(lat: float, lon: float, *, client: httpx.AsyncClient | None = None) -> PostcodeResult | None:
+    """The live UK postcode nearest to a point, searching up to 20 km out. None when there is none (not in the UK)."""
+    req = ReverseGeocodeRequest(lat=lat, lon=lon, limit=1, widesearch=True)
+    if client is None:
+        async with httpx.AsyncClient(timeout=TIMEOUT_S) as own:
+            resp = await own.get(req.URL, params=req.params())
+    else:
+        resp = await client.get(req.URL, params=req.params())
+    resp.raise_for_status()
+    results = ReverseGeocodeResponse.model_validate(resp.json()).result
+    return results[0] if results else None

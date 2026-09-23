@@ -22,6 +22,10 @@ interface RunViewProps {
   locationBar?: React.ReactNode;
   siteData?: SiteData | null;
   siteDataLoading?: boolean;
+  /** No run holds the site, so the user can put the pin anywhere to pick one. */
+  freePlacement?: boolean;
+  /** Called when the user drags or clicks the pin to a new place. */
+  onPinPlaced?: (pos: [number, number]) => void;
 }
 
 /** Location bar and status notices, then the report (when finished) or the map, capacity controls and live trace. */
@@ -34,6 +38,8 @@ export default function RunView({
   locationBar,
   siteData,
   siteDataLoading,
+  freePlacement = false,
+  onPinPlaced,
 }: RunViewProps) {
   const { runStatus, capacityProposal, capacityLoading } = run;
   // The map's substation list is the alternates; the serving substation comes separately
@@ -82,7 +88,7 @@ export default function RunView({
       {runStatus?.status === 'rejected' && (
         <div className="p-3 bg-muted/60 border border-border rounded-lg text-xs text-foreground flex items-center gap-2">
           <Compass className="w-4 h-4 text-muted-foreground shrink-0" />
-          <span>Site declined. Enter a new location or drag the pin, then screen it again.</span>
+          <span>Site declined. Enter a new location or place the pin on the map, then screen it again.</span>
         </div>
       )}
 
@@ -124,16 +130,22 @@ export default function RunView({
         <SiteMap
           initialCenter={run.initialCenter}
           currentPosition={run.currentPosition}
-          onPositionChange={(pos) => void run.moveTo(pos)}
+          onPositionChange={(pos) => {
+            onPinPlaced?.(pos);
+            // A capacity re-check only applies to a run's site; a free pin just moves
+            if (freePlacement) run.clampTo(pos);
+            else void run.moveTo(pos);
+          }}
           onPositionClamped={run.clampTo}
           capacityMw={run.selectedCapacityMw}
-          substations={capacityLoading ? [] : capacityProposal?.alternates || []}
-          servingSubstation={capacityLoading ? null : serving}
-          servingPosition={capacityLoading ? null : capacityProposal?.substation_position}
-          cableRoute={capacityLoading ? null : capacityProposal?.route}
+          substations={capacityLoading || freePlacement ? [] : capacityProposal?.alternates || []}
+          servingSubstation={capacityLoading || freePlacement ? null : serving}
+          servingPosition={capacityLoading || freePlacement ? null : capacityProposal?.substation_position}
+          cableRoute={capacityLoading || freePlacement ? null : capacityProposal?.route}
           inspireGeoJson={run.inspireGeoJson}
           siteData={siteData}
           siteDataLoading={siteDataLoading}
+          freePlacement={freePlacement}
         />
 
         {(capacityLoading || runStatus?.status === 'awaiting_confirmation') && capacityProposal && (

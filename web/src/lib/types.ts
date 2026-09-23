@@ -5,6 +5,8 @@ export interface PositionCoords {
 
 export interface AssessmentRequest {
   postcode?: string;
+  /** A map pin: the exact site, no postcode needed. */
+  position?: PositionCoords;
   property_url?: string;
   link?: string;
   battery_mw?: number;
