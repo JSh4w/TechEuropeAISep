@@ -45,16 +45,20 @@ To serve the web UI, SSE progress traces, and fast capacity checks:
 uv run uvicorn bessible.api.app:app --host 0.0.0.0 --port 8000
 ```
 
+Each user's Google key is stored encrypted (with `KEY_ENCRYPTION_SECRET`) in `out/keys.db` (`/app/out/keys.db` in
+Docker, on the `bessible-out` volume). Set `KEY_DB_PATH` to keep it somewhere else.
+
 ---
 
 ## Running the Frontend
 
-The web UI is a Next.js 16 application featuring an interactive MapLibre map, live SSE pipeline trace, human-in-the-loop decision controls, and synthesized report viewing.
+The web UI is a Next.js 16 application featuring an interactive Google Maps site map, live SSE pipeline trace, human-in-the-loop decision controls, and synthesized report viewing.
 
 ### 1. Prerequisites
 
 - **Node.js 20+** (`node -v` >= 20.9)
 - **FastAPI backend** running on `http://localhost:8000` (step 4 above)
+- **`GOOGLE_MAPS_API_KEY`** in the root `.env` (a browser key for the Maps JavaScript API; without it the map shows a "Map unavailable" notice). `GOOGLE_MAPS_MAP_ID` is optional locally. `GOOGLE_ROUTES_API_KEY` (a separate server key) turns on road cable routes; without it cable runs are straight lines. See `.env.example`.
 
 ### 2. Install Dependencies
 
@@ -256,6 +260,12 @@ Services started:
 To stop the containers:
 ```bash
 docker compose down
+```
+
+**Upgrading a deployment from before the key store moved:** keys used to live at `/var/lib/bessible/keys.db`
+(`bessible-data` volume). Copy them once, before pulling the new images, or users re-enter their Google key:
+```bash
+docker compose exec api cp /var/lib/bessible/keys.db /app/out/keys.db
 ```
 
 ### 2. Building Images Locally

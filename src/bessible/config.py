@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     )  # spenergynetworks.opendatasoft.com
     npg_api_key: SecretStr | None = None  # northernpowergrid.opendatasoft.com
     os_api_key: SecretStr | None = None  # osdatahub.os.uk (Ordnance Survey maps)
+    # Server key for the Google Routes API (cable routes). Not the browser Maps key. Tests unset it to stay offline.
+    google_routes_api_key: SecretStr | None = None
 
     # Outside the bundled (Dorking-only) UKPN snapshot, look up live DNO headroom. Tests turn it off to stay offline.
     live_capacity: bool = True
@@ -53,7 +55,7 @@ class Settings(BaseSettings):
     key_encryption_secret: SecretStr | None = None  # master secret; root-owned EnvironmentFile on the VM
     key_encryption_key_id: str = "k1"  # id stamped on new ciphertexts
     key_encryption_previous: dict[str, SecretStr] = {}  # old key_id -> secret, kept while rotating
-    key_db_path: Path = Path("/var/lib/bessible/keys.db")
+    key_db_path: Path = Path(__file__).resolve().parents[2] / "out" / "keys.db"  # per-user sealed Google keys
 
 
 settings = Settings()

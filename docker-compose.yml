@@ -20,7 +20,6 @@ services:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_NAMESPACE=default
       - KEY_ENCRYPTION_SECRET=${KEY_ENCRYPTION_SECRET:-}
-      - KEY_STORE_PATH=/var/lib/bessible/keys.db
       - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-}
       - ALLOWED_EMAILS=${ALLOWED_EMAILS:-}
       - CLASSIFIER_BACKEND=${CLASSIFIER_BACKEND:-auto}
@@ -76,7 +75,6 @@ services:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_NAMESPACE=default
       - KEY_ENCRYPTION_SECRET=${KEY_ENCRYPTION_SECRET:-}
-      - KEY_STORE_PATH=/var/lib/bessible/keys.db
       - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-}
       - ALLOWED_EMAILS=${ALLOWED_EMAILS:-}
       - CLASSIFIER_BACKEND=${CLASSIFIER_BACKEND:-auto}
@@ -119,6 +117,8 @@ services:
       - FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN:-}
       - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-}
       - FIREBASE_APP_ID=${FIREBASE_APP_ID:-}
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-}
+      - GOOGLE_MAPS_MAP_ID=${GOOGLE_MAPS_MAP_ID:-}
     env_file:
       - path: .env
         required: false

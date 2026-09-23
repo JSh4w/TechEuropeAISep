@@ -129,6 +129,9 @@ export function useSiteRun(checkCapacityAt: CapacityChecker) {
     }
   };
 
+  /** Moves the pin without a capacity re-check, e.g. when the map pulls it back inside the screening radius. */
+  const clampTo = (pos: [number, number]) => setCurrentPosition(pos);
+
   const toggleFlexible = (enabled: boolean) => {
     setFlexibleConnection(enabled);
     if (enabled && capacityProposal?.ceiling_mw) {
@@ -270,6 +273,7 @@ export function useSiteRun(checkCapacityAt: CapacityChecker) {
     simulate,
     reset,
     moveTo,
+    clampTo,
     toggleFlexible,
     decision,
     submitDecision,

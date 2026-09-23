@@ -150,6 +150,9 @@ def collect_computed_numbers(inp: SynthesisInput) -> set[float]:
     if inp.capacity.distance_km is not None:
         numbers.add(inp.capacity.distance_km)
         numbers.add(round(inp.capacity.distance_km, 1))
+    if inp.capacity.route is not None:
+        numbers.add(inp.capacity.route.distance_km)
+        numbers.add(round(inp.capacity.route.distance_km, 1))
     if inp.capacity.connection_voltage_kv is not None:
         numbers.add(inp.capacity.connection_voltage_kv)
 

@@ -14,6 +14,8 @@ import { setTokenGetter } from './api';
 export interface RuntimeConfig {
   enabled: boolean;
   firebase?: FirebaseClientConfig;
+  /** Browser key for the Maps JavaScript API; empty when unset. */
+  googleMaps?: { apiKey: string; mapId: string };
 }
 
 interface AuthState {

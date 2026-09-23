@@ -16,6 +16,7 @@ from pydantic import HttpUrl
 
 from bessible.api import opendatasoft
 from bessible.api import ukpn as ukpn_api
+from bessible.cable_route import with_cable_route
 from bessible.config import settings
 from bessible.models import AlternateOption, Artifact, CapacityInput, CapacityOutput, Position
 from bessible.ukpn.competition import competition
@@ -473,6 +474,7 @@ def _propose_grid_level(
         binding_direction=binding_direction,
         binding_season=None,
         distance_km=round(dist, 2),
+        substation_position=Position(lat=serving.position.lat, lon=serving.position.lon),
         alternates=alternates,
         tia_threshold_mw=None,
         snapshot_date=snapshot.fetched_at,
@@ -539,6 +541,7 @@ def propose(
         binding_direction=head.binding_direction,
         binding_season=None,
         distance_km=round(dist, 2),
+        substation_position=Position(lat=serving_row.latitude, lon=serving_row.longitude),
         alternates=alternates,
         tia_threshold_mw=tia_threshold_mw(serving_row),
         snapshot_date=snapshot.fetched_at,
@@ -657,6 +660,7 @@ async def _propose_live(position: Position, run_id: str) -> CapacityOutput | Non
         recommended_mw=firm_mw,
         binding_direction="import" if (import_mw or 0.0) <= (head.generation_mw or 0.0) else "export",
         distance_km=round(serving.distance_km, 2),
+        substation_position=Position(lat=serving.coords.lat, lon=serving.coords.lon),
         alternates=[
             AlternateOption(
                 substation=s.name,
@@ -825,5 +829,6 @@ async def propose_capacity(inp: CapacityInput) -> CapacityOutput:
         out = await verify_live(
             inp.location.position, snapshot, out, inp.run_id, flexible=flexible, requested_mw=requested_mw
         )
+    out = await with_cable_route(inp.location.position, out, inp.run_id)
     await asyncio.to_thread(_append_check_log, inp, out)
     return out

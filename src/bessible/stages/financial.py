@@ -27,9 +27,14 @@ async def financial_model(inp: FinancialInput) -> FinancialOutput:
     """Evaluate financial returns across 2-hour, 4-hour, and 8-hour duration cases in plain code."""
     await asyncio.sleep(0)
     mw = inp.site.capacity_mw
-    distance_km = (
-        inp.capacity.distance_km if (inp.capacity.distance_km is not None and inp.capacity.distance_km > 0) else 1.0
-    )
+    # The cable is priced on the route (by road when found); without one, on the straight line as before
+    route = inp.capacity.route
+    straight = inp.capacity.distance_km
+    if route is not None and route.distance_km > 0:
+        distance_km, distance_basis = route.distance_km, "by road" if route.method == "road" else "straight line"
+    else:
+        distance_km = straight if (straight is not None and straight > 0) else 1.0
+        distance_basis = "straight line" if straight else "assumed"
     firm_mw = inp.capacity.firm_mw
     ceiling_mw = inp.capacity.ceiling_mw
     budget_gbp = inp.request.budget_gbp
@@ -84,7 +89,7 @@ async def financial_model(inp: FinancialInput) -> FinancialOutput:
         claim=(
             f"Financing terms: interest rate {int_rate:g}%, arrangement fee {arr_fee:g}%, "
             f"discount rate {disc_rate:g}%, debt share {debt_share:g}%, loan term {loan_term} years. "
-            f"{volt_label} connection ({rate_str} over {distance_km:.2f} km): "
+            f"{volt_label} connection ({rate_str} over {distance_km:.2f} km, {distance_basis}): "
             f"£{c_4h.connection_gbp[0]:,.0f} - £{c_4h.connection_gbp[1]:,.0f} ({crossing_str}). "
             f"OTCF fee: {c_4h.otcf_state}."
         ),

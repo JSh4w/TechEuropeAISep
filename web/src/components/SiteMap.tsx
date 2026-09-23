@@ -1,141 +1,270 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Map, Marker, NavigationControl, Popup, StyleSpecification, GeoJSONSource } from 'maplibre-gl';
-import { SiteData, SubstationOption } from '../lib/types';
-import { generateFootprintPolygon, distanceKm, clampPositionWithinDistance } from '../lib/footprint';
-import { MapPin, Zap, Layers, Navigation, Info } from 'lucide-react';
+import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
+import { CableRoute, PositionCoords, SiteData, SubstationOption } from '../lib/types';
+import type { RuntimeConfig } from '../lib/auth';
+import {
+  generateFootprintPolygon,
+  distanceKm,
+  clampPositionWithinDistance,
+  footprintHalfDiagonalKm,
+} from '../lib/footprint';
+import { Zap, Layers, MapPinOff } from 'lucide-react';
 
 interface SiteMapProps {
   initialCenter?: [number, number]; // [lng, lat]
   currentPosition: [number, number]; // [lng, lat]
   onPositionChange: (pos: [number, number]) => void;
+  /** The map pulled the pin back inside the screening radius (no capacity re-check needed). */
+  onPositionClamped?: (pos: [number, number]) => void;
   capacityMw: number;
   substations?: SubstationOption[];
-  areasGeoJson?: GeoJSON.GeoJSON | null;
+  /** The predicted point of connection; `substations` holds only the alternates. */
+  servingSubstation?: SubstationOption | null;
+  /** Real position of the serving substation, when the capacity check returns it. */
+  servingPosition?: PositionCoords | null;
+  /** Cable route from the capacity check: by road, or a straight line. */
+  cableRoute?: CableRoute | null;
   inspireGeoJson?: GeoJSON.GeoJSON | null;
   siteData?: SiteData | null;
   siteDataLoading?: boolean;
   maxDistanceKm?: number;
 }
 
-// Clean, modern Esri World Street Map raster style (no API key required, reliable, no watermark)
-const STREETS_MAP_STYLE: StyleSpecification = {
-  version: 8,
-  sources: {
-    esri_streets: {
-      type: 'raster',
-      tiles: [
-        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
-      ],
-      tileSize: 256,
-      attribution: '&copy; Esri &copy; OpenStreetMap contributors',
-    },
-  },
-  layers: [
-    {
-      id: 'esri-street-tiles',
-      type: 'raster',
-      source: 'esri_streets',
-      minzoom: 0,
-      maxzoom: 19,
-    },
-  ],
-};
+type MapsError = 'missing' | 'rejected' | 'failed';
 
-const SATELLITE_MAP_STYLE: StyleSpecification = {
-  version: 8,
-  sources: {
-    esri: {
-      type: 'raster',
-      tiles: [
-        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      ],
-      tileSize: 256,
-      attribution: '&copy; Esri, Maxar, Earthstar Geographics',
-    },
-  },
-  layers: [
-    {
-      id: 'esri-tiles',
-      type: 'raster',
-      source: 'esri',
-      minzoom: 0,
-      maxzoom: 19,
-    },
-  ],
-};
+// Google's 256 px tiles put its zoom one level below MapLibre's for the same scale (MapLibre used 14.5)
+const MAP_ZOOM = 15.5;
+const FOOTPRINT_STROKE = '#059669';
+const FOOTPRINT_WEIGHT = 2; // outline px; the hatch stripes are a third lighter
+const HATCH_WEIGHT = FOOTPRINT_WEIGHT * (2 / 3);
+const TITLE_OPACITY = 2 / 3; // title boundary: same weight as the compound, a third more see-through
+
+const MISSING_KEY = new Error('GOOGLE_MAPS_API_KEY is not set');
+
+// setOptions may run only once per page; the loader then caches each library.
+let mapsOptionsSet = false;
+async function loadGoogleMaps(apiKey: string | undefined) {
+  if (!apiKey) throw MISSING_KEY;
+  if (!mapsOptionsSet) {
+    setOptions({ key: apiKey, v: 'weekly' });
+    mapsOptionsSet = true;
+  }
+  await Promise.all([importLibrary('maps'), importLibrary('marker')]);
+}
+
+const toLatLng = ([lng, lat]: [number, number]): google.maps.LatLngLiteral => ({ lat, lng });
+
+/** Google anchors marker content by its bottom centre; MapLibre's default was the centre. */
+function centered(el: HTMLElement): HTMLElement {
+  el.style.transform = 'translateY(50%)';
+  return el;
+}
+
+/** GeoJSON Polygon / MultiPolygon rings as Google paths (other geometry types draw nothing). */
+function polygonPaths(geometry: GeoJSON.Geometry): google.maps.LatLngLiteral[][] {
+  const ring = (r: GeoJSON.Position[]) => r.map(([lng, lat]) => ({ lat, lng }));
+  if (geometry.type === 'Polygon') return geometry.coordinates.map(ring);
+  if (geometry.type === 'MultiPolygon') return geometry.coordinates.flat().map(ring);
+  return [];
+}
+
+/** Diagonal stripes in the outline's colour, translucent between them; fixed on-screen size at any zoom. */
+const HATCH_CSS =
+  `repeating-linear-gradient(45deg, ${FOOTPRINT_STROKE} 0 ${HATCH_WEIGHT}px, ` +
+  `rgba(16, 185, 129, 0.12) ${HATCH_WEIGHT}px 7px)`;
+
+type Bounds = google.maps.LatLngBoundsLiteral;
+interface HatchOverlay extends google.maps.OverlayView {
+  setBounds(bounds: Bounds): void;
+}
+
+// Built on first use: google.maps.OverlayView only exists once the API has loaded
+let HatchOverlayClass: (new (bounds: Bounds) => HatchOverlay) | null = null;
+
+/** The hatch as a div the map keeps over `bounds`; unlike a GroundOverlay it can move, e.g. while the pin is dragged. */
+function createHatchOverlay(bounds: Bounds): HatchOverlay {
+  HatchOverlayClass ??= class extends google.maps.OverlayView implements HatchOverlay {
+    private div = document.createElement('div');
+
+    constructor(private bounds: Bounds) {
+      super();
+      Object.assign(this.div.style, { position: 'absolute', pointerEvents: 'none', background: HATCH_CSS });
+    }
+
+    onAdd() {
+      this.getPanes()?.overlayLayer.appendChild(this.div);
+    }
+
+    onRemove() {
+      this.div.remove();
+    }
+
+    draw() {
+      const projection = this.getProjection();
+      const sw = projection?.fromLatLngToDivPixel({ lat: this.bounds.south, lng: this.bounds.west });
+      const ne = projection?.fromLatLngToDivPixel({ lat: this.bounds.north, lng: this.bounds.east });
+      if (!sw || !ne) return;
+      Object.assign(this.div.style, {
+        left: `${sw.x}px`,
+        top: `${ne.y}px`,
+        width: `${ne.x - sw.x}px`,
+        height: `${sw.y - ne.y}px`,
+      });
+    }
+
+    setBounds(bounds: Bounds) {
+      this.bounds = bounds;
+      this.draw();
+    }
+  };
+  return new HatchOverlayClass(bounds);
+}
+
+// Yellow, not blue (blue reads as water), on a dark casing so it still shows along Google's yellow main roads
+const CABLE_COLOR = '#FBEC5D';
+const CABLE_CASING = '#1f2937';
+const CABLE_OPACITY = 1;
+const POWER_LINE = '#D32F2F';
+const POWER_LINE_ON_SITE = '#7F1D1D'; // darker and thicker: a line crossing the site
+
+/** Cable line style: solid along a road route, dashed for a straight line (an estimate, not a route). */
+function cableStyle(dashed: boolean): google.maps.PolylineOptions {
+  return dashed
+    ? {
+        strokeOpacity: 0,
+        icons: [
+          {
+            icon: { path: 'M 0,-1 0,1', strokeColor: CABLE_COLOR, strokeOpacity: CABLE_OPACITY, scale: 2.5 },
+            offset: '0',
+            repeat: '10px',
+          },
+        ],
+      }
+    : { strokeOpacity: CABLE_OPACITY, icons: [] };
+}
+
+/** Where an estimated substation is drawn: its distance from the site, fanned out by rank (no real coordinates). */
+function estimatedSubstationCoords(center: [number, number], distanceKm: number, idx: number, count: number): [number, number] {
+  const angle = (idx * 2 * Math.PI) / Math.max(count, 1) + 0.35;
+  const dist = (distanceKm || 0.8) * 1000;
+  const dLat = (dist * Math.cos(angle)) / 111139;
+  const dLng = (dist * Math.sin(angle)) / (111139 * Math.cos((center[1] * Math.PI) / 180));
+  return [center[0] + dLng, center[1] + dLat];
+}
+
+/** Estimated markers to draw: the serving substation first (unless the alternates already list it), then the rest. */
+function rankedSubstations(serving: SubstationOption | null | undefined, alternates: SubstationOption[]) {
+  const listed = serving && alternates.some((s) => s.name.toLowerCase() === serving.name.toLowerCase());
+  return serving && !listed ? [serving, ...alternates] : alternates;
+}
+
+/** Bounds of the Reserved Compound square centred on `center`. */
+function footprintBounds(center: [number, number], capacityMw: number): Bounds {
+  const ring = generateFootprintPolygon(center, capacityMw, 4).geometry.coordinates[0];
+  const [west, south] = ring[0];
+  const [east, north] = ring[2];
+  return { north, south, east, west };
+}
 
 export default function SiteMap({
   initialCenter = [-0.1132, 51.5014],
   currentPosition,
   onPositionChange,
+  onPositionClamped,
   capacityMw,
   substations = [],
-  areasGeoJson,
+  servingSubstation,
+  servingPosition,
+  cableRoute,
   inspireGeoJson,
   siteData,
   siteDataLoading = false,
   maxDistanceKm = 2.0,
 }: SiteMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<Map | null>(null);
-  const pinMarkerRef = useRef<Marker | null>(null);
-  const substationMarkersRef = useRef<Marker[]>([]);
-  const siteDataMarkersRef = useRef<Marker[]>([]);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
+  const pinMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const substationMarkersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const siteDataMarkersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const footprintRef = useRef<google.maps.Rectangle | null>(null);
+  const hatchRef = useRef<HatchOverlay | null>(null);
+  const radiusMaskRef = useRef<google.maps.Polygon | null>(null);
+  const radiusLineRef = useRef<google.maps.Polyline | null>(null);
+  const cableRayRef = useRef<google.maps.Polyline | null>(null);
+  const cableCasingRef = useRef<google.maps.Polyline | null>(null);
+  const rayTargetRef = useRef<{ center: [number, number]; coords: [number, number] } | null>(null);
+  const titleRefs = useRef<google.maps.Polygon[]>([]);
+  const gridLinesRef = useRef<google.maps.Data | null>(null);
+  const inspireRef = useRef<google.maps.Data | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [distanceFromOrigin, setDistanceFromOrigin] = useState<number>(0);
+  const [mapsError, setMapsError] = useState<MapsError | null>(null);
   const [mapMode, setMapMode] = useState<'streets' | 'satellite'>('streets');
+  const distanceFromOrigin = distanceKm(initialCenter, currentPosition);
 
-  // Latest props for the marker's dragend handler, which is bound once
-  const latestRef = useRef({ initialCenter, maxDistanceKm, onPositionChange });
+  // Latest props for the marker's dragend handler and the clamp, which must not re-bind on every render
+  const latestRef = useRef({ initialCenter, maxDistanceKm, capacityMw, onPositionChange, onPositionClamped });
   useEffect(() => {
-    latestRef.current = { initialCenter, maxDistanceKm, onPositionChange };
+    latestRef.current = { initialCenter, maxDistanceKm, capacityMw, onPositionChange, onPositionClamped };
   });
 
   // Initialize Map
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
+    const container = mapContainer.current;
+    const config = (window as unknown as { __CONFIG__?: RuntimeConfig }).__CONFIG__?.googleMaps;
+    // Google calls this when it rejects the key (wrong referrer, API not enabled)
+    (window as unknown as { gm_authFailure?: () => void }).gm_authFailure = () => setMapsError('rejected');
 
-    const map = new Map({
-      container: mapContainer.current,
-      style: STREETS_MAP_STYLE,
-      center: currentPosition,
-      zoom: 14.5,
-      pitch: 15,
-    });
-
-    map.addControl(new NavigationControl({ showCompass: true }), 'top-right');
-
-    map.on('load', () => {
-      setMapLoaded(true);
-    });
-
-    mapRef.current = map;
+    let cancelled = false;
+    loadGoogleMaps(config?.apiKey)
+      .then(() => {
+        if (cancelled) return;
+        const map = new google.maps.Map(container, {
+          center: toLatLng(currentPosition),
+          zoom: MAP_ZOOM,
+          mapId: config?.mapId || 'DEMO_MAP_ID',
+          mapTypeId: 'roadmap',
+          tilt: 0,
+          disableDefaultUI: true,
+          zoomControl: true,
+          zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_TOP },
+          gestureHandling: 'greedy',
+          clickableIcons: false,
+        });
+        const infoWindow = new google.maps.InfoWindow();
+        map.addListener('click', () => infoWindow.close());
+        infoWindowRef.current = infoWindow;
+        mapRef.current = map;
+        setMapLoaded(true);
+      })
+      .catch((err) => {
+        if (!cancelled) setMapsError(err === MISSING_KEY ? 'missing' : 'failed');
+      });
 
     return () => {
-      map.remove();
+      cancelled = true;
+      if (mapRef.current) google.maps.event.clearInstanceListeners(mapRef.current);
       mapRef.current = null;
+      pinMarkerRef.current = null;
     };
   }, []);
 
-  // Handle map style switch (Streets vs Satellite)
+  // Handle basemap switch (Streets vs Satellite); overlays are separate objects and survive it
   const handleToggleMapMode = () => {
     if (!mapRef.current) return;
     const nextMode = mapMode === 'streets' ? 'satellite' : 'streets';
     setMapMode(nextMode);
-    mapRef.current.setStyle(nextMode === 'streets' ? STREETS_MAP_STYLE : SATELLITE_MAP_STYLE);
-    // Reload state triggers layer re-addition
-    setMapLoaded(false);
-    mapRef.current.once('style.load', () => {
-      setMapLoaded(true);
-    });
+    mapRef.current.setMapTypeId(nextMode === 'streets' ? 'roadmap' : 'satellite');
   };
 
   // Update center when initialCenter changes
   useEffect(() => {
     if (mapRef.current && mapLoaded) {
-      mapRef.current.easeTo({ center: currentPosition, zoom: 14.5 });
+      mapRef.current.panTo(toLatLng(currentPosition));
+      mapRef.current.setZoom(MAP_ZOOM);
     }
   }, [initialCenter]);
 
@@ -149,96 +278,107 @@ export default function SiteMap({
       el.className = 'site-marker flex items-center justify-center cursor-grab active:cursor-grabbing group';
       el.innerHTML = `
         <div class="relative flex items-center justify-center">
-          <div class="absolute -inset-3 bg-emerald-500/20 rounded-full animate-ping pointer-events-none"></div>
-          <div class="relative bg-emerald-600 text-white p-2.5 rounded-full shadow-xl border-2 border-white ring-2 ring-emerald-500/40 transition-transform transform group-hover:scale-110">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <div class="absolute -inset-2 bg-emerald-500/20 rounded-full animate-ping pointer-events-none"></div>
+          <div class="relative bg-emerald-600 text-white p-1.5 rounded-full shadow-lg border-2 border-white ring-2 ring-emerald-500/40 transition-transform transform group-hover:scale-110">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
               <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
             </svg>
           </div>
-          <div class="absolute -bottom-8 bg-zinc-950 text-white font-mono text-[10px] font-semibold px-2 py-0.5 rounded shadow-lg whitespace-nowrap border border-zinc-800 pointer-events-none">
+          <div class="absolute -bottom-6 bg-zinc-950 text-white font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap border border-zinc-800 pointer-events-none">
             BESS Point
+          </div>
+          <div data-drag-hint class="absolute bottom-full mb-3 bg-zinc-950 text-white text-[10px] font-medium px-2 py-1 rounded shadow-lg whitespace-nowrap pointer-events-none opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-hover:delay-500 group-active:opacity-0 group-active:delay-0">
+            Drag to move within ${latestRef.current.maxDistanceKm} km
           </div>
         </div>
       `;
 
-      const marker = new Marker({
-        element: el,
-        draggable: true,
-      })
-        .setLngLat(currentPosition)
-        .addTo(map);
+      const marker = new google.maps.marker.AdvancedMarkerElement({
+        map,
+        position: toLatLng(currentPosition),
+        content: centered(el),
+        gmpDraggable: true,
+        zIndex: 1000,
+      });
 
-      marker.on('dragend', () => {
-        const lngLat = marker.getLngLat();
-        const rawPos: [number, number] = [lngLat.lng, lngLat.lat];
+      // Move the compound with the pin while dragging; the clamp and capacity re-check wait for the drop
+      marker.addEventListener('gmp-drag', () => {
+        const p = marker.position;
+        if (!p) return;
+        const pos: [number, number] = p instanceof google.maps.LatLng ? [p.lng(), p.lat()] : [p.lng, p.lat];
+        const bounds = footprintBounds(pos, latestRef.current.capacityMw);
+        footprintRef.current?.setBounds(bounds);
+        hatchRef.current?.setBounds(bounds);
+        // Until the drop and re-check, the cable is a dashed straight line from the pin
+        const target = rayTargetRef.current?.coords;
+        if (target) {
+          const straight = [toLatLng(pos), toLatLng(target)];
+          cableRayRef.current?.setOptions({ path: straight, ...cableStyle(true) });
+          cableCasingRef.current?.setPath(straight);
+        }
+      });
+
+      marker.addEventListener('gmp-dragend', () => {
+        const p = marker.position;
+        if (!p) return;
+        const rawPos: [number, number] = p instanceof google.maps.LatLng ? [p.lng(), p.lat()] : [p.lng, p.lat];
         const latest = latestRef.current;
-        const clamped = clampPositionWithinDistance(latest.initialCenter, rawPos, latest.maxDistanceKm);
-        marker.setLngLat(clamped);
-        const dist = distanceKm(latest.initialCenter, clamped);
-        setDistanceFromOrigin(dist);
+        const limit = Math.max(0, latest.maxDistanceKm - footprintHalfDiagonalKm(latest.capacityMw));
+        const clamped = clampPositionWithinDistance(latest.initialCenter, rawPos, limit);
+        marker.position = toLatLng(clamped);
+        // The user has found the drag, so the hover hint has done its job
+        el.querySelector('[data-drag-hint]')?.remove();
         latest.onPositionChange(clamped);
       });
 
       pinMarkerRef.current = marker;
     } else {
-      pinMarkerRef.current.setLngLat(currentPosition);
+      pinMarkerRef.current.position = toLatLng(currentPosition);
     }
+  }, [mapLoaded, currentPosition]);
 
-    const dist = distanceKm(initialCenter, currentPosition);
-    setDistanceFromOrigin(dist);
-  }, [mapLoaded, currentPosition, initialCenter, maxDistanceKm]);
+  // Keep the whole Reserved Compound inside the screening radius after a capacity or centre change, not just on drag
+  useEffect(() => {
+    const limit = Math.max(0, maxDistanceKm - footprintHalfDiagonalKm(capacityMw));
+    if (distanceKm(initialCenter, currentPosition) <= limit + 0.001) return;
+    latestRef.current.onPositionClamped?.(clampPositionWithinDistance(initialCenter, currentPosition, limit));
+  }, [currentPosition, capacityMw, initialCenter, maxDistanceKm]);
 
-  // Update Footprint Polygon GeoJSON source
+  // Reserved Compound: outlined square plus a diagonal-stripe hatch over the same bounds
   useEffect(() => {
     if (!mapRef.current || !mapLoaded) return;
     const map = mapRef.current;
+    const bounds = footprintBounds(currentPosition, capacityMw);
 
-    const footprintGeoJson = generateFootprintPolygon(currentPosition, capacityMw, 4);
-
-    const sourceId = 'site-footprint-source';
-    const fillLayerId = 'site-footprint-fill';
-    const lineLayerId = 'site-footprint-outline';
-
-    const source = map.getSource(sourceId) as GeoJSONSource;
-
-    if (source) {
-      source.setData(footprintGeoJson);
+    if (footprintRef.current) {
+      footprintRef.current.setBounds(bounds);
     } else {
-      map.addSource(sourceId, {
-        type: 'geojson',
-        data: footprintGeoJson,
+      footprintRef.current = new google.maps.Rectangle({
+        map,
+        bounds,
+        strokeColor: FOOTPRINT_STROKE,
+        strokeWeight: FOOTPRINT_WEIGHT,
+        fillOpacity: 0,
+        clickable: false,
+        zIndex: 10,
       });
+    }
 
-      map.addLayer({
-        id: fillLayerId,
-        type: 'fill',
-        source: sourceId,
-        paint: {
-          'fill-color': '#10b981',
-          'fill-opacity': 0.28,
-        },
-      });
-
-      map.addLayer({
-        id: lineLayerId,
-        type: 'line',
-        source: sourceId,
-        paint: {
-          'line-color': '#059669',
-          'line-width': 2.5,
-          'line-dasharray': [3, 1.5],
-        },
-      });
+    if (hatchRef.current) {
+      hatchRef.current.setBounds(bounds);
+    } else {
+      hatchRef.current = createHatchOverlay(bounds);
+      hatchRef.current.setMap(map);
     }
   }, [mapLoaded, currentPosition, capacityMw]);
 
-  // Add 2 km constraint radius circle layer
+  // Screening radius: boundary line plus a dulled exterior (a polygon with the radius circle as its hole)
   useEffect(() => {
     if (!mapRef.current || !mapLoaded) return;
     const map = mapRef.current;
 
     const points = 64;
-    const coords: [number, number][] = [];
+    const circle: google.maps.LatLngLiteral[] = [];
     const [centerLng, centerLat] = initialCenter;
     const radiusMeters = maxDistanceKm * 1000;
 
@@ -246,69 +386,62 @@ export default function SiteMap({
       const angle = (i * 2 * Math.PI) / points;
       const dLat = (radiusMeters * Math.cos(angle)) / 111139;
       const dLng = (radiusMeters * Math.sin(angle)) / (111139 * Math.cos((centerLat * Math.PI) / 180));
-      coords.push([centerLng + dLng, centerLat + dLat]);
+      circle.push({ lat: centerLat + dLat, lng: centerLng + dLng });
     }
 
-    const circleGeoJson: GeoJSON.Feature<GeoJSON.Polygon> = {
-      type: 'Feature',
-      properties: { label: `${maxDistanceKm} km Screening Radius` },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [coords],
-      },
-    };
+    // Outer ring clockwise, far past any working zoom; the circle runs the other way, so it is a hole
+    const span = 2;
+    const outer = [
+      { lat: centerLat + span, lng: centerLng - span },
+      { lat: centerLat + span, lng: centerLng + span },
+      { lat: centerLat - span, lng: centerLng + span },
+      { lat: centerLat - span, lng: centerLng - span },
+    ];
+    const paths = [outer, [...circle].reverse()];
 
-    const sourceId = 'pin-radius-source';
-    const source = map.getSource(sourceId) as GeoJSONSource;
-
-    if (source) {
-      source.setData(circleGeoJson);
+    // No stroke on the mask itself, or its outer box would draw as a square; the boundary is its own line
+    if (radiusMaskRef.current) {
+      radiusMaskRef.current.setPaths(paths);
+      radiusLineRef.current?.setPath(circle);
     } else {
-      map.addSource(sourceId, {
-        type: 'geojson',
-        data: circleGeoJson,
+      radiusMaskRef.current = new google.maps.Polygon({
+        map,
+        paths,
+        fillColor: '#0f172a',
+        fillOpacity: 0.32,
+        strokeOpacity: 0,
+        clickable: false,
+        zIndex: 1,
       });
-
-      map.addLayer({
-        id: 'pin-radius-line',
-        type: 'line',
-        source: sourceId,
-        paint: {
-          'line-color': '#0284c7',
-          'line-width': 1.5,
-          'line-dasharray': [3, 3],
-          'line-opacity': 0.6,
-        },
+      radiusLineRef.current = new google.maps.Polyline({
+        map,
+        path: circle,
+        strokeColor: '#0284c7',
+        strokeOpacity: 0.7,
+        strokeWeight: 1.5,
+        clickable: false,
+        zIndex: 2,
       });
     }
   }, [mapLoaded, initialCenter, maxDistanceKm]);
 
-  // Render Substation Markers & Cable Vector Ray
+  // Render estimated substation markers (live site data draws the real ones below)
   useEffect(() => {
     if (!mapRef.current || !mapLoaded) return;
     const map = mapRef.current;
 
-    // Clear old markers
-    substationMarkersRef.current.forEach((m) => m.remove());
+    substationMarkersRef.current.forEach((m) => (m.map = null));
     substationMarkersRef.current = [];
 
-    if (siteData) return; // real substations (true coordinates) are drawn from LocationData below
+    if (siteData) return;
 
-    const calculatedSubstations: Array<{ coords: [number, number]; sub: SubstationOption }> = [];
-
-    substations.forEach((sub, idx) => {
-      const angle = (idx * 2 * Math.PI) / Math.max(substations.length, 1) + 0.35;
-      const distOffset = (sub.distance_km || 0.8) * 1000;
-      const latOffset = (distOffset * Math.cos(angle)) / 111139;
-      const lngOffset =
-        (distOffset * Math.sin(angle)) /
-        (111139 * Math.cos((initialCenter[1] * Math.PI) / 180));
-      const subCoords: [number, number] = [
-        initialCenter[0] + lngOffset,
-        initialCenter[1] + latOffset,
-      ];
-
-      calculatedSubstations.push({ coords: subCoords, sub });
+    const ranked = rankedSubstations(servingSubstation, substations);
+    ranked.forEach((sub, idx) => {
+      // The serving substation's real position when the capacity check returns it; the rest are estimated
+      const isServing = servingPosition && sub.name.toLowerCase() === servingSubstation?.name.toLowerCase();
+      const subCoords: [number, number] = isServing
+        ? [servingPosition.lon, servingPosition.lat]
+        : estimatedSubstationCoords(initialCenter, sub.distance_km, idx, ranked.length);
 
       const el = document.createElement('div');
       el.className = 'substation-marker group cursor-pointer';
@@ -328,147 +461,175 @@ export default function SiteMap({
         </div>
       `;
 
-      const popup = new Popup({ offset: 15, closeButton: false }).setHTML(`
-        <div class="p-2.5 text-xs font-sans space-y-1">
-          <div class="font-bold text-sm text-foreground">${sub.name}</div>
-          <div class="text-muted-foreground flex justify-between gap-3">
-            <span>Route Distance:</span>
-            <span class="font-mono font-medium text-foreground">${sub.distance_km.toFixed(2)} km</span>
+      const popupHtml = `
+        <div class="p-1 text-xs font-sans space-y-1 text-zinc-800">
+          <div class="font-bold text-sm">${sub.name}</div>
+          <div class="text-zinc-500 flex justify-between gap-3">
+            <span>Distance (straight line):</span>
+            <span class="font-mono font-medium text-zinc-900">${sub.distance_km.toFixed(2)} km</span>
           </div>
-          <div class="text-muted-foreground flex justify-between gap-3">
+          <div class="text-zinc-500 flex justify-between gap-3">
             <span>Primary Voltage:</span>
-            <span class="font-mono font-medium text-foreground">${sub.voltage_kv} kV</span>
+            <span class="font-mono font-medium text-zinc-900">${sub.voltage_kv} kV</span>
           </div>
-          <div class="text-emerald-600 dark:text-emerald-400 font-semibold pt-1 border-t border-border flex justify-between">
+          <div class="text-emerald-600 font-semibold pt-1 border-t border-zinc-200 flex justify-between">
             <span>Available Headroom:</span>
             <span class="font-mono">${sub.effective_headroom_mw} MW</span>
           </div>
           ${sub.is_marginal ? '<div class="text-amber-600 font-medium text-[11px] pt-0.5">Note: Distance > 1km introduces higher contestable cabling capex.</div>' : ''}
         </div>
-      `);
+      `;
 
-      const marker = new Marker({ element: el })
-        .setLngLat(subCoords)
-        .setPopup(popup)
-        .addTo(map);
+      const marker = new google.maps.marker.AdvancedMarkerElement({
+        map,
+        position: toLatLng(subCoords),
+        content: el,
+        gmpClickable: true,
+      });
+      marker.addEventListener('gmp-click', () => {
+        infoWindowRef.current?.setContent(popupHtml);
+        infoWindowRef.current?.open({ anchor: marker, map });
+      });
 
       substationMarkersRef.current.push(marker);
     });
 
-    // Draw Cable Vector Ray to the primary serving substation
-    if (calculatedSubstations.length > 0) {
-      const primary = calculatedSubstations[0];
-      const rayGeoJson: GeoJSON.Feature<GeoJSON.LineString> = {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'LineString',
-          coordinates: [currentPosition, primary.coords],
-        },
-      };
+  }, [mapLoaded, servingSubstation, servingPosition, substations, initialCenter, siteData]);
 
-      const sourceId = 'cable-ray-source';
-      const source = map.getSource(sourceId) as GeoJSONSource;
-      if (source) {
-        source.setData(rayGeoJson);
-      } else {
-        map.addSource(sourceId, {
-          type: 'geojson',
-          data: rayGeoJson,
-        });
-
-        map.addLayer({
-          id: 'cable-ray-line',
-          type: 'line',
-          source: sourceId,
-          paint: {
-            'line-color': '#0ea5e9',
-            'line-width': 2.5,
-            'line-dasharray': [4, 2],
-            'line-opacity': 0.85,
-          },
-        });
-      }
+  // Cable from the pin to the serving substation. Target: the position the capacity check returns, else the same-named
+  // substation in live site data, else its estimated marker. Drawn along the road route when there is one (solid),
+  // else straight (dashed). While a capacity re-check is loading there is no serving substation, so keep a dashed
+  // line to the last target for this site rather than blink out.
+  useEffect(() => {
+    if (!mapRef.current || !mapLoaded) return;
+    const name = servingSubstation?.name.toLowerCase();
+    let target: [number, number] | null = servingPosition ? [servingPosition.lon, servingPosition.lat] : null;
+    if (!target && name) {
+      const real = siteData?.deterministic?.grid?.substations?.find((s) => s.name.toLowerCase() === name);
+      const ranked = rankedSubstations(servingSubstation, substations);
+      const idx = ranked.findIndex((s) => s.name.toLowerCase() === name);
+      if (real) target = [real.coords.lon, real.coords.lat];
+      else if (!siteData) target = estimatedSubstationCoords(initialCenter, ranked[idx].distance_km, idx, ranked.length);
     }
-  }, [mapLoaded, substations, initialCenter, currentPosition, siteData]);
+
+    const last = rayTargetRef.current;
+    if (target) rayTargetRef.current = { center: initialCenter, coords: target };
+    else if (!name && last && last.center[0] === initialCenter[0] && last.center[1] === initialCenter[1])
+      target = last.coords;
+
+    if (!target) {
+      cableRayRef.current?.setMap(null);
+      cableCasingRef.current?.setMap(null);
+      cableRayRef.current = null;
+      cableCasingRef.current = null;
+      return;
+    }
+    // The route starts where the pin was checked; the pin may since have been nudged back inside the radius
+    const road =
+      cableRoute?.method === 'road' && name ? cableRoute.path.slice(1).map((p) => ({ lat: p.lat, lng: p.lon })) : null;
+    const path = road ? [toLatLng(currentPosition), ...road] : [toLatLng(currentPosition), toLatLng(target)];
+    const options = { path, ...cableStyle(!road) };
+    if (cableRayRef.current) {
+      cableRayRef.current.setOptions(options);
+      cableCasingRef.current?.setPath(path);
+    } else {
+      cableCasingRef.current = new google.maps.Polyline({
+        map: mapRef.current,
+        path,
+        strokeColor: CABLE_CASING,
+        strokeOpacity: 0.6,
+        strokeWeight: 5,
+        clickable: false,
+        zIndex: 5,
+      });
+      cableRayRef.current = new google.maps.Polyline({
+        map: mapRef.current,
+        strokeColor: CABLE_COLOR,
+        strokeWeight: 3,
+        clickable: false,
+        zIndex: 6,
+        ...options,
+      });
+    }
+  }, [mapLoaded, servingSubstation, servingPosition, cableRoute, substations, initialCenter, currentPosition, siteData]);
 
   // Real data layer from LocationData: title boundary, overhead lines, substations, generation / storage projects
   useEffect(() => {
     if (!mapRef.current || !mapLoaded) return;
     const map = mapRef.current;
 
-    siteDataMarkersRef.current.forEach((m) => m.remove());
+    siteDataMarkersRef.current.forEach((m) => (m.map = null));
     siteDataMarkersRef.current = [];
+    titleRefs.current.forEach((p) => p.setMap(null));
+    titleRefs.current = [];
 
     const grid = siteData?.deterministic?.grid;
     const esc = (v: unknown) => String(v ?? '').replace(/[<>&]/g, '');
     const fmt = (v: unknown, unit = '') => (typeof v === 'number' ? `${Math.round(v * 10) / 10}${unit}` : 'n/a');
 
-    const shapes: GeoJSON.FeatureCollection = {
+    // Title: a white halo under the orange outline, both above every other shape
+    const titlePaths = siteData?.title ? polygonPaths(siteData.title.geometry) : [];
+    if (titlePaths.length) {
+      titleRefs.current = [
+        new google.maps.Polygon({
+          map,
+          paths: titlePaths,
+          strokeColor: '#ffffff',
+          strokeWeight: FOOTPRINT_WEIGHT * 2,
+          strokeOpacity: TITLE_OPACITY,
+          fillOpacity: 0,
+          clickable: false,
+          zIndex: 20,
+        }),
+        new google.maps.Polygon({
+          map,
+          paths: titlePaths,
+          strokeColor: '#c2410c',
+          strokeWeight: FOOTPRINT_WEIGHT,
+          strokeOpacity: TITLE_OPACITY,
+          fillColor: '#f97316',
+          fillOpacity: 0.3 * TITLE_OPACITY,
+          clickable: false,
+          zIndex: 21,
+        }),
+      ];
+    }
+
+    if (!gridLinesRef.current) {
+      const data = new google.maps.Data({ map });
+      data.setStyle((f) => ({
+        strokeColor: f.getProperty('crosses') ? POWER_LINE_ON_SITE : POWER_LINE,
+        strokeWeight: f.getProperty('crosses') ? 3 : 1.5,
+        clickable: false,
+        zIndex: 4,
+      }));
+      gridLinesRef.current = data;
+    }
+    const lines = gridLinesRef.current;
+    lines.forEach((f) => lines.remove(f));
+    lines.addGeoJson({
       type: 'FeatureCollection',
       features: (grid?.lines ?? []).map((l) => ({
         type: 'Feature',
-        properties: { layer: 'line', crosses: !!l.crosses_site },
+        properties: { crosses: !!l.crosses_site },
         geometry: l.geometry,
       })),
-    };
-    const titleShape: GeoJSON.FeatureCollection = {
-      type: 'FeatureCollection',
-      features: siteData?.title ? [{ type: 'Feature', properties: {}, geometry: siteData.title.geometry }] : [],
-    };
-    const titleSource = map.getSource('site-title-source') as GeoJSONSource;
-    if (titleSource) {
-      titleSource.setData(titleShape);
-    } else {
-      map.addSource('site-title-source', { type: 'geojson', data: titleShape });
-      map.addLayer({
-        id: 'site-title-fill',
-        type: 'fill',
-        source: 'site-title-source',
-        paint: { 'fill-color': '#f97316', 'fill-opacity': 0.3 },
-      });
-      map.addLayer({
-        id: 'site-title-halo',
-        type: 'line',
-        source: 'site-title-source',
-        paint: { 'line-color': '#ffffff', 'line-width': 6 },
-      });
-      map.addLayer({
-        id: 'site-title-outline',
-        type: 'line',
-        source: 'site-title-source',
-        paint: { 'line-color': '#c2410c', 'line-width': 3 },
-      });
-    }
-    // keep the title above the footprint and every other shape
-    ['site-title-fill', 'site-title-halo', 'site-title-outline'].forEach((id) => map.getLayer(id) && map.moveLayer(id));
-
-    const source = map.getSource('site-data-source') as GeoJSONSource;
-    if (source) {
-      source.setData(shapes);
-    } else {
-      map.addSource('site-data-source', { type: 'geojson', data: shapes });
-      map.addLayer({
-        id: 'site-data-lines',
-        type: 'line',
-        source: 'site-data-source',
-        filter: ['==', ['get', 'layer'], 'line'],
-        paint: {
-          'line-color': ['case', ['get', 'crosses'], '#dc2626', '#7c3aed'],
-          'line-width': 1.5,
-          'line-dasharray': [3, 2],
-        },
-      });
-    }
+    });
     if (!grid) return;
 
     const add = (lngLat: [number, number], html: string, popupHtml: string) => {
       const el = document.createElement('div');
       el.innerHTML = html;
-      const marker = new Marker({ element: el })
-        .setLngLat(lngLat)
-        .setPopup(new Popup({ offset: 12 }).setHTML(`<div class="p-2 text-xs text-zinc-800">${popupHtml}</div>`))
-        .addTo(map);
+      const marker = new google.maps.marker.AdvancedMarkerElement({
+        map,
+        position: toLatLng(lngLat),
+        content: centered(el),
+        gmpClickable: true,
+      });
+      marker.addEventListener('gmp-click', () => {
+        infoWindowRef.current?.setContent(`<div class="p-1 text-xs text-zinc-800">${popupHtml}</div>`);
+        infoWindowRef.current?.open({ anchor: marker, map });
+      });
       siteDataMarkersRef.current.push(marker);
     };
 
@@ -514,47 +675,69 @@ export default function SiteMap({
     });
   }, [mapLoaded, siteData]);
 
-  // Render INSPIRE Land Registry Parcels if present
+  // Render INSPIRE Land Registry Parcels if present; clear them when they go away
   useEffect(() => {
-    if (!mapRef.current || !mapLoaded || !inspireGeoJson) return;
-    const map = mapRef.current;
-    const sourceId = 'inspire-parcels-source';
-
-    const source = map.getSource(sourceId) as GeoJSONSource;
-    if (source) {
-      source.setData(inspireGeoJson);
-    } else {
-      map.addSource(sourceId, {
-        type: 'geojson',
-        data: inspireGeoJson,
-      });
-
-      map.addLayer({
-        id: 'inspire-parcels-line',
-        type: 'line',
-        source: sourceId,
-        paint: {
-          'line-color': '#e11d48',
-          'line-width': 1.5,
-          'line-opacity': 0.7,
-        },
-      });
-
-      map.addLayer({
-        id: 'inspire-parcels-fill',
-        type: 'fill',
-        source: sourceId,
-        paint: {
-          'fill-color': '#f43f5e',
-          'fill-opacity': 0.08,
-        },
+    if (!mapRef.current || !mapLoaded) return;
+    if (!inspireRef.current) {
+      inspireRef.current = new google.maps.Data({ map: mapRef.current });
+      inspireRef.current.setStyle({
+        strokeColor: '#e11d48',
+        strokeWeight: 1.5,
+        strokeOpacity: 0.7,
+        fillColor: '#f43f5e',
+        fillOpacity: 0.08,
+        clickable: false,
+        zIndex: 3,
       });
     }
+    const parcels = inspireRef.current;
+    parcels.forEach((f) => parcels.remove(f));
+    if (!inspireGeoJson) return;
+    try {
+      parcels.addGeoJson(inspireGeoJson);
+    } catch {
+      // not a Feature / FeatureCollection: draw nothing
+    }
   }, [mapLoaded, inspireGeoJson]);
+
+  const zoomToTitle = () => {
+    const map = mapRef.current;
+    if (!map || !siteData?.title) return;
+    const [minLon, minLat, maxLon, maxLat] = siteData.title.bbox;
+    map.fitBounds({ west: minLon, south: minLat, east: maxLon, north: maxLat }, 120);
+    // fitBounds has no maxZoom: cap it once the move settles (MapLibre's maxZoom 18 = Google 19)
+    google.maps.event.addListenerOnce(map, 'idle', () => {
+      if ((map.getZoom() ?? 0) > 19) map.setZoom(19);
+    });
+  };
 
   return (
     <div className="relative w-full h-[72vh] min-h-[560px] rounded-2xl overflow-hidden border border-border shadow-md bg-muted">
       <div ref={mapContainer} className="w-full h-full" />
+
+      {mapsError && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-muted p-6">
+          <div className="max-w-sm text-center space-y-2">
+            <MapPinOff className="w-8 h-8 mx-auto text-muted-foreground" />
+            <div className="text-sm font-semibold text-foreground">Map unavailable</div>
+            <div className="text-xs text-muted-foreground">
+              {mapsError === 'missing' ? (
+                <>
+                  Set <code className="font-mono">GOOGLE_MAPS_API_KEY</code> in the root <code className="font-mono">.env</code>{' '}
+                  and restart the web app.
+                </>
+              ) : mapsError === 'rejected' ? (
+                <>
+                  Google rejected the Maps key. Check that the Maps JavaScript API is enabled and this domain is allowed
+                  for <code className="font-mono">GOOGLE_MAPS_API_KEY</code>.
+                </>
+              ) : (
+                <>Google Maps did not load. Check the network connection and reload.</>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Top Left: Location & Pin Coordinate Telemetry */}
       <div className="absolute top-3.5 left-3.5 flex flex-col gap-2 pointer-events-none z-10">
@@ -576,49 +759,64 @@ export default function SiteMap({
         )}
       </div>
 
-      {/* Top Right: Layer Switcher & Controls */}
-      <div className="absolute top-3.5 right-14 z-10 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={handleToggleMapMode}
-          className="bg-card/90 hover:bg-card text-foreground backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm border border-border text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
-        >
-          <Layers className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-          <span>{mapMode === 'streets' ? 'Satellite View' : 'Street Map'}</span>
-        </button>
-      </div>
+      {/* Top Right: Layer Switcher (left of Google's zoom control) */}
+      {!mapsError && (
+        <div className="absolute top-3.5 right-14 z-10 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleToggleMapMode}
+            className="bg-card/90 hover:bg-card text-foreground backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm border border-border text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+          >
+            <Layers className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span>{mapMode === 'streets' ? 'Satellite View' : 'Street Map'}</span>
+          </button>
+        </div>
+      )}
 
-      {/* Bottom Floating Legend Bar */}
-      <div className="absolute bottom-3.5 left-3.5 right-3.5 flex flex-wrap items-center justify-between gap-2 pointer-events-none z-10">
+      {/* Bottom Floating Legend Bar: kept above Google's logo and terms, which must stay visible */}
+      <div className="absolute bottom-7 left-3.5 right-3.5 flex flex-wrap items-center justify-between gap-2 pointer-events-none z-10">
         <div className="bg-card/90 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-sm border border-border/80 text-[11px] text-muted-foreground flex items-center gap-3">
           <div className="flex items-center gap-1.5">
-            <span className="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500 opacity-80"></span>
-            <span className="font-medium text-foreground">BESS Footprint ({capacityMw} MW)</span>
+            <span
+              className="inline-block w-2.5 h-2.5 rounded-sm border border-emerald-600"
+              style={{
+                background:
+                  'repeating-linear-gradient(45deg, #059669 0 1px, rgba(16, 185, 129, 0.15) 1px 3px)',
+              }}
+            ></span>
+            <span className="font-medium text-foreground">Reserved Compound ({capacityMw} MW)</span>
           </div>
           <div className="flex items-center gap-1.5 border-l border-border pl-3">
-            <span className="inline-block w-4 h-0.5 border-t border-dashed border-sky-500"></span>
-            <span>Cable Connection Run</span>
+            {cableRoute?.method === 'road' ? (
+              <>
+                <span
+                  className="inline-block w-4 h-1 rounded-sm"
+                  style={{ background: CABLE_COLOR, boxShadow: `0 0 0 1px ${CABLE_CASING}` }}
+                ></span>
+                <span>Cable route by road ({cableRoute.distance_km.toFixed(2)} km)</span>
+              </>
+            ) : (
+              <>
+                <span
+                  className="inline-block w-4 h-1 rounded-sm"
+                  style={{ background: `repeating-linear-gradient(90deg, ${CABLE_COLOR} 0 3px, ${CABLE_CASING} 3px 5px)` }}
+                ></span>
+                <span>
+                  Cable run, straight line{cableRoute ? ` (${cableRoute.distance_km.toFixed(2)} km)` : ''}
+                </span>
+              </>
+            )}
           </div>
           {siteData && (
             <>
               <div className="flex items-center gap-1.5 border-l border-border pl-3">
                 <span className="inline-block w-2.5 h-2.5 rounded-sm border-2 border-orange-700 bg-orange-300"></span>
                 <span>Title {siteData.title ? `${siteData.title.area_ha.toFixed(2)} ha` : 'not registered'}</span>
-                {siteData.title && (
+                {siteData.title && !mapsError && (
                   <button
                     type="button"
                     className="pointer-events-auto underline text-orange-600 dark:text-orange-400 font-semibold cursor-pointer ml-1"
-                    onClick={() => {
-                      if (!siteData.title) return;
-                      const [minLon, minLat, maxLon, maxLat] = siteData.title.bbox;
-                      mapRef.current?.fitBounds(
-                        [
-                          [minLon, minLat],
-                          [maxLon, maxLat],
-                        ],
-                        { padding: 120, maxZoom: 18 }
-                      );
-                    }}
+                    onClick={zoomToTitle}
                   >
                     zoom to title
                   </button>
@@ -628,7 +826,13 @@ export default function SiteMap({
                 <span>⚡ substations</span>
                 <span>🔋 storage</span>
                 <span>☀️ solar</span>
-                <span>┄ lines</span>
+                <span>
+                  <span style={{ color: POWER_LINE }}>—</span> power lines{' '}
+                  <span className="font-black" style={{ color: POWER_LINE_ON_SITE }}>
+                    —
+                  </span>{' '}
+                  crossing site
+                </span>
               </div>
             </>
           )}
@@ -645,10 +849,6 @@ export default function SiteMap({
           )}
         </div>
 
-        <div className="hidden sm:flex bg-card/90 backdrop-blur-md px-2.5 py-1 rounded-lg shadow-sm border border-border/80 text-[10px] text-muted-foreground items-center gap-1">
-          <Info className="w-3 h-3 text-emerald-600" />
-          <span>Drag marker to adjust location within 2 km</span>
-        </div>
       </div>
     </div>
   );
