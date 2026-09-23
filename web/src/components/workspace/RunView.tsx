@@ -54,6 +54,19 @@ export default function RunView({
         is_marginal: (capacityProposal.distance_km ?? 0) > 1,
       }
     : null;
+  const status = runStatus?.status;
+  const screening = run.starting || capacityLoading;
+  // After "Run feasibility" the run goes back to running with the proposal still set.
+  const engines = status === 'running' && !screening && !!capacityProposal;
+  const cardCapacity = screening || engines || status === 'awaiting_confirmation' ? capacityProposal : null;
+  const cardPlaceholder =
+    status === 'not_viable'
+      ? 'No viable grid connection here'
+      : status === 'rejected'
+        ? 'Site declined: pick another location'
+        : status === 'failed' || status === 'out_of_area'
+          ? 'No capacity for this location'
+          : undefined;
   const notViableMessage =
     runStatus?.message || runStatus?.capacity?.message || 'Capacity is below the minimum viable connection threshold.';
 
@@ -148,24 +161,26 @@ export default function RunView({
           freePlacement={freePlacement}
         />
 
-        {(capacityLoading || runStatus?.status === 'awaiting_confirmation') && capacityProposal && (
-          <SiteControls
-            capacity={capacityProposal}
-            loading={capacityLoading}
-            selectedCapacityMw={run.selectedCapacityMw}
-            onCapacityChange={run.setSelectedCapacityMw}
-            flexibleConnection={run.flexibleConnection}
-            onFlexibleToggle={run.toggleFlexible}
-            onConfirm={onConfirm}
-            onExploreAnother={run.exploreAnother}
-            submitting={run.submittingDecision}
-          />
-        )}
+        <SiteControls
+          capacity={cardCapacity}
+          loading={screening}
+          placeholder={cardPlaceholder}
+          selectedCapacityMw={run.selectedCapacityMw}
+          onCapacityChange={run.setSelectedCapacityMw}
+          flexibleConnection={run.flexibleConnection}
+          onFlexibleToggle={run.toggleFlexible}
+          onConfirm={onConfirm}
+          onExploreAnother={run.exploreAnother}
+          submitting={run.submittingDecision}
+          running={engines}
+        />
       </div>
 
-      {/* Right col: live agent trace, level with the location bar */}
-      <div className="lg:col-span-1 min-w-0">
-        <LiveTrace events={run.events} isConnected={run.isStreaming} status={runStatus?.status || 'idle'} runId={run.runId} />
+      {/* Right col: live agent trace, level with the location bar and as tall as the left column */}
+      <div className="lg:col-span-1 min-w-0 relative">
+        <div className="lg:absolute lg:inset-0">
+          <LiveTrace events={run.events} isConnected={run.isStreaming} status={status || 'idle'} runId={run.runId} fill />
+        </div>
       </div>
     </div>
   );

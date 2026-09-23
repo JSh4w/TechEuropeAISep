@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CapacityOutput } from '../lib/types';
 import { calculateAcres } from '../lib/footprint';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
@@ -8,11 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { Zap, AlertTriangle, Play, Compass, Sliders, Info, Box, Layers, Loader2 } from 'lucide-react';
+import { Zap, AlertTriangle, Play, Compass, Sliders, Info, Box, Layers, Loader2, ChevronDown } from 'lucide-react';
 
 interface SiteControlsProps {
-  capacity: CapacityOutput;
+  /** Null until a screening returns capacity: the card then shows dashes under a blur. */
+  capacity: CapacityOutput | null;
+  /** Screening in flight: a spinner over the blur. */
   loading?: boolean;
+  /** Shown over the blurred card when there is no capacity and nothing is loading. */
+  placeholder?: string;
   selectedCapacityMw: number;
   onCapacityChange: (mw: number) => void;
   flexibleConnection: boolean;
@@ -21,11 +25,14 @@ interface SiteControlsProps {
   /** Declines this site so the user can pick another one. */
   onExploreAnother: () => void;
   submitting?: boolean;
+  /** The site is confirmed and the engines are running: the card stays, its controls are locked. */
+  running?: boolean;
 }
 
 export default function SiteControls({
   capacity,
   loading = false,
+  placeholder = 'Screen a location to size the battery',
   selectedCapacityMw,
   onCapacityChange,
   flexibleConnection,
@@ -33,9 +40,14 @@ export default function SiteControls({
   onConfirm,
   onExploreAnother,
   submitting = false,
+  running = false,
 }: SiteControlsProps) {
-  const firmMw = capacity.firm_mw ?? 0;
-  const ceilingMw = capacity.ceiling_mw ?? 0;
+  const empty = !capacity;
+  const obscured = empty || loading;
+  const ready = !obscured && !running;
+  const busy = submitting || running;
+  const firmMw = capacity?.firm_mw ?? 0;
+  const ceilingMw = capacity?.ceiling_mw ?? 0;
   const minFloorMw = 5;
 
   // Max selectable capacity: firm if flexible is off, ceiling if flexible is on
@@ -46,25 +58,67 @@ export default function SiteControls({
   // Reserved acreage calculation
   const acreage = calculateAcres(selectedCapacityMw, 4);
   const estContainers = Math.ceil(acreage.energyMWh / 2.8); // ~2.8 MWh per standardized battery enclosure
+  /** Dashes instead of numbers while there is no capacity to show. */
+  const show = (value: string | number) => (empty ? '—' : value);
+
+  // Once the capacity is in, a bouncing chevron points down to the card until its buttons have been on screen.
+  const footerRef = useRef<HTMLDivElement>(null);
+  const [footerVisible, setFooterVisible] = useState(true);
+  const [seenFor, setSeenFor] = useState<CapacityOutput | null>(null);
+  useEffect(() => {
+    const el = footerRef.current;
+    if (!ready || !el) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      setFooterVisible(entry.isIntersecting);
+      if (entry.isIntersecting) setSeenFor(capacity);
+    }, { threshold: 0.5 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ready, capacity]);
+  const showChevron = ready && !footerVisible && seenFor !== capacity;
+  const blurred = obscured ? 'blur-[3px] select-none' : '';
 
   return (
     <Card className="relative border-border bg-card shadow-md rounded-2xl overflow-hidden">
-      {loading && (
-        <div className="absolute inset-0 z-10 bg-background/90 backdrop-blur-sm flex flex-col items-center justify-center gap-2">
-          <Loader2 className="w-6 h-6 text-emerald-600 animate-spin" />
-          <span className="text-xs font-semibold text-muted-foreground">Screening new location...</span>
+      {obscured && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2" role="status">
+          {loading ? (
+            <>
+              <Loader2 className="w-7 h-7 text-emerald-600 animate-spin" />
+              <span className="text-xs font-semibold text-foreground">Screening location...</span>
+            </>
+          ) : (
+            <span className="text-xs font-semibold text-muted-foreground bg-card/80 px-3 py-1.5 rounded-lg border border-border shadow-xs">
+              {placeholder}
+            </span>
+          )}
         </div>
       )}
+      {showChevron && (
+        <button
+          type="button"
+          onClick={() => footerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })}
+          className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 text-emerald-700 hover:text-emerald-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.23)] cursor-pointer transition-colors"
+          aria-label="Scroll down to confirm the site"
+          title="Scroll down to confirm the site"
+        >
+          <ChevronDown className="w-16 h-16 animate-bounce" strokeWidth={2.5} />
+        </button>
+      )}
+      <div
+        inert={obscured}
+        className="flex flex-col gap-(--card-spacing)"
+      >
       <CardHeader className="p-5 border-b border-border/80 bg-muted/20">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="text-[11px] uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className={`w-1.5 h-1.5 rounded-full bg-emerald-500 ${ready ? 'animate-pulse' : ''}`}></span>
               Human-in-the-Loop Confirmation
             </div>
-            <CardTitle className="text-xl font-bold flex items-center gap-2.5 mt-1 tracking-tight">
-              <span>{loading ? '—' : capacity.serving_substation || 'Primary Substation'}</span>
-              {!loading && capacity.voltage_kv && (
+            <CardTitle className={`text-xl font-bold flex items-center gap-2.5 mt-1 tracking-tight ${blurred}`}>
+              <span>{obscured ? '—' : capacity?.serving_substation || 'Primary Substation'}</span>
+              {!obscured && capacity?.voltage_kv && (
                 <Badge variant="outline" className="font-mono text-xs font-semibold bg-blue-500/10 text-blue-600 border-blue-500/30">
                   {capacity.voltage_kv} kV Busbar
                 </Badge>
@@ -73,7 +127,7 @@ export default function SiteControls({
           </div>
 
           {/* Flexible Toggle with shadcn Switch */}
-          <div className="flex items-center gap-3 bg-card px-3.5 py-2 rounded-xl border border-border shadow-xs">
+          <div className={`flex items-center gap-3 bg-card px-3.5 py-2 rounded-xl border border-border shadow-xs ${blurred}`}>
             <div className="text-right">
               <label
                 htmlFor="flexible-toggle"
@@ -87,14 +141,15 @@ export default function SiteControls({
               id="flexible-toggle"
               checked={flexibleConnection}
               onCheckedChange={onFlexibleToggle}
+              disabled={busy}
             />
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-5 p-5">
+      <CardContent className={`space-y-5 p-5 ${blurred}`}>
         {/* Prompts for below-floor or non-viable */}
-        {isBelowFloorFirm && !flexibleConnection && (
+        {!empty && isBelowFloorFirm && !flexibleConnection && (
           <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
             <div className="text-xs text-amber-950 dark:text-amber-200 space-y-1">
@@ -121,7 +176,7 @@ export default function SiteControls({
               <Sliders className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span className="text-sm font-semibold text-foreground">Target Export Capacity:</span>
               <span className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
-                {selectedCapacityMw} MW
+                {show(selectedCapacityMw)} MW
               </span>
             </div>
 
@@ -131,7 +186,7 @@ export default function SiteControls({
                 variant="outline"
                 size="sm"
                 onClick={() => onCapacityChange(Math.min(firmMw, maxAllowedMw))}
-                disabled={firmMw < minFloorMw}
+                disabled={busy || firmMw < minFloorMw}
                 className="text-[11px] h-6 px-2 font-mono"
               >
                 Firm ({firmMw} MW)
@@ -142,6 +197,7 @@ export default function SiteControls({
                   variant="outline"
                   size="sm"
                   onClick={() => onCapacityChange(ceilingMw)}
+                  disabled={busy}
                   className="text-[11px] h-6 px-2 font-mono text-amber-600 dark:text-amber-400 border-amber-500/30"
                 >
                   Ceiling ({ceilingMw} MW)
@@ -162,7 +218,7 @@ export default function SiteControls({
                   Math.max(maxAllowedMw, minFloorMw)
                 ),
               ]}
-              disabled={maxAllowedMw < minFloorMw}
+              disabled={busy || maxAllowedMw < minFloorMw}
               onValueChange={(val) => {
                 const nextVal = Array.isArray(val) ? val[0] : typeof val === 'number' ? val : selectedCapacityMw;
                 onCapacityChange(nextVal);
@@ -204,7 +260,7 @@ export default function SiteControls({
                 <span>Energy Capacity</span>
               </div>
               <div className="text-base font-bold font-mono text-foreground mt-1">
-                {acreage.energyMWh} MWh
+                {show(acreage.energyMWh)} MWh
               </div>
               <div className="text-[10px] text-muted-foreground">4-Hour System Duration</div>
             </div>
@@ -215,7 +271,7 @@ export default function SiteControls({
                 <span>BESS Enclosures</span>
               </div>
               <div className="text-base font-bold font-mono text-foreground mt-1">
-                ~{estContainers} Units
+                ~{show(estContainers)} Units
               </div>
               <div className="text-[10px] text-muted-foreground">Modular BESS Enclosures</div>
             </div>
@@ -226,48 +282,49 @@ export default function SiteControls({
                 <span>Reserved Compound</span>
               </div>
               <div className="text-base font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">
-                {acreage.midAcres} Acres
+                {show(acreage.midAcres)} Acres
               </div>
               <div className="text-[10px] text-muted-foreground">
-                {(acreage.midAcres * 0.404686).toFixed(2)} Hectares footprint
+                {show((acreage.midAcres * 0.404686).toFixed(2))} Hectares footprint
               </div>
             </div>
 
             <div className="p-3 bg-muted/30 rounded-xl border border-border">
               <div className="text-[11px] text-muted-foreground font-medium">Consenting Route</div>
               <div className="text-base font-bold text-foreground mt-1 truncate">
-                {selectedCapacityMw >= 50 ? 'NSIP (DCO)' : 'TCPA (Local)'}
+                {empty ? '—' : selectedCapacityMw >= 50 ? 'NSIP (DCO)' : 'TCPA (Local)'}
               </div>
               <div className="text-[10px] text-muted-foreground">
-                {selectedCapacityMw >= 50 ? 'Nationally Significant' : 'Town & Country Planning'}
+                {empty ? 'Planning regime' : selectedCapacityMw >= 50 ? 'Nationally Significant' : 'Town & Country Planning'}
               </div>
             </div>
           </div>
         </div>
       </CardContent>
 
-      <CardFooter className="p-5 flex items-center gap-3">
+      <CardFooter ref={footerRef} className={`p-5 flex items-center gap-3 ${blurred}`}>
         <Button
           type="button"
           onClick={onConfirm}
-          disabled={submitting || selectedCapacityMw < minFloorMw || selectedCapacityMw > maxAllowedMw}
+          disabled={busy || selectedCapacityMw < minFloorMw || selectedCapacityMw > maxAllowedMw}
           className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold gap-2 text-sm h-11 rounded-xl shadow-md cursor-pointer transition active:scale-[0.99]"
         >
-          <Play className="w-4 h-4 fill-current" />
-          <span>{submitting ? 'Running Feasibility & Valuation...' : 'Run feasibility'}</span>
+          {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
+          <span>{busy ? 'Running Feasibility & Valuation...' : 'Run feasibility'}</span>
         </Button>
 
         <Button
           type="button"
           variant="outline"
           onClick={onExploreAnother}
-          disabled={submitting}
+          disabled={busy}
           className="w-1/3 shrink-0 gap-2 text-sm h-auto min-h-11 py-2 px-4 whitespace-normal text-center leading-tight rounded-xl border-border hover:bg-muted/80 cursor-pointer"
         >
           <Compass className="w-4 h-4 shrink-0" />
           <span>Explore another location</span>
         </Button>
       </CardFooter>
+      </div>
     </Card>
   );
 }
