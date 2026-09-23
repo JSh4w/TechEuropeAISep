@@ -30,8 +30,8 @@ interface AppHeaderProps {
 
 export default function AppHeader({ onHome, runId, onResetRun, children }: AppHeaderProps) {
   return (
-    <header className="bg-card/90 backdrop-blur-md border-b border-border/80 px-6 py-3.5 flex items-center justify-between shadow-xs sticky top-0 z-30">
-      <div className="flex items-center gap-3">
+    <header className="bg-card/90 backdrop-blur-md border-b border-border/80 px-4 sm:px-6 py-3.5 flex items-center justify-between gap-2 shadow-xs sticky top-0 z-30">
+      <div className="flex items-center gap-3 min-w-0">
         <button
           type="button"
           onClick={onHome}
@@ -44,7 +44,7 @@ export default function AppHeader({ onHome, runId, onResetRun, children }: AppHe
         <div>
           <div className="flex items-center gap-2">
             <span className="text-lg font-bold tracking-tight">Bessible</span>
-            <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30">
+            <Badge variant="outline" className="hidden sm:inline-flex text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30">
               BESS Screening Terminal
             </Badge>
           </div>
@@ -54,7 +54,7 @@ export default function AppHeader({ onHome, runId, onResetRun, children }: AppHe
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         {children}
 
         {runId && (
@@ -62,10 +62,12 @@ export default function AppHeader({ onHome, runId, onResetRun, children }: AppHe
             variant="outline"
             size="sm"
             onClick={onResetRun}
-            className="gap-1.5 text-xs h-8 px-3 rounded-xl border-border cursor-pointer hover:bg-muted/80 transition-colors"
+            aria-label="Reset run"
+            title="Reset run"
+            className="gap-1.5 text-xs h-8 px-2.5 sm:px-3 rounded-xl border-border cursor-pointer hover:bg-muted/80 transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>Reset Run</span>
+            <span className="hidden sm:inline">Reset Run</span>
           </Button>
         )}
       </div>

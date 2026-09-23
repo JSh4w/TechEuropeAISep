@@ -12,6 +12,15 @@ import {
 } from '../lib/footprint';
 import { Zap, Layers, MapPinOff } from 'lucide-react';
 
+/** Material Symbols "layers" icon, to match Google's own map controls. */
+function GoogleLayersIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" className={className}>
+      <path d="M480-118 120-398l66-50 294 228 294-228 66 50-360 280Zm0-202L120-600l360-280 360 280-360 280Zm0-280Zm0 178 230-178-230-178-230 178 230 178Z" />
+    </svg>
+  );
+}
+
 interface SiteMapProps {
   initialCenter?: [number, number]; // [lng, lat]
   currentPosition: [number, number]; // [lng, lat]
@@ -737,72 +746,77 @@ export default function SiteMap({
   };
 
   return (
-    <div className="relative w-full h-[72vh] min-h-[560px] rounded-2xl overflow-hidden border border-border shadow-md bg-muted">
-      <div ref={mapContainer} className="w-full h-full" />
+    <div className="relative w-full">
+      <div className="relative w-full h-[48vh] min-h-[370px] sm:h-[72vh] sm:min-h-[560px] rounded-2xl overflow-hidden border border-border shadow-md bg-muted">
+        <div ref={mapContainer} className="w-full h-full" />
 
-      {mapsError && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-muted p-6">
-          <div className="max-w-sm text-center space-y-2">
-            <MapPinOff className="w-8 h-8 mx-auto text-muted-foreground" />
-            <div className="text-sm font-semibold text-foreground">Map unavailable</div>
-            <div className="text-xs text-muted-foreground">
-              {mapsError === 'missing' ? (
-                <>
-                  Set <code className="font-mono">GOOGLE_MAPS_API_KEY</code> in the root <code className="font-mono">.env</code>{' '}
-                  and restart the web app.
-                </>
-              ) : mapsError === 'rejected' ? (
-                <>
-                  Google rejected the Maps key. Check that the Maps JavaScript API is enabled and this domain is allowed
-                  for <code className="font-mono">GOOGLE_MAPS_API_KEY</code>.
-                </>
-              ) : (
-                <>Google Maps did not load. Check the network connection and reload.</>
-              )}
+        {mapsError && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-muted p-6">
+            <div className="max-w-sm text-center space-y-2">
+              <MapPinOff className="w-8 h-8 mx-auto text-muted-foreground" />
+              <div className="text-sm font-semibold text-foreground">Map unavailable</div>
+              <div className="text-xs text-muted-foreground">
+                {mapsError === 'missing' ? (
+                  <>
+                    Set <code className="font-mono">GOOGLE_MAPS_API_KEY</code> in the root <code className="font-mono">.env</code>{' '}
+                    and restart the web app.
+                  </>
+                ) : mapsError === 'rejected' ? (
+                  <>
+                    Google rejected the Maps key. Check that the Maps JavaScript API is enabled and this domain is allowed
+                    for <code className="font-mono">GOOGLE_MAPS_API_KEY</code>.
+                  </>
+                ) : (
+                  <>Google Maps did not load. Check the network connection and reload.</>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Top Left: Location & Pin Coordinate Telemetry */}
-      <div className="absolute top-3.5 left-3.5 flex flex-col gap-2 pointer-events-none z-10">
-        <div className="bg-card/90 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-sm border border-border/80 text-xs font-medium flex items-center gap-2.5">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-          <span className="font-mono text-foreground font-semibold">
-            {currentPosition[1].toFixed(5)}°N, {Math.abs(currentPosition[0]).toFixed(5)}°{currentPosition[0] >= 0 ? 'E' : 'W'}
-          </span>
-          {!freePlacement && (
-            <span className="text-muted-foreground text-[11px] font-mono border-l border-border pl-2">
-              +{distanceFromOrigin.toFixed(2)} km offset
+        {/* Top Left: Location & Pin Coordinate Telemetry */}
+        <div className="absolute top-3.5 left-3.5 flex flex-col gap-2 pointer-events-none z-10">
+          <div className="bg-card/90 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-sm border border-border/80 text-xs font-medium flex items-center gap-2.5">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            <span className="font-mono text-foreground font-semibold">
+              {currentPosition[1].toFixed(5)}°N, {Math.abs(currentPosition[0]).toFixed(5)}°{currentPosition[0] >= 0 ? 'E' : 'W'}
             </span>
+            {!freePlacement && (
+              <span className="hidden sm:inline text-muted-foreground text-[11px] font-mono border-l border-border pl-2">
+                +{distanceFromOrigin.toFixed(2)} km offset
+              </span>
+            )}
+          </div>
+
+          {substations.length > 0 && (
+            <div className="bg-card/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl shadow-sm border border-border/80 text-xs text-foreground/90 flex items-center gap-2">
+              <Zap className="w-3.5 h-3.5 text-blue-500" />
+              <span>{substations.length} Substation Nodes Polled</span>
+            </div>
           )}
         </div>
 
-        {substations.length > 0 && (
-          <div className="bg-card/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl shadow-sm border border-border/80 text-xs text-foreground/90 flex items-center gap-2">
-            <Zap className="w-3.5 h-3.5 text-blue-500" />
-            <span>{substations.length} Substation Nodes Polled</span>
+        {/* Layer Switcher: a Google-style square under the zoom buttons on mobile, a labelled button left of them on wider screens */}
+        {!mapsError && (
+          <div className="absolute top-[101px] right-2.5 sm:top-3.5 sm:right-14 z-10 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleToggleMapMode}
+              aria-label={mapMode === 'streets' ? 'Satellite View' : 'Street Map'}
+              title={mapMode === 'streets' ? 'Satellite View' : 'Street Map'}
+              className="w-10 h-10 justify-center bg-white text-[#666] shadow-[0_1px_4px_-1px_rgba(0,0,0,0.3)] sm:w-auto sm:h-auto sm:justify-start sm:bg-card/90 sm:hover:bg-card sm:text-foreground sm:backdrop-blur-md sm:px-3 sm:py-1.5 sm:rounded-lg sm:shadow-sm sm:border sm:border-border text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+            >
+              <GoogleLayersIcon className="w-6 h-6 sm:hidden" />
+              <Layers className="hidden sm:block w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span className="hidden sm:inline">{mapMode === 'streets' ? 'Satellite View' : 'Street Map'}</span>
+            </button>
           </div>
         )}
       </div>
 
-      {/* Top Right: Layer Switcher (left of Google's zoom control) */}
-      {!mapsError && (
-        <div className="absolute top-3.5 right-14 z-10 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleToggleMapMode}
-            className="bg-card/90 hover:bg-card text-foreground backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm border border-border text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
-          >
-            <Layers className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span>{mapMode === 'streets' ? 'Satellite View' : 'Street Map'}</span>
-          </button>
-        </div>
-      )}
-
-      {/* Bottom Floating Legend Bar: kept above Google's logo and terms, which must stay visible */}
-      <div className="absolute bottom-7 left-3.5 right-3.5 flex flex-wrap items-center justify-between gap-2 pointer-events-none z-10">
-        <div className="bg-card/90 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-sm border border-border/80 text-[11px] text-muted-foreground flex items-center gap-3">
+      {/* Legend: below the map on mobile; on wider screens it floats above Google's logo and terms, which must stay visible */}
+      <div className="mt-2 sm:mt-0 sm:absolute sm:bottom-7 sm:left-3.5 sm:right-3.5 flex flex-wrap items-center justify-between gap-2 pointer-events-none z-10">
+        <div className="bg-card/90 backdrop-blur-md px-3 py-2 sm:py-1.5 rounded-xl shadow-sm border border-border/80 text-[11px] text-muted-foreground flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-1.5 sm:gap-3 w-full sm:w-auto">
           <div className="flex items-center gap-1.5">
             <span
               className="inline-block w-2.5 h-2.5 rounded-sm border border-emerald-600"
@@ -813,7 +827,7 @@ export default function SiteMap({
             ></span>
             <span className="font-medium text-foreground">Reserved Compound ({capacityMw} MW)</span>
           </div>
-          <div className="flex items-center gap-1.5 border-l border-border pl-3">
+          <div className="flex items-center gap-1.5 sm:border-l sm:border-border sm:pl-3">
             {cableRoute?.method === 'road' ? (
               <>
                 <span
@@ -836,7 +850,7 @@ export default function SiteMap({
           </div>
           {siteData && (
             <>
-              <div className="flex items-center gap-1.5 border-l border-border pl-3">
+              <div className="flex items-center gap-1.5 sm:border-l sm:border-border sm:pl-3">
                 <span className="inline-block w-2.5 h-2.5 rounded-sm border-2 border-orange-700 bg-orange-300"></span>
                 <span>Title {siteData.title ? `${siteData.title.area_ha.toFixed(2)} ha` : 'not registered'}</span>
                 {siteData.title && !mapsError && (
@@ -849,7 +863,7 @@ export default function SiteMap({
                   </button>
                 )}
               </div>
-              <div className="hidden lg:flex items-center gap-2 border-l border-border pl-3 text-[10px]">
+              <div className="flex sm:hidden lg:flex flex-wrap items-center gap-2 lg:border-l lg:border-border lg:pl-3 text-[10px]">
                 <span>⚡ substations</span>
                 <span>🔋 storage</span>
                 <span>☀️ solar</span>
@@ -864,13 +878,13 @@ export default function SiteMap({
             </>
           )}
           {inspireGeoJson && !siteData && (
-            <div className="flex items-center gap-1.5 border-l border-border pl-3">
+            <div className="flex items-center gap-1.5 sm:border-l sm:border-border sm:pl-3">
               <span className="inline-block w-2.5 h-2.5 rounded-sm bg-rose-500 opacity-70"></span>
               <span>Cadastral Boundary</span>
             </div>
           )}
           {siteDataLoading && (
-            <span className="ml-1 text-emerald-600 dark:text-emerald-400 font-semibold animate-pulse border-l border-border pl-3">
+            <span className="ml-1 text-emerald-600 dark:text-emerald-400 font-semibold animate-pulse sm:border-l sm:border-border sm:pl-3">
               Loading live site data…
             </span>
           )}
