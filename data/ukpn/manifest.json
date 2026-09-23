@@ -1,29 +1,28 @@
 {
-  "fetched_at": "2026-09-19",
+  "fetched_at": "2026-09-22",
   "datasets": {
     "ukpn-capacity-heatmap": {
-      "rows": 3,
+      "rows": 967,
       "file": "heatmap.json"
     },
     "grid-and-primary-sites": {
-      "rows": 3,
+      "rows": 460,
       "file": "grid_substations.json"
     },
-    "ukpn-gsp-project-status": {
-      "rows": 22,
-      "file": "gsp_project_status.json"
-    },
-    "ltds-table-6-interest-connections": {
-      "rows": 3,
+    "ukpn-ltds-table-6-interest-connections": {
+      "rows": 933,
       "file": "table6.json"
     },
     "ukpn-ltds-table-2a-transformer-2w": {
-      "rows": 4,
+      "rows": 2171,
       "file": "table2a.json"
+    },
+    "ukpn-gsp-project-status": {
+      "rows": 1008,
+      "file": "gsp_project_status.json"
     }
   },
   "export_ceiling_validated": true,
   "export_ceiling_failing_substations": [],
-  "partial": true,
-  "note": "Demo subset: real Dorking primaries and grid substations. Run `uv run python -m bessible.ukpn.ingest` (needs UKPN_API_KEY) for the full dataset."
+  "partial": false
 }

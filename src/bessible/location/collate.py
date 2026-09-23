@@ -28,6 +28,7 @@ from bessible.api import (
     neso,
     nged,
     nominatim,
+    npg,
     open_meteo,
     opendatasoft,
     planning_data,
@@ -180,6 +181,7 @@ class _GridRaw:
         self.ukpn: dict[str, list[Any]] = {}
         self.ssen_t: dict[str, list[Any]] = {}
         self.sp_energy: dict[str, list[Any]] = {}
+        self.npg: dict[str, list[Any]] = {}
         self.nged_capacity: list[nged.CapacityMapSite] = []
         self.nged_ecr: list[nged.EcrRecord] = []
         self.ssen_d_headroom: list[ssen_distribution.HeadroomSite] = []
@@ -192,7 +194,8 @@ async def _fetch_grid(f: _Fetcher, c: Coordinates) -> _GridRaw:
 
     async def ods(module: Any, name: str, radius_m: float, key: str, into: dict[str, list[Any]]) -> None:  # ruff: ignore[any-type]
         spec = module.DATASETS[name]
-        label = "UKPN" if module is ukpn else "SSEN Transmission" if module is ssen else "SP Energy Networks"
+        labels = {ukpn: "UKPN", ssen: "SSEN Transmission", sp_energy: "SP Energy Networks", npg: "Northern Powergrid"}
+        label = labels[module]
         got = await f.get(
             f"{label}: {name}",
             spec.near(c.lat, c.lon, radius_m),
@@ -243,7 +246,10 @@ async def _fetch_grid(f: _Fetcher, c: Coordinates) -> _GridRaw:
 
     jobs: list[Awaitable[None]] = [nged_tables(), ssen_d_tables()]
     if key := _key(settings.ukpn_api_key):
-        jobs += [ods(ukpn, n, LINES_M + 1000 if "lines" in n else GRID_KM * 1000, key, raw.ukpn) for n in ukpn.DATASETS]
+        # Tables without a location field (LTDS table 2a, GSP project status) are whole-dataset: the snapshot ingest
+        # fetches them; a radius query would send `within_distance(None, ...)`.
+        spatial = [n for n, spec in ukpn.DATASETS.items() if spec.geo_field]
+        jobs += [ods(ukpn, n, LINES_M + 1000 if "lines" in n else GRID_KM * 1000, key, raw.ukpn) for n in spatial]
     else:
         f.skip("UKPN", ukpn.BASE_URL, "UKPN_API_KEY is not set")
     if key := _key(settings.ssen_api_key):
@@ -257,6 +263,10 @@ async def _fetch_grid(f: _Fetcher, c: Coordinates) -> _GridRaw:
         ]
     else:
         f.skip("SP Energy Networks", sp_energy.BASE_URL, "SPEN_API_KEY is not set")
+    if key := _key(settings.npg_api_key):
+        jobs += [ods(npg, n, GRID_KM * 1000, key, raw.npg) for n in npg.DATASETS]
+    else:
+        f.skip("Northern Powergrid", npg.BASE_URL, "NPG_API_KEY is not set")
     await asyncio.gather(*jobs)
     return raw
 
@@ -273,6 +283,7 @@ async def _build_grid(f: _Fetcher, raw: _GridRaw, site: Site) -> tuple[Grid, lis
         + transform.nged_substations(raw.nged_capacity, site)
         + sd_subs
         + sp_subs
+        + transform.npg_substations(raw.npg.get("capacity_heatmap", []), site)
     )
     ssen_t_rows = raw.ssen_t.get("substations_132kv", []) + raw.ssen_t.get("substations_supergrid", [])
     transmission = sorted(transform.ssen_transmission_substations(ssen_t_rows, site), key=lambda s: s.distance_km)

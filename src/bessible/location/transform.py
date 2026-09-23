@@ -17,7 +17,7 @@ from shapely.errors import ShapelyError
 from shapely.geometry import LineString
 from shapely.ops import unary_union
 
-from bessible.api import natural_england, nged, planning_data, sp_energy, ssen, ssen_distribution
+from bessible.api import natural_england, nged, npg, planning_data, sp_energy, ssen, ssen_distribution
 
 from .geometry import Site, from_geojson, to_geometry
 from .models import (
@@ -550,6 +550,20 @@ def _floats(value: str | None) -> list[float]:
     return [float(m) for m in _NUMBER.findall(value or "")]
 
 
+_NAME_KV = re.compile(r"(\d+(?:\.\d+)?)(?=\s*(?:/|kv))", re.IGNORECASE)
+
+
+def _connection_kv(published: float | None, voltages: Iterable[float], name: str | None = None) -> float | None:
+    """A new connection's voltage: published, else the lowest published or named voltage ("Hockley 132/11kV" -> 11).
+
+    The highest voltage on a site is its upstream side, not the busbar a new connection joins.
+    """
+    if published:
+        return published
+    found = [v for v in voltages if v] or [float(v) for v in _NAME_KV.findall(name or "")]
+    return min(found, default=None)
+
+
 def _rag(value: str | None) -> Rag | None:
     v = (value or "").strip().lower()
     return v if v in {"red", "amber", "green"} else None  # type: ignore[return-value]
@@ -607,6 +621,7 @@ def ukpn_substations(
                 kind=(h.type or "primary").lower(),
                 voltage_kv=float(twin.sitevoltage) if twin and twin.sitevoltage else h.voltages,
                 voltages=f"{h.voltages:g}" if h.voltages else None,
+                connection_voltage_kv=_connection_kv(h.voltage, [h.voltages or 0], h.name),
                 coords=_at(lat, lon),
                 distance_km=site.distance_km(lat, lon),
                 bsp=_dash(h.bsp),
@@ -646,6 +661,7 @@ def ukpn_substations(
                 operator="UKPN",
                 kind="grid" if "grid" in (s.sitetype or "").lower() else "primary",
                 voltage_kv=float(s.sitevoltage) if s.sitevoltage else None,
+                connection_voltage_kv=_connection_kv(None, [], s.sitename),
                 coords=_at(p.lat, p.lon),
                 distance_km=site.distance_km(p.lat, p.lon),
                 **_ukpn_site_details(s),
@@ -684,6 +700,7 @@ def nged_substations(records: Sequence[nged.CapacityMapSite], site: Site) -> lis
                 kind=(r.type or "primary").lower(),
                 voltage_kv=max(_floats(r.voltages), default=None),
                 voltages=_text(r.voltages),
+                connection_voltage_kv=_connection_kv(None, _floats(r.voltages), r.name),
                 coords=_at(r.latitude, r.longitude),
                 distance_km=site.distance_km(r.latitude, r.longitude),
                 bsp=_text(r.bsp),
@@ -724,6 +741,7 @@ def ssen_distribution_substations(
                 kind=(r.substation_type or "primary").lower(),
                 voltage_kv=max(_floats(r.voltage_kv), default=None),
                 voltages=r.voltage_kv,
+                connection_voltage_kv=_connection_kv(None, _floats(r.voltage_kv), name),
                 coords=_at(r.lat, r.lon),
                 distance_km=site.distance_km(r.lat, r.lon),
                 bsp=ssen_distribution.clean_site_name(r.upstream_bsp) if r.upstream_bsp else None,
@@ -800,6 +818,7 @@ def sp_energy_substations(
                 kind=(r.type or "primary").lower(),
                 voltage_kv=v_kv,
                 voltages=_text(r.voltage),
+                connection_voltage_kv=_connection_kv(r.effective_voltage_kv, _floats(r.voltage), name),
                 coords=_at(lat, lon),
                 distance_km=site.distance_km(lat, lon),
                 bsp=bsp,
@@ -847,6 +866,50 @@ def sp_energy_substations(
                 voltages=str(pt.voltage) if pt.voltage else None,
                 coords=_at(p.lat, p.lon),
                 distance_km=site.distance_km(p.lat, p.lon),
+            )
+        )
+    return out
+
+
+def _limiting_factor(value: str | None) -> str | None:
+    """Northern Powergrid repeats the RAG colour: "Red - Fault Level" -> "Fault Level"; "Green" -> None."""
+    _, _, factor = (value or "").partition(" - ")
+    return factor.strip() or None
+
+
+def npg_substations(records: Sequence[npg.CapacityHeatmapSite], site: Site) -> list[Substation]:
+    """Northern Powergrid primaries, BSPs and GSPs with their LTDS heatmap headroom.
+
+    `gsp` / `bsp` are NPg asset ids ("GSP-000038"), not names, so they are left out: they would never match NESO.
+    """
+    out: list[Substation] = []
+    for r in records:
+        if r.latitude is None or r.longitude is None:
+            continue
+        out.append(
+            Substation(
+                name=(r.name or "Unnamed").strip(),
+                operator="Northern Powergrid",
+                kind=(r.type or "primary").lower(),
+                voltage_kv=r.voltages,
+                voltages=f"{r.voltages:g}" if r.voltages else None,
+                connection_voltage_kv=_connection_kv(None, [r.voltages or 0], r.name),
+                coords=_at(r.latitude, r.longitude),
+                distance_km=site.distance_km(r.latitude, r.longitude),
+                headroom=Headroom(
+                    generation_mw=r.generationavailablecapacity,
+                    generation_rag=_rag(r.generationconstraint),
+                    generation_constraint=_limiting_factor(r.generationconstraintlimitingfactor),
+                    demand=r.demandavailablecapacity,
+                    demand_rag=_rag(r.demandconstraint),
+                    demand_constraint=_limiting_factor(r.demandconstraintlimitingfactor),
+                    basis="Northern Powergrid capacity heatmap (LTDS): published available capacity",
+                    demand_firm_mw=r.demandfirmcapacity,
+                    demand_max_mw=r.demandmaximum,
+                    demand_min_mw=r.demandminimum,
+                    generation_firm_mw=r.generationfirmcapacity,
+                    reverse_power_available_mw=r.reversepowerflowavailablecapacity,
+                ),
             )
         )
     return out

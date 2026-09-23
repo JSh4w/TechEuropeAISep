@@ -110,7 +110,7 @@ class DatasetSpec[R: ApiResponse](NamedTuple):
 
     base_url: str
     dataset: str
-    geo_field: str  # the field to filter on with within_distance()
+    geo_field: str | None  # the field to filter on with within_distance(); None for tables with no location
     response: type[RecordsResponse[R]]
     point_field: str | None = None  # geo_point to sort by distance on, when geo_field is a shape
 
@@ -119,6 +119,9 @@ class DatasetSpec[R: ApiResponse](NamedTuple):
 
         ``distance()`` only accepts geo_point fields, so shape datasets sort on `point_field` instead.
         """
+        if self.geo_field is None:
+            msg = f"{self.dataset} has no location field: fetch the whole table instead"
+            raise ValueError(msg)
         point = f"geom'POINT({lon} {lat})'"  # WKT is lon-lat order
         return RecordsRequest(
             dataset=self.dataset,

@@ -12,6 +12,7 @@ from bessible.api import (
     natural_england,
     neso,
     nged,
+    npg,
     planning_data,
     postcodes_io,
     sp_energy,
@@ -240,6 +241,8 @@ def test_ukpn_substations_merge_heatmap_and_site_list():
     assert (town.operator, town.kind, town.gsp, town.tia_threshold_mw) == ("UKPN", "primary", "West Weybridge", 1.0)
     assert town.transformer_ratings_summer_mva == [27.6, 27.6]
     assert town.earthing == "COLD"
+    # The site list gives the highest voltage on site (33 kV); a new connection joins the heatmap's 11 kV busbar.
+    assert (town.voltage_kv, town.connection_voltage_kv) == (33.0, 11.0)
     assert town.headroom.generation_rag in {"red", "amber", "green"}
     assert town.headroom.demand_unit == "MW"
     assert sum(s.name.upper().startswith("DORKING TOWN") for s in subs) == 1  # merged, not listed twice
@@ -252,6 +255,7 @@ def test_nged_substations():
     assert len(subs) == len(records)
     assert {s.gsp for s in subs} == {"Bridgwater"}  # "Bridgwater  S.G.P." cleaned to match NESO
     assert all("contracted" in s.headroom.basis for s in subs)
+    assert all(s.connection_voltage_kv is None for s in subs)  # NGED publishes no voltage here
 
 
 def test_ssen_distribution_substations():
@@ -261,6 +265,8 @@ def test_ssen_distribution_substations():
     subs, _ = transform.ssen_distribution_substations(records, Site(Coordinates(lat=51.25, lon=-2.2)))
     assert subs[0].tia_threshold_mw == pytest.approx(5)
     assert subs[0].headroom.demand_unit == "MVA"
+    # "33 / 11" -> 11: the lower side is the busbar a new connection joins.
+    assert {s.voltages: s.connection_voltage_kv for s in subs}["33 / 11"] == 11.0
     assert all(s.gsp is None or not s.gsp.endswith("GSP") for s in subs)
 
 
@@ -278,6 +284,7 @@ def test_sp_energy_substations():
     assert subs[0].headroom.generation_mw == pytest.approx(22.5)
     assert subs[0].headroom.demand == pytest.approx(16.5)
     assert subs[0].gsp == "Strathaven"
+    assert subs[0].connection_voltage_kv == 33.0
     assert subs[1].name == "Chester City 33kV"
     assert subs[1].gsp == "Capenhurst"
 
@@ -354,3 +361,33 @@ def test_without_geometry_is_prompt_sized(site):
     dumped = data.without_geometry()
     assert "geometry" not in dumped["deterministic"]["designations"][0]
     assert LocationData.model_validate(data.model_dump(mode="json")) == data  # survives a Temporal payload
+
+
+@pytest.mark.parametrize(
+    ("published", "voltages", "name", "expected"),
+    [
+        (11.0, [33.0], "Dorking Town 11kV", 11.0),  # the published connection voltage wins
+        (None, [33.0, 11.0], "Crockerton Primary", 11.0),  # else the lowest published voltage
+        (None, [], "Hockley 132/11Kv", 11.0),  # else the lowest voltage in the name
+        (None, [], "St Pauls Bsp 132Kv", 132.0),
+        (None, [], "Broadweir Primary", None),  # nothing published: the caller decides
+    ],
+)
+def test_connection_kv(published, voltages, name, expected):
+    assert transform._connection_kv(published, voltages, name) == expected  # ruff: ignore[private-member-access]
+
+
+def test_npg_substations():
+    records = npg.DATASETS["capacity_heatmap"].parse(load("npg_capacity_heatmap_leeds")).results
+    subs = transform.npg_substations(records, Site(Coordinates(lat=53.7997, lon=-1.5492)))
+    assert [s.name for s in subs] == ["Upper Basinghall Street", "Whitehall Road 2/3"]
+    town = subs[0]
+    assert (town.operator, town.kind, town.connection_voltage_kv) == ("Northern Powergrid", "primary", 11.0)
+    assert town.gsp is None  # NPg publishes asset ids, not names
+    assert town.headroom.generation_rag == "green"
+    assert town.headroom.demand == pytest.approx(9.16)
+
+
+def test_npg_limiting_factor_drops_the_colour():
+    assert transform._limiting_factor("Red - Fault Level") == "Fault Level"  # ruff: ignore[private-member-access]
+    assert transform._limiting_factor("Green") is None  # ruff: ignore[private-member-access]

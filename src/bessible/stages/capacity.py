@@ -6,13 +6,16 @@ import asyncio
 import json
 import logging
 import math
-import os
 import re
+from datetime import UTC, datetime
 from operator import itemgetter
 from typing import TYPE_CHECKING, Literal
 
+import httpx
 from pydantic import HttpUrl
 
+from bessible.api import opendatasoft
+from bessible.api import ukpn as ukpn_api
 from bessible.config import settings
 from bessible.models import AlternateOption, Artifact, CapacityInput, CapacityOutput, Position
 from bessible.ukpn.competition import competition
@@ -32,7 +35,7 @@ from bessible.ukpn.snapshot import (
 
 if TYPE_CHECKING:
     from bessible.api.ukpn import CapacityHeatmapSite
-    from bessible.location.models import Substation
+    from bessible.location.models import Headroom, Substation
     from bessible.ukpn.models import Competition
 
 MODEL_USED = "ukpn-snapshot"
@@ -48,6 +51,11 @@ LOW_VOLTAGE_CAP_MW = 8.0  # 22 kV and below
 HIGH_VOLTAGE_CAP_MW = 50.0  # 33 kV and 66 kV
 GRID_VOLTAGE_CAP_MW = 100.0  # 132 kV
 EARTH_RADIUS_KM = 6371.0088
+LIVE_CHECK_TIMEOUT_S = 3.0  # per-run live re-check of the snapshot; slower than this -> keep the snapshot
+LIVE_CHECK_MODEL_USED = "live-ukpn-check"
+HEADROOM_TOLERANCE_MW = 0.05
+ASSUMED_CONNECTION_KV = 11.0  # no voltage published: assume a primary's 11 kV busbar (the lower, 8 MW cap)
+POWER_FACTOR = 0.95  # MVA -> MW, for operators that publish import headroom in MVA (SSEN)
 CHECK_LOG = "capacity_checks.jsonl"
 
 _VOLTAGE_RE = re.compile(r"(\d+(?:\.\d+)?)\s*kv", re.IGNORECASE)
@@ -557,14 +565,40 @@ def _append_check_log(inp: CapacityInput, out: CapacityOutput) -> None:
 
 
 async def propose_live(position: Position, run_id: str, *, fallback: CapacityOutput) -> CapacityOutput:
-    """Outside the snapshot: live DNO headroom (UKPN, NGED, SSEN, SP Energy Networks) from `location.collate`. Any failure -> fallback."""
-    if os.environ.get("BESSIBLE_LIVE_LAND") != "1":
+    """Outside the snapshot: live DNO headroom (UKPN, NGED, SSEN, SPEN, Northern Powergrid) via `location.collate`.
+
+    Any failure -> fallback.
+    """
+    if not settings.live_capacity:
         return fallback
     try:
         return await asyncio.wait_for(_propose_live(position, run_id), LIVE_TIMEOUT_S) or fallback
     except Exception:
         log.exception("live capacity lookup failed; keeping snapshot result")
         return fallback
+
+
+def live_connection_kv(sub: Substation) -> tuple[float, bool]:
+    """The substation's connection voltage, and whether it is assumed because the operator publishes none."""
+    if sub.connection_voltage_kv:
+        return sub.connection_voltage_kv, False
+    return ASSUMED_CONNECTION_KV, True
+
+
+def live_demand_mw(head: Headroom) -> float | None:
+    """Import headroom in MW; MVA figures are scaled by POWER_FACTOR."""
+    if head.demand is None:
+        return None
+    return head.demand * POWER_FACTOR if head.demand_unit == "MVA" else head.demand
+
+
+def live_firm_mw(sub: Substation) -> float:
+    """A battery imports and exports, so the smaller headroom binds, capped by the connection voltage."""
+    head = sub.headroom
+    if head is None:
+        return 0.0
+    cap = voltage_cap_mw(live_connection_kv(sub)[0])
+    return max(0.0, min(head.generation_mw or 0.0, live_demand_mw(head) or 0.0, cap))
 
 
 async def _propose_live(position: Position, run_id: str) -> CapacityOutput | None:
@@ -578,20 +612,16 @@ async def _propose_live(position: Position, run_id: str) -> CapacityOutput | Non
         return None
     primaries = [s for s in with_headroom if s.kind == "primary"] or with_headroom
 
-    def firm(sub: Substation) -> float:
-        """A battery imports and exports, so the smaller headroom binds, capped by connection voltage."""
-        h = sub.headroom
-        if h is None:
-            return 0.0
-        cap = voltage_cap_mw(sub.voltage_kv) if sub.voltage_kv else HIGH_VOLTAGE_CAP_MW
-        return max(0.0, min(h.generation_mw or 0.0, h.demand or 0.0, cap))
-
     # Best connection option in reach: headroom weighted down by distance (same weighting as the alternates).
-    primaries = sorted(primaries, key=lambda sub: -firm(sub) * distance_weight(sub.distance_km))
+    primaries = sorted(primaries, key=lambda sub: -live_firm_mw(sub) * distance_weight(sub.distance_km))
     serving = primaries[0]
     head = serving.headroom
     assert head is not None  # ruff: ignore[assert]
-    firm_mw = round(firm(serving), 2)
+    firm_mw = round(live_firm_mw(serving), 2)
+    kv, kv_assumed = live_connection_kv(serving)
+    import_mw = live_demand_mw(head)
+    fetched_at = _utc_now()
+    unpublished = [d for d, v in (("import", head.demand), ("export", head.generation_mw)) if v is None]
     message: str | None = (
         None
         if firm_mw >= FLOOR_MW
@@ -600,7 +630,9 @@ async def _propose_live(position: Position, run_id: str) -> CapacityOutput | Non
     urls = [
         s.url
         for s in location.sources
-        if s.status == "ok" and s.url.startswith("http") and s.name.startswith(("UKPN", "NGED", "SSEN", "SP Energy Networks"))
+        if s.status == "ok"
+        and s.url.startswith("http")
+        and s.name.startswith(("UKPN", "NGED", "SSEN", "SP Energy Networks", "Northern Powergrid"))
     ]
     source = HttpUrl(urls[0]) if urls else HttpUrl(DATASET_URL)
 
@@ -619,17 +651,17 @@ async def _propose_live(position: Position, run_id: str) -> CapacityOutput | Non
         message=message,
         out_of_area=False,
         substation=serving.name,
-        connection_voltage_kv=serving.voltage_kv,
+        connection_voltage_kv=kv,
         firm_mw=firm_mw,
         ceiling_mw=firm_mw,
         recommended_mw=firm_mw,
-        binding_direction="import" if (head.demand or 0.0) <= (head.generation_mw or 0.0) else "export",
+        binding_direction="import" if (import_mw or 0.0) <= (head.generation_mw or 0.0) else "export",
         distance_km=round(serving.distance_km, 2),
         alternates=[
             AlternateOption(
                 substation=s.name,
                 distance_km=round(s.distance_km, 2),
-                size_mw=round(firm(s), 2),
+                size_mw=round(live_firm_mw(s), 2),
                 marginal=s.distance_km > MARGINAL_KM,
             )
             for s in primaries[1 : MAX_ALTERNATES + 1]
@@ -638,29 +670,160 @@ async def _propose_live(position: Position, run_id: str) -> CapacityOutput | Non
         artifacts=[
             art(
                 "substation",
-                f"Predicted point of connection: {serving.name} ({serving.operator}, {serving.voltages or serving.voltage_kv} kV), "
-                f"{serving.distance_km:.2f} km away",
+                f"Predicted point of connection: {serving.name} ({serving.operator}), connecting at {kv:g} kV "
+                f"(cap {voltage_cap_mw(kv):g} MW), {serving.distance_km:.2f} km away"
+                + (
+                    f"; {serving.operator} publishes no voltage for this substation, so {kv:g} kV is assumed"
+                    if kv_assumed
+                    else ""
+                ),
             ),
             art(
                 "headroom",
-                f"Published headroom at {serving.name}: import {head.demand} {head.demand_unit}, "
-                f"export {head.generation_mw} MW ({head.basis}); firm = smaller of the two = {firm_mw:g} MW",
+                f"Published headroom at {serving.name}: import {head.demand} {head.demand_unit}"
+                + (
+                    f" (= {import_mw:.1f} MW at power factor {POWER_FACTOR:g})"
+                    if head.demand_unit == "MVA" and import_mw is not None
+                    else ""
+                )
+                + f", export {head.generation_mw} MW ({head.basis}); firm = smaller of the two, capped by the "
+                f"connection voltage = {firm_mw:g} MW; fetched live at {fetched_at}"
+                + (
+                    f"; {serving.operator} publishes no {' or '.join(unpublished)} headroom here, so it counts as 0 MW"
+                    if unpublished
+                    else ""
+                ),
             ),
         ],
     )
 
 
+def _utc_now() -> str:
+    return datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
+
+
+async def fetch_live_heatmap(position: Position, radius_km: float = SEARCH_RADIUS_KM) -> list[CapacityHeatmapSite]:
+    """UKPN capacity heatmap rows within `radius_km` of the site, fetched live in one request."""
+    if settings.ukpn_api_key is None:
+        msg = "UKPN_API_KEY is not set"
+        raise RuntimeError(msg)
+    spec = ukpn_api.DATASETS["capacity_heatmap"]
+    req = spec.near(position.lat, position.lon, radius_km * 1000)
+    headers = opendatasoft.auth_headers(settings.ukpn_api_key.get_secret_value())
+    async with httpx.AsyncClient(timeout=LIVE_CHECK_TIMEOUT_S, headers=headers) as client:
+        res = await client.get(req.url(), params=req.params())
+        res.raise_for_status()
+    return spec.parse(res.json()).results
+
+
+def _row_key(row: CapacityHeatmapSite) -> str:
+    return row.mrid or row.name or ""
+
+
+def headroom_changes(
+    snapshot_rows: list[CapacityHeatmapSite], live_rows: list[CapacityHeatmapSite]
+) -> list[tuple[CapacityHeatmapSite, CapacityHeatmapSite]]:
+    """(snapshot, live) pairs whose import / export headroom or connection voltage changed. Matched on UKPN's mrid."""
+    live = {_row_key(r): r for r in live_rows}
+    changed = []
+    for old in snapshot_rows:
+        new = live.get(_row_key(old))
+        if new is None:
+            continue
+        moved = any(
+            abs((getattr(new, f) or 0.0) - (getattr(old, f) or 0.0)) > HEADROOM_TOLERANCE_MW
+            for f in ("demandavailablecapacity", "generationavailablecapacity")
+        )
+        if moved or new.voltage != old.voltage:
+            changed.append((old, new))
+    return changed
+
+
+def _live_check_artifact(run_id: str, claim: str, confidence: float) -> Artifact:
+    return Artifact(
+        id=f"capacity-live-check-{run_id[:8]}",
+        stage="capacity",
+        claim=f"{claim} [{DATASET_ID}, live]",
+        source_url=HttpUrl(DATASET_URL),
+        confidence=confidence,
+        model_used=LIVE_CHECK_MODEL_USED,
+    )
+
+
+async def verify_live(
+    position: Position,
+    snapshot: Snapshot,
+    out: CapacityOutput,
+    run_id: str,
+    *,
+    flexible: bool,
+    requested_mw: float | None = None,
+) -> CapacityOutput:
+    """Re-check the snapshot rows near the site against live UKPN data (one request per run).
+
+    Unchanged: say so. Changed: propose again on the live rows and show both values. Unreachable: keep the snapshot
+    and say it is unverified. Never fails the run.
+    """
+    checked_at = _utc_now()
+    try:
+        live_rows = await fetch_live_heatmap(position)
+    except Exception as exc:  # any failure keeps the snapshot result
+        log.warning("live UKPN check failed; keeping the snapshot result: %s", exc)
+        art = _live_check_artifact(
+            run_id,
+            f"Not verified against live UKPN data ({type(exc).__name__}); figures are from the snapshot dated "
+            f"{snapshot.fetched_at.isoformat()}",
+            confidence=0.7,
+        )
+        return out.model_copy(update={"artifacts": [*out.artifacts, art]})
+
+    nearby = [
+        r
+        for r in snapshot.substations
+        if r.latitude is not None
+        and r.longitude is not None
+        and haversine_km(position, r.latitude, r.longitude) <= SEARCH_RADIUS_KM
+    ]
+    changes = headroom_changes(nearby, live_rows)
+    if not changes:
+        art = _live_check_artifact(
+            run_id,
+            f"Checked against live UKPN data at {checked_at}: headroom at {len(nearby)} substation(s) within "
+            f"{SEARCH_RADIUS_KM:g} km matches the snapshot dated {snapshot.fetched_at.isoformat()}",
+            confidence=0.95,
+        )
+        return out.model_copy(update={"artifacts": [*out.artifacts, art]})
+
+    live_by_key = {_row_key(r): r for r in live_rows if r.name and r.latitude is not None and r.longitude is not None}
+    patched = snapshot.model_copy(
+        update={"substations": [live_by_key.get(_row_key(r), r) for r in snapshot.substations]}
+    )
+    fresh = propose(position, patched, run_id, flexible=flexible, requested_mw=requested_mw)
+    detail = "; ".join(
+        f"{old.name}: import {old.demandavailablecapacity} -> {new.demandavailablecapacity} MW, "
+        f"export {old.generationavailablecapacity} -> {new.generationavailablecapacity} MW"
+        for old, new in changes[:3]
+    )
+    art = _live_check_artifact(
+        run_id,
+        f"Live UKPN data at {checked_at} differs from the snapshot dated {snapshot.fetched_at.isoformat()}, so these "
+        f"figures use the live values ({len(changes)} substation(s) changed: {detail})",
+        confidence=0.9,
+    )
+    return fresh.model_copy(update={"artifacts": [*fresh.artifacts, art]})
+
+
 async def propose_capacity(inp: CapacityInput) -> CapacityOutput:
     """Assess available grid headroom at the located position and propose capacity limits."""
     snapshot = await asyncio.to_thread(get_snapshot)
-    out = propose(
-        inp.location.position,
-        snapshot,
-        inp.run_id,
-        flexible=inp.request.flexible_connection,
-        requested_mw=inp.request.battery_mw,
-    )
+    flexible, requested_mw = inp.request.flexible_connection, inp.request.battery_mw
+    out = propose(inp.location.position, snapshot, inp.run_id, flexible=flexible, requested_mw=requested_mw)
     if out.out_of_area:
         out = await propose_live(inp.location.position, inp.run_id, fallback=out)
+    elif settings.live_capacity and (requested_mw is None or requested_mw <= HIGH_VOLTAGE_CAP_MW):
+        # Primary-level proposals come from heatmap rows: check those rows are still current.
+        out = await verify_live(
+            inp.location.position, snapshot, out, inp.run_id, flexible=flexible, requested_mw=requested_mw
+        )
     await asyncio.to_thread(_append_check_log, inp, out)
     return out

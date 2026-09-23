@@ -45,3 +45,8 @@ Each is its own change:
 - Map, INSPIRE overlay, size slider: `add-web-ui`. Footprint area: `add-footprint-sizing`.
 - Link → postcode extraction: `add-link-location-extraction`.
 - Grid-level (132 kV) sites above 50 MW: `add-grid-level-sites`.
+- Electricity North West (SP ENW) coverage: a later change. Its sites are "out of area" today. The team has a key
+  (`ENWL_API_KEY`, checked 2026-09-23), but the capacity heatmaps and connection queue return 403 ("unavailable").
+  Readable instead: the embedded capacity register (`enwl-embedded-capacity-register-2-1mw-and-above`, the same ENA
+  template as UKPN's, for nearby projects) and NDP forecast headroom (`ndp-pry-bsp-headroom`: import only, in MVA,
+  by year and scenario, located by `enwl-substation`). About 2 hours; re-check heatmap access first.

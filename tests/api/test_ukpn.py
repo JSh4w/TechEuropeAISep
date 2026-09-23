@@ -140,4 +140,12 @@ def test_ingest_and_snapshot_load(tmp_path, monkeypatch):
     manifest = json.loads((tmp_path / "ukpn" / "manifest.json").read_text())
     assert "ukpn-capacity-heatmap" in manifest["datasets"]
     assert "grid-and-primary-sites" in manifest["datasets"]
-    assert "ltds-table-6-interest-connections" in manifest["datasets"]
+    assert "ukpn-ltds-table-6-interest-connections" in manifest["datasets"]
+
+
+def test_tables_without_location_refuse_radius_queries():
+    """LTDS table 2a and GSP project status have no geo field: a radius query would be malformed ODSQL."""
+    for name in ("table2a", "gsp_project_status"):
+        with pytest.raises(ValueError, match="no location field"):
+            ukpn.DATASETS[name].near(51.2, -0.3, 5000)
+    assert "within_distance(geo_point_2d" in ukpn.DATASETS["capacity_heatmap"].near(51.2, -0.3, 5000).where
