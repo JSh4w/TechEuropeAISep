@@ -30,7 +30,7 @@ async def run_worker() -> None:
         activities=ALL_ACTIVITIES,
         workflow_runner=UnsandboxedWorkflowRunner(),
     )
-    print(f"Worker listening on task queue '{TASK_QUEUE}' at {settings.temporal_address}...")  # ruff: ignore[print]
+    print(f"Worker listening on task queue '{TASK_QUEUE}' at {settings.temporal_address}...", flush=True)  # ruff: ignore[print]
     await worker.run()
 
 

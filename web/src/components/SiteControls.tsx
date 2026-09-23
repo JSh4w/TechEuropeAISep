@@ -54,6 +54,9 @@ export default function SiteControls({
   const maxAllowedMw = flexibleConnection ? ceilingMw : firmMw;
   const isBelowFloorFirm = firmMw < minFloorMw && ceilingMw >= minFloorMw;
   const isCurtailed = flexibleConnection && selectedCapacityMw > firmMw;
+  // No flexible tier (e.g. live DNO data publishes firm only): the toggle would change nothing, so hide it.
+  // Keep it in the blurred placeholder so the card layout does not jump.
+  const hasFlexHeadroom = obscured || ceilingMw > firmMw;
 
   // Reserved acreage calculation
   const acreage = calculateAcres(selectedCapacityMw, 4);
@@ -127,23 +130,25 @@ export default function SiteControls({
           </div>
 
           {/* Flexible Toggle with shadcn Switch */}
-          <div className={`flex items-center gap-3 bg-card px-3.5 py-2 rounded-xl border border-border shadow-xs ${blurred}`}>
-            <div className="text-right">
-              <label
-                htmlFor="flexible-toggle"
-                className="text-xs font-semibold text-foreground block cursor-pointer select-none"
-              >
-                Flexible Connection
-              </label>
-              <span className="text-[10px] text-muted-foreground">Unlocks ceiling capacity</span>
+          {hasFlexHeadroom && (
+            <div className={`flex items-center gap-3 bg-card px-3.5 py-2 rounded-xl border border-border shadow-xs ${blurred}`}>
+              <div className="text-right">
+                <label
+                  htmlFor="flexible-toggle"
+                  className="text-xs font-semibold text-foreground block cursor-pointer select-none"
+                >
+                  Flexible Connection
+                </label>
+                <span className="text-[10px] text-muted-foreground">Unlocks ceiling capacity</span>
+              </div>
+              <Switch
+                id="flexible-toggle"
+                checked={flexibleConnection}
+                onCheckedChange={onFlexibleToggle}
+                disabled={busy}
+              />
             </div>
-            <Switch
-              id="flexible-toggle"
-              checked={flexibleConnection}
-              onCheckedChange={onFlexibleToggle}
-              disabled={busy}
-            />
-          </div>
+          )}
         </div>
       </CardHeader>
 
@@ -210,12 +215,12 @@ export default function SiteControls({
           <div className="pt-2 pb-1">
             <Slider
               min={minFloorMw}
-              max={Math.max(maxAllowedMw, minFloorMw)}
+              max={Math.max(maxAllowedMw, minFloorMw + 1)}
               step={0.5}
               value={[
                 Math.min(
                   Math.max(selectedCapacityMw, minFloorMw),
-                  Math.max(maxAllowedMw, minFloorMw)
+                  Math.max(maxAllowedMw, minFloorMw + 1)
                 ),
               ]}
               disabled={busy || maxAllowedMw < minFloorMw}
