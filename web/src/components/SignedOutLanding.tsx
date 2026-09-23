@@ -34,6 +34,18 @@ export default function SignedOutLanding({ onSignIn, onViewDemo, signingIn, erro
             Autonomous grid screening, footprint sizing and explainable feasibility for battery energy storage sites.
           </p>
         </div>
+        <p className="rounded-lg border border-emerald-600/30 bg-emerald-600/5 px-4 py-3 text-xs text-muted-foreground">
+          A{' '}
+          <a
+            href="https://aistudio.google.com/apikey"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-emerald-600 underline underline-offset-2"
+          >
+            Google AI Studio key
+          </a>{' '}
+          is required to use Gemini 3.8 Flash.You add it after you sign in.
+        </p>
         <div className="flex flex-col gap-2">
           <Button
             type="button"

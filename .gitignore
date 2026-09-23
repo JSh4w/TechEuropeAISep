@@ -243,3 +243,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 .context/
+
+# News research cache: live runs write new entries here. The committed demo fixtures stay tracked;
+# add a new one on purpose with `git add -f`.
+data/fixtures/news/*.json

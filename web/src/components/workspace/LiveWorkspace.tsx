@@ -182,7 +182,7 @@ export default function LiveWorkspace({ onViewDemo, welcomeDismissed, onDismissW
                 value={postcode}
                 onChange={setPostcode}
                 onSubmit={() => void handleStartRun()}
-                placeholder={`Pin at ${run.currentPosition[1].toFixed(5)}, ${run.currentPosition[0].toFixed(5)}. Or enter a UK postcode or property URL`}
+                placeholder="UK postcode or property URL"
                 disabled={run.starting}
               />
               <Button

@@ -39,6 +39,50 @@ uv run python scripts/check_env.py
 uv run python scripts/check_env.py --live
 ```
 
+### 1b. Optional: Set Up Modal (Self-Hosting)
+
+Modal is optional. Without it, the classifier falls back to Gemini (`llm`), then to keyword rules (`heuristic`). The
+policy `cross_check` needs Modal: when Modal is off, the check does not run.
+
+Modal runs the open-jev DeBERTa classifier on a GPU. Your own Modal workspace pays for it (the operator, not the users).
+
+1. Create an account at [modal.com](https://modal.com) (the Starter plan includes $30/month of free compute).
+2. Install the Modal extra. A plain `uv sync` includes it. On a server that uses `uv sync --no-dev`, run:
+   ```bash
+   uv sync --no-dev --extra modal
+   ```
+3. Log in to Modal. Pick one:
+   - On your own machine: `uv run modal setup` (opens a browser; `./scripts/setup.sh` runs this for you).
+   - On a server or in Docker: create a token in Modal (**Settings → API Tokens**), then set both values in `.env`:
+     ```bash
+     MODAL_TOKEN_ID=ak-...
+     MODAL_TOKEN_SECRET=as-...
+     ```
+4. Deploy the classifier to your workspace. The worker looks up a Modal app named `bessible-classifier` with a class
+   `Classifier`. The class has a method `classify(paragraphs: list[str], questions: list[dict]) -> list[list[dict]]`
+   (see `_classify_modal` and `_questions` in `src/bessible/classifier.py` for the exact shapes):
+   ```bash
+   uv run modal deploy <path-to-classifier-app>.py
+   ```
+5. Choose the backend in `.env`. `auto` uses Modal when a token exists. `modal` starts the chain at Modal.
+   ```bash
+   CLASSIFIER_BACKEND=auto
+   ```
+6. Check the setup:
+   ```bash
+   uv run python scripts/check_env.py
+   ```
+   The output shows `Modal login` as passed.
+
+**Optional: open-weight model through the Pydantic AI Gateway.** `llm.modal_model()` calls a model on Modal
+(default `google/gemma-4-31B-it`) through the [Pydantic AI Gateway](https://ai.pydantic.dev/gateway/). To use it:
+
+1. Serve the model on Modal with an OpenAI-compatible endpoint. One method is in
+   [laisbsc/demo_hack_tech_eu](https://github.com/laisbsc/demo_hack_tech_eu).
+2. In the Gateway, add a provider route that points at the Modal endpoint.
+3. Set `PYDANTIC_AI_GATEWAY_API_KEY`, `MODAL_GATEWAY_ROUTE` (the route name) and `MODAL_MODEL` in `.env`.
+4. Run `uv run python scripts/check_env.py --live`. The output shows `Modal via gateway` as passed.
+
 ### 2. Start Temporal Server
 
 The backend uses [Temporal](https://temporal.io) to orchestrate durable workflow execution:
