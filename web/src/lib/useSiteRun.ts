@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import { AssessmentResult, CapacityOutput, RunStatus, SiteDecision, TraceEvent } from './types';
 import { getRunResult, getRunStatus, sendDecision, subscribeEvents } from './api';
 
+/** Statuses a run never leaves: polling and streaming stop here. */
+const FINAL_STATUSES = ['completed', 'not_viable', 'failed', 'rejected', 'out_of_area'];
+
 /** Capacity at a new pin position, or null to keep the current proposal. */
 export type CapacityChecker = (
   pos: [number, number],
@@ -179,7 +182,7 @@ export function useSiteRun(checkCapacityAt: CapacityChecker) {
 
   // Poll status while a tracked run is in progress
   useEffect(() => {
-    if (!runId || !tracked || ['completed', 'not_viable', 'rejected'].includes(runStatus?.status ?? '')) {
+    if (!runId || !tracked || FINAL_STATUSES.includes(runStatus?.status ?? '')) {
       return;
     }
 
@@ -191,7 +194,7 @@ export function useSiteRun(checkCapacityAt: CapacityChecker) {
         if (status.status !== 'running') {
           setCapacityLoading(false);
         }
-        if (status.status === 'not_viable') {
+        if (status.status === 'not_viable' || status.status === 'out_of_area') {
           setCapacityProposal(null);
         }
 
@@ -226,16 +229,26 @@ export function useSiteRun(checkCapacityAt: CapacityChecker) {
     return () => clearInterval(interval);
   }, [runId, tracked, runStatus?.status]);
 
+  /** Appends trace events, skipping any id already in the trace (the trace is keyed by id). */
+  const addEvents = (added: TraceEvent[]) =>
+    setEvents((prev) => {
+      const seen = new Set(prev.map((e) => e.id));
+      const fresh = added.filter((e) => !seen.has(e.id) && seen.add(e.id));
+      return fresh.length ? [...prev, ...fresh] : prev;
+    });
+
   // Stream the tracked run's trace
   useEffect(() => {
     if (!runId || !tracked) return;
     return subscribeEvents(runId, (event) => {
-      setEvents((prev) => [...prev, event]);
+      // Drop a late event from a run the user already left, and any event the stream sends twice.
+      if (activeRunRef.current !== runId) return;
+      addEvents([event]);
     });
   }, [runId, tracked]);
 
   const isStreaming = tracked
-    ? !!runId && !['completed', 'not_viable', 'failed', 'rejected', 'out_of_area'].includes(runStatus?.status ?? '')
+    ? !!runId && !FINAL_STATUSES.includes(runStatus?.status ?? '')
     : simStreaming;
 
   return {
@@ -245,6 +258,7 @@ export function useSiteRun(checkCapacityAt: CapacityChecker) {
     setRunStatus,
     events,
     setEvents,
+    addEvents,
     isStreaming,
     setIsStreaming,
     result,

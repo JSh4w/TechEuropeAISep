@@ -15,7 +15,8 @@ from temporalio.contrib.pydantic import pydantic_data_converter
 from bessible.config import settings
 from bessible.credentials import CredentialsError, encrypt_google_key
 from bessible.footprint import footprint_polygon, reserved_acres, reserved_acres_by_duration
-from bessible.models import AssessmentRequest, AssessmentResult, Position, RunStatus, SiteDecision
+from bessible.models import AssessmentRequest, AssessmentResult, EncryptedCredentials, Position, RunStatus, SiteDecision
+from bessible.recorder import record_live_run
 from bessible.ukpn import SnapshotNotFoundError, get_snapshot, snapshot_age_days
 from bessible.workflow import TASK_QUEUE, AssessmentWorkflow
 
@@ -211,18 +212,23 @@ async def _watch_workflow(handle: WorkflowHandle[Any, Any], *, auto_yes: bool) -
 LOCAL_UID = "local-cli"
 
 
-async def cmd_start(args: argparse.Namespace) -> None:
-    """Start an assessment workflow."""
-    check_snapshot_age_warning()
-    property_url = HttpUrl(args.url) if args.url else None
+def _sealed_developer_key() -> EncryptedCredentials:
+    """Your `GOOGLE_API_KEY` from `.env`, sealed for the local CLI user; exits when it is missing or unsealable."""
     if settings.google_api_key is None:
         print("GOOGLE_API_KEY is not set in .env: a run needs your Gemini key.", file=sys.stderr)  # ruff: ignore[print]
         sys.exit(1)
     try:
-        credentials = encrypt_google_key(LOCAL_UID, settings.google_api_key.get_secret_value())
+        return encrypt_google_key(LOCAL_UID, settings.google_api_key.get_secret_value())
     except CredentialsError as err:
         print(f"Cannot seal your Google key: {err}", file=sys.stderr)  # ruff: ignore[print]
         sys.exit(1)
+
+
+async def cmd_start(args: argparse.Namespace) -> None:
+    """Start an assessment workflow."""
+    check_snapshot_age_warning()
+    property_url = HttpUrl(args.url) if args.url else None
+    credentials = _sealed_developer_key()
     try:
         req = AssessmentRequest(
             credentials=credentials,
@@ -291,6 +297,15 @@ async def cmd_result(args: argparse.Namespace) -> None:
     _print_result(result)
 
 
+async def cmd_record(args: argparse.Namespace) -> None:
+    """Run a demo preset live, auto-confirm the proposal, and save the run into `data/demo/<slug>`."""
+    request = AssessmentRequest(
+        postcode=args.postcode, flexible_connection=args.flexible, credentials=_sealed_developer_key()
+    )
+    out = await record_live_run(request, slug=args.slug, client=await _get_client())
+    print(f"Recorded {args.postcode} into {out}")  # ruff: ignore[print]
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Construct CLI argument parser."""
     parser = argparse.ArgumentParser(prog="bessible", description="Bessible BESS Assessment CLI")
@@ -316,6 +331,12 @@ def build_parser() -> argparse.ArgumentParser:
     result_p = subparsers.add_parser("result", help="View result or status of a run")
     result_p.add_argument("run_id", help="Workflow run ID")
 
+    # record
+    record_p = subparsers.add_parser("record", help="Record a live run of a demo preset into data/demo/<slug>")
+    record_p.add_argument("slug", help="Folder under data/demo (e.g. dorking)")
+    record_p.add_argument("postcode", help="Demo preset postcode (e.g. 'RH4 1AD')")
+    record_p.add_argument("--flexible", action="store_true", help="Allow a flexible grid connection")
+
     return parser
 
 
@@ -330,6 +351,8 @@ def main() -> None:
         asyncio.run(cmd_confirm(args))
     elif args.command == "result":
         asyncio.run(cmd_result(args))
+    elif args.command == "record":
+        asyncio.run(cmd_record(args))
 
 
 if __name__ == "__main__":

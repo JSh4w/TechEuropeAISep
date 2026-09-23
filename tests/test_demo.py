@@ -187,8 +187,11 @@ def test_demo_replay_full_lifecycle(client: TestClient):
     assert result_resp.status_code == 200
     res = result_resp.json()
     assert res["status"] == "completed"
-    assert res["report"]["verdict"] == "go"
+    recorded = json.loads(Path("data/demo/dorking/result.json").read_text(encoding="utf-8"))
+    assert res["report"]["verdict"] == recorded["report"]["verdict"]
     assert len(res["report"]["findings"]) > 0
+    assert res["financial"]["discount_rate_pct"] is not None
+    assert res["financial"]["project_life_years"] is not None
 
 
 def test_demo_replay_events_sse(client: TestClient):
@@ -245,3 +248,54 @@ def test_demo_id_isolation_from_real_routes(client: TestClient):
         assert client.post("/demo/runs/bessible-12345/decision", json={"confirmed": True}).status_code == 404
     finally:
         app.dependency_overrides.pop(current_user, None)
+
+
+@pytest.mark.parametrize("slug", ["dorking", "histon", "manchester"])
+def test_every_demo_preset_has_a_valid_recording(slug: str):
+    demo_dir = Path("data/demo") / slug
+    result = AssessmentResult.model_validate_json((demo_dir / "result.json").read_text(encoding="utf-8"))
+    request = AssessmentRequest.model_validate_json((demo_dir / "request.json").read_text(encoding="utf-8"))
+    assert request.credentials is None
+    assert scan_for_secrets(demo_dir) == []
+    if result.status == "completed":
+        assert (demo_dir / "decision.json").exists()
+        assert result.financial is not None
+        assert result.financial.discount_rate_pct is not None
+
+
+def test_demo_replay_out_of_area_ends_without_the_gate(client: TestClient):
+    import time
+
+    run_id = client.post("/demo/runs", json={"slug": "manchester", "pacing_multiplier": 0.0}).json()["run_id"]
+    status = None
+    for _ in range(50):
+        status = client.get(f"/demo/runs/{run_id}/status").json()
+        if status["status"] == "out_of_area":
+            break
+        time.sleep(0.05)
+
+    assert status is not None
+    assert status["status"] == "out_of_area"
+    assert status["message"]
+    res = client.get(f"/demo/runs/{run_id}/result")
+    assert res.status_code == 200
+    assert res.json()["status"] == "out_of_area"
+    with client.stream("GET", f"/demo/runs/{run_id}/events") as stream:
+        assert any(line.startswith("data:") for line in stream.iter_lines())
+
+
+def test_demo_replay_rejects_a_slug_outside_data_demo(client: TestClient):
+    assert client.post("/demo/runs", json={"slug": "../dorking"}).status_code == 422
+
+
+def test_save_run_recording_without_a_decision_writes_no_decision_file(tmp_path: Path):
+    out = save_run_recording(
+        tmp_path / "early_end",
+        request=AssessmentRequest(postcode="M1 1AD"),
+        events=[],
+        statuses=[RunStatus(status="out_of_area", stages=[])],
+        decision=None,
+        result=AssessmentResult(status="out_of_area", run_dir="out/demo"),
+    )
+    assert (out / "result.json").exists()
+    assert not (out / "decision.json").exists()

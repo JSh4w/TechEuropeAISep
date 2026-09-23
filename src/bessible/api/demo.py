@@ -35,12 +35,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/demo/runs", tags=["demo"])
 
 PRE_GATE_STAGES = {"location", "capacity", "title"}
+EARLY_END_STATUSES = ("out_of_area", "not_viable")
 
 
 class StartDemoRequest(BaseModel):
     """Optional configuration when initiating a demo replay run."""
 
-    slug: str = "dorking"
+    slug: str = Field(default="dorking", pattern=r"^[a-z0-9-]+$")  # a folder under data/demo
     pacing_multiplier: float = Field(default=1.0, ge=0.0, le=10.0)
 
 
@@ -158,6 +159,18 @@ class DemoReplaySession:
                     self.current_status = st.model_copy(update={"run_id": self.run_id})
 
                 await self._emit_event(ev)
+
+            # A run that stopped before the gate (out of area, not viable) ends here with its recorded status.
+            early_end = next(
+                (st for s in EARLY_END_STATUSES if (st := self._find_snapshot_status(status_str=s)) is not None),
+                None,
+            )
+            if early_end is not None:
+                self.current_status = early_end.model_copy(update={"run_id": self.run_id})
+                self.is_completed = True
+                async with self.new_event_cond:
+                    self.new_event_cond.notify_all()
+                return
 
             # 2. Pause at site-confirmation gate
             gate_status = self._find_snapshot_status(status_str="awaiting_confirmation")

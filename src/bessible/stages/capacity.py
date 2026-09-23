@@ -567,6 +567,9 @@ def _append_check_log(inp: CapacityInput, out: CapacityOutput) -> None:
         fh.write(json.dumps(record) + "\n")
 
 
+LIVE_OPERATORS = "UK Power Networks, NGED, SSEN, SP Energy Networks and Northern Powergrid areas"
+
+
 async def propose_live(position: Position, run_id: str, *, fallback: CapacityOutput) -> CapacityOutput:
     """Outside the snapshot: live DNO headroom (UKPN, NGED, SSEN, SPEN, Northern Powergrid) via `location.collate`.
 
@@ -575,10 +578,17 @@ async def propose_live(position: Position, run_id: str, *, fallback: CapacityOut
     if not settings.live_capacity:
         return fallback
     try:
-        return await asyncio.wait_for(_propose_live(position, run_id), LIVE_TIMEOUT_S) or fallback
+        live = await asyncio.wait_for(_propose_live(position, run_id), LIVE_TIMEOUT_S)
     except Exception:
         log.exception("live capacity lookup failed; keeping snapshot result")
         return fallback
+    if live is not None:
+        return live
+    msg = (
+        f"No primary substation with published headroom within {SEARCH_RADIUS_KM:g} km. Live data covers "
+        f"{LIVE_OPERATORS}; other network operators (e.g. Electricity North West) are not supported yet"
+    )
+    return fallback.model_copy(update={"message": msg})
 
 
 def live_connection_kv(sub: Substation) -> tuple[float, bool]:

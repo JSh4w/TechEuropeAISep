@@ -7,8 +7,8 @@ export interface DemoPreset {
   postcode: string;
   coords: [number, number];
   desc: string;
-  /** Replayed from a recorded backend run instead of simulated in the browser. */
-  recorded?: boolean;
+  /** The recorded backend run in `data/demo/<slug>` that the demo replays instead of simulating in the browser. */
+  slug?: string;
 }
 
 export const DEMO_PRESETS: DemoPreset[] = [
@@ -17,23 +17,26 @@ export const DEMO_PRESETS: DemoPreset[] = [
     postcode: 'RH4 1AD',
     coords: [-0.3302, 51.2329],
     desc: 'Viable firm capacity (8 MW firm at Dorking Town 11kV)',
-    recorded: true,
+    slug: 'dorking',
   },
   {
-    label: 'Flexible Connection Needed (CB24 9ZR)',
+    label: 'Large Site (Histon CB24 9ZR)',
     postcode: 'CB24 9ZR',
-    coords: [0.0612, 52.2819],
-    desc: 'Firm < 5 MW, Ceiling 14 MW (requires flexible)',
+    coords: [0.1082, 52.245],
+    desc: '37.7 MW firm at Histon Grid 33kV',
+    slug: 'histon',
   },
   {
     label: 'Out of Area (Manchester M1 1AD)',
     postcode: 'M1 1AD',
-    coords: [-2.235, 53.4808],
-    desc: 'Outside UKPN license area (not viable)',
+    coords: [-2.2449, 53.4838],
+    desc: 'No supported DNO data here (not viable)',
+    slug: 'manchester',
   },
 ];
 
-export const RECORDED_PRESET = DEMO_PRESETS.find((p) => p.recorded)!;
+/** The preset the demo opens with. */
+export const DEFAULT_PRESET = DEMO_PRESETS[0];
 
 const normalize = (postcode: string) => postcode.replace(/\s+/g, '').toUpperCase();
 

@@ -13,8 +13,9 @@ import { geocodePostcode } from '../../lib/geocode';
 import { CapacityChecker, DEFAULT_CENTER, useSiteRun } from '../../lib/useSiteRun';
 import {
   COMPLETION_EVENTS,
+  DEFAULT_PRESET,
   DEMO_PRESETS,
-  RECORDED_PRESET,
+  DemoPreset,
   findPreset,
   simulateCapacityMove,
   simulateResult,
@@ -36,12 +37,12 @@ interface DemoWorkspaceProps {
 }
 
 /**
- * Keyless demo: the recorded Dorking run replayed by the API, and a browser-side simulation for every other
- * postcode. Nothing here calls a model or needs a session.
+ * Keyless demo: the preset sites replay runs recorded by the API, and every other postcode is simulated in the
+ * browser. Nothing here calls a model or needs a session.
  */
 export default function DemoWorkspace({ preview, onExit, onSignIn, signingIn }: DemoWorkspaceProps) {
   const run = useSiteRun(checkDemoCapacity);
-  const [postcode, setPostcode] = useState(RECORDED_PRESET.postcode);
+  const [postcode, setPostcode] = useState(DEFAULT_PRESET.postcode);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const clearTimers = () => {
@@ -52,14 +53,15 @@ export default function DemoWorkspace({ preview, onExit, onSignIn, signingIn }: 
     timersRef.current.push(setTimeout(fn, delayMs));
   };
 
-  const startReplay = async () => {
+  const startReplay = async (preset: DemoPreset = DEFAULT_PRESET) => {
+    if (!preset.slug) return;
     clearTimers();
-    setPostcode(RECORDED_PRESET.postcode);
-    run.begin(RECORDED_PRESET.coords);
+    setPostcode(preset.postcode);
+    run.begin(preset.coords);
     run.setCapacityProposal(null);
     run.setStarting(true);
     try {
-      const res = await startDemoRun();
+      const res = await startDemoRun(preset.slug);
       run.track(res.run_id);
     } catch (err) {
       run.setCapacityLoading(false);
@@ -81,7 +83,7 @@ export default function DemoWorkspace({ preview, onExit, onSignIn, signingIn }: 
     for (const step of sim.steps) {
       schedule(() => {
         run.setIsStreaming(true);
-        run.setEvents((prev) => [...prev, ...step.events]);
+        run.addEvents(step.events);
       }, immediate ? 0 : step.delayMs);
     }
     schedule(() => {
@@ -102,7 +104,7 @@ export default function DemoWorkspace({ preview, onExit, onSignIn, signingIn }: 
 
   const startSite = (target: string) => {
     const preset = findPreset(target);
-    if (preset?.recorded) void startReplay();
+    if (preset?.slug) void startReplay(preset);
     else void startSimulation(preset?.postcode ?? target, preset?.coords);
   };
 
@@ -125,7 +127,7 @@ export default function DemoWorkspace({ preview, onExit, onSignIn, signingIn }: 
     if (!runId || !capacityProposal) return;
     run.setSubmittingDecision(true);
     run.setRunStatus({ run_id: runId, status: 'running' });
-    run.setEvents((prev) => [...prev, ...COMPLETION_EVENTS(selectedCapacityMw, currentPosition)]);
+    run.addEvents(COMPLETION_EVENTS(selectedCapacityMw, currentPosition));
     schedule(() => {
       run.setResult(simulateResult(runId, currentPosition, selectedCapacityMw, capacityProposal));
       run.setRunStatus({ run_id: runId, status: 'completed' });
@@ -217,8 +219,8 @@ export default function DemoWorkspace({ preview, onExit, onSignIn, signingIn }: 
               <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-900 dark:text-amber-200 flex items-center gap-2">
                 <PlayCircle className="w-4 h-4 shrink-0" />
                 <span>
-                  This is a <strong>demo</strong>: Dorking replays a recorded run, and other postcodes are simulated in your
-                  browser. Nothing here calls a model or uses a key.
+                  This is a <strong>demo</strong>: the example sites replay recorded runs, and other postcodes are simulated
+                  in your browser. Nothing here calls a model or uses a key.
                 </span>
               </div>
             </>
