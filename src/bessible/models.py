@@ -327,6 +327,8 @@ class FinancialOutput(BaseModel):
     cases: list[DurationCase]
     recommended_h: Literal[2, 4, 8] | None = None
     rationale: str | None = None
+    discount_rate_pct: float | None = None
+    project_life_years: int | None = None
     artifacts: list[Artifact] = Field(default_factory=list)
 
     @model_validator(mode="after")

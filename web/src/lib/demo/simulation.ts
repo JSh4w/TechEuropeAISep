@@ -157,9 +157,9 @@ export const COMPLETION_EVENTS = (capacityMw: number, pos: [number, number]): Tr
 ];
 
 const CASES = [
-  { duration_hours: 2 as const, capex_gbp: 4800000, npv_gbp: 1650000, irr_pct: 12.8 },
-  { duration_hours: 4 as const, capex_gbp: 8200000, npv_gbp: 3420000, irr_pct: 14.5 },
-  { duration_hours: 8 as const, capex_gbp: 14900000, npv_gbp: 4100000, irr_pct: 11.2 },
+  { duration_h: 2 as const, capex_gbp: 4800000, npv_gbp: 1650000, irr: 0.128 },
+  { duration_h: 4 as const, capex_gbp: 8200000, npv_gbp: 3420000, irr: 0.145 },
+  { duration_h: 8 as const, capex_gbp: 14900000, npv_gbp: 4100000, irr: 0.112 },
 ];
 
 /** The simulated report for a confirmed site. */
@@ -188,8 +188,7 @@ export function simulateResult(
       consenting_route: capacityMw >= 50 ? 'NSIP (DCO)' : 'TCPA (Local Planning Authority)',
       planning_risk: 'Low',
     },
-    durations: { cases: CASES },
-    financials: { cases: CASES, recommended_duration_hours: 4 },
+    financial: { cases: CASES, recommended_h: 4, discount_rate_pct: 8, project_life_years: 25 },
     artifacts: [
       {
         id: 'art-01',

@@ -47,10 +47,9 @@ interface ReportViewProps {
 
 export default function ReportView({ result, onReset }: ReportViewProps) {
   const [selectedArtifact, setSelectedArtifact] = useState<Artifact | null>(null);
-  const [selectedDurationH, setSelectedDurationH] = useState<number>(4);
-
-  const { capacity, site, grid_connection, land_planning, durations, financials, artifacts = [] } =
-    result;
+  const { capacity, site, grid_connection, land_planning, financial, artifacts = [] } = result;
+  const recommendedH = financial?.recommended_h ?? null;
+  const [selectedDurationH, setSelectedDurationH] = useState<number>(recommendedH ?? 4);
 
   const capacityMw = site?.capacity_mw ?? capacity?.recommended_mw ?? 10;
   const cap = capacity ?? {
@@ -73,18 +72,15 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
       : `${site.position.lat.toFixed(5)}°N, ${Math.abs(site.position.lon).toFixed(5)}°${site.position.lon >= 0 ? 'E' : 'W'}`
     : 'Confirmed Site';
 
-  // Duration cases
-  const financialCases: FinancialCase[] = durations?.cases || financials?.cases || [
-    { duration_hours: 2, capex_gbp: 4800000, npv_gbp: 1650000, irr_pct: 12.8 },
-    { duration_hours: 4, capex_gbp: 8200000, npv_gbp: 3420000, irr_pct: 14.5 },
-    { duration_hours: 8, capex_gbp: 14900000, npv_gbp: 4100000, irr_pct: 11.2 },
-  ];
-
-  const activeCase = financialCases.find(
-    (c) => (c.duration_hours ?? c.duration_h) === selectedDurationH
-  ) || financialCases[1] || financialCases[0];
-
-  const activeIrr = activeCase.irr_pct ?? (activeCase.irr !== undefined ? activeCase.irr * 100 : 14.5);
+  // Duration cases from the backend financial model; no invented fallback numbers
+  const financialCases: FinancialCase[] = financial?.cases ?? [];
+  const activeCase: FinancialCase | undefined =
+    financialCases.find((c) => c.duration_h === selectedDurationH) ?? financialCases[0];
+  const activeIrr = activeCase?.irr != null ? activeCase.irr * 100 : null;
+  const activeH = activeCase?.duration_h ?? selectedDurationH;
+  const discountRate = financial?.discount_rate_pct;
+  const projectLife = financial?.project_life_years ?? 25;
+  const gbpM = (gbp: number, digits = 2) => `£${(gbp / 1000000).toFixed(digits)}M`;
 
   return (
     <div className="space-y-6">
@@ -99,7 +95,7 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
             <span className="text-xs text-muted-foreground font-mono">Run: {result.run_id}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mt-1">
-            {capacityMw} MW / {capacityMw * selectedDurationH} MWh Battery Energy Storage Assessment
+            {capacityMw} MW / {capacityMw * activeH} MWh Battery Energy Storage Assessment
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 flex flex-wrap items-center gap-2">
             <span>Coordinates: <strong className="text-foreground font-mono">{posString}</strong></span>
@@ -154,15 +150,17 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">Initial Capex</span>
             <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-muted text-muted-foreground">
-              {selectedDurationH}H Case
+              {activeH}H Case
             </span>
           </div>
           <div className="mt-3">
             <div className="text-2xl font-bold font-sans tabular-nums text-foreground tracking-tight">
-              £{(activeCase.capex_gbp / 1000000).toFixed(2)}M
+              {activeCase ? gbpM(activeCase.capex_gbp) : '—'}
             </div>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              ~£{Math.round(activeCase.capex_gbp / (capacityMw * selectedDurationH) / 1000)}k / MWh turnkey
+              {activeCase
+                ? `~£${Math.round(activeCase.capex_gbp / (capacityMw * activeCase.duration_h) / 1000)}k / MWh turnkey`
+                : 'Financial model not available'}
             </p>
           </div>
         </div>
@@ -172,15 +170,21 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">Project Net Present Value</span>
             <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 text-[10px] font-semibold">
-              NPV @ 10%
+              {discountRate != null ? `NPV @ ${discountRate}%` : 'Equity NPV'}
             </Badge>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-bold font-sans tabular-nums text-emerald-600 dark:text-emerald-400 tracking-tight">
-              £{(activeCase.npv_gbp / 1000000).toFixed(2)}M
+            <div
+              className={`text-2xl font-bold font-sans tabular-nums tracking-tight ${
+                activeCase && activeCase.npv_gbp < 0
+                  ? 'text-red-600 dark:text-red-400'
+                  : 'text-emerald-600 dark:text-emerald-400'
+              }`}
+            >
+              {activeCase ? gbpM(activeCase.npv_gbp) : '—'}
             </div>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              25-year operational lifecycle
+              {projectLife}-year operational lifecycle
             </p>
           </div>
         </div>
@@ -190,12 +194,16 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">Project IRR</span>
             <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 text-[10px] font-semibold">
-              Unlevered
+              Equity
             </Badge>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-bold font-sans tabular-nums text-emerald-600 dark:text-emerald-400 tracking-tight">
-              {activeIrr.toFixed(1)}%
+            <div
+              className={`text-2xl font-bold font-sans tabular-nums tracking-tight ${
+                activeIrr == null ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'
+              }`}
+            >
+              {activeIrr != null ? `${activeIrr.toFixed(1)}%` : activeCase ? 'No payback' : '—'}
             </div>
             <p className="text-[11px] text-muted-foreground mt-0.5">
               Wholesale arbitrage + frequency services
@@ -424,11 +432,14 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
 
           <CardContent className="p-4">
             <div className="space-y-2.5">
+              {financialCases.length === 0 && (
+                <p className="text-xs text-muted-foreground">The financial model did not run for this site.</p>
+              )}
               {financialCases.map((c) => {
-                const durationH = c.duration_hours ?? c.duration_h ?? 4;
-                const irrVal = c.irr_pct ?? (c.irr !== undefined ? c.irr * 100 : 0);
-                const isSelected = selectedDurationH === durationH;
-                const isRecommended = durationH === 4;
+                const durationH = c.duration_h;
+                const irrVal = c.irr != null ? c.irr * 100 : null;
+                const isSelected = activeCase?.duration_h === durationH;
+                const isRecommended = durationH === recommendedH;
 
                 return (
                   <div
@@ -456,17 +467,23 @@ export default function ReportView({ result, onReset }: ReportViewProps) {
                           )}
                         </div>
                         <div className="text-[11px] text-muted-foreground font-mono">
-                          Capex: £{(c.capex_gbp / 1000000).toFixed(1)}M
+                          Capex: {gbpM(c.capex_gbp, 1)}
+                          {c.curtailment_pct ? ` · ${c.curtailment_pct.toFixed(0)}% curtailed` : ''}
+                          {c.over_budget ? ' · over budget' : ''}
                         </div>
                       </div>
                     </div>
 
                     <div className="text-right">
-                      <div className="font-bold font-mono text-emerald-600 dark:text-emerald-400 text-sm">
-                        £{(c.npv_gbp / 1000000).toFixed(2)}M NPV
+                      <div
+                        className={`font-bold font-mono text-sm ${
+                          c.npv_gbp < 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'
+                        }`}
+                      >
+                        {gbpM(c.npv_gbp)} NPV
                       </div>
                       <div className="text-[11px] text-muted-foreground font-mono">
-                        {irrVal ? `${irrVal.toFixed(1)}% IRR` : '—'}
+                        {irrVal != null ? `${irrVal.toFixed(1)}% IRR` : 'No payback'}
                       </div>
                     </div>
                   </div>

@@ -1,10 +1,36 @@
-import { AssessmentResult } from './types';
+import { AssessmentResult, FinancialCase, FinancialOutput } from './types';
+
+const gbpM = (gbp: number) => `£${(gbp / 1e6).toFixed(2)}M`;
+const irrText = (c: FinancialCase) => (c.irr != null ? `${(c.irr * 100).toFixed(1)}%` : 'No payback');
+
+/** Markdown for the duration cases computed by the backend financial model. */
+function financialSection(financial: FinancialOutput | null | undefined): string {
+  if (!financial?.cases?.length) return '*The financial model did not run for this site.*';
+  const rec = financial.recommended_h;
+  const life = financial.project_life_years ?? 25;
+  const rate = financial.discount_rate_pct != null ? `${financial.discount_rate_pct}% discount rate` : 'equity cash flows';
+  const rows = financial.cases
+    .map(c => `| ${c.duration_h} Hours ${c.duration_h === rec ? '*(Recommended)*' : ''} | ${gbpM(c.capex_gbp)} | ${gbpM(c.npv_gbp)} | ${irrText(c)} |`)
+    .join('\n');
+  const best = financial.cases.find(c => c.duration_h === rec);
+  const base = best
+    ? `
+- **Recommended Case (${best.duration_h}-Hour Duration):**
+  - **Estimated Total Capex:** ${gbpM(best.capex_gbp)}
+  - **Net Present Value (NPV):** ${gbpM(best.npv_gbp)} (${rate} over ${life}-year life)
+  - **Equity IRR:** ${irrText(best)}`
+    : '';
+  return `| Duration | Capex (£) | NPV (£) | IRR (%) |
+|---|---|---|---|
+${rows}
+${base}`;
+}
 
 /**
  * Generates an executive markdown report from an AssessmentResult
  */
 export function generateMarkdownReport(result: AssessmentResult): string {
-  const { site, capacity, grid_connection, land_planning, sentiment, durations, financials, artifacts = [] } = result;
+  const { site, capacity, grid_connection, land_planning, sentiment, financial, artifacts = [] } = result;
 
   const capacityMw = site?.capacity_mw ?? capacity?.recommended_mw ?? 10;
   const reservedAcres = site?.reserved_acres ?? land_planning?.reserved_acres ?? Number((capacityMw * 4 * 0.0625).toFixed(2));
@@ -72,18 +98,7 @@ ${sentiment ? `
 
 ## 4. Multi-Duration Financial Evaluation
 
-| Duration | Capex (£) | NPV (£) | IRR (%) |
-|---|---|---|---|
-${(durations?.cases ?? [
-  { duration_hours: 2, capex_gbp: 4800000, npv_gbp: 1650000, irr_pct: 12.8 },
-  { duration_hours: 4, capex_gbp: 8200000, npv_gbp: 3420000, irr_pct: 14.5 },
-  { duration_hours: 8, capex_gbp: 14900000, npv_gbp: 4100000, irr_pct: 11.2 },
-]).map(c => `| ${c.duration_hours ?? c.duration_h} Hours ${c.duration_hours === 4 ? '*(Recommended)*' : ''} | £${(c.capex_gbp / 1e6).toFixed(2)}M | £${(c.npv_gbp / 1e6).toFixed(2)}M | ${(c.irr_pct ?? (c.irr ? c.irr * 100 : 14.5)).toFixed(1)}% |`).join('\n')}
-
-- **Base Case (4-Hour Duration):**
-  - **Estimated Total Capex:** £${((financials?.cases?.[1]?.capex_gbp ?? 8200000) / 1e6).toFixed(2)}M
-  - **Project Net Present Value (NPV):** £${((financials?.cases?.[1]?.npv_gbp ?? 3420000) / 1e6).toFixed(2)}M (10% discount rate over 25-year life)
-  - **Internal Rate of Return (IRR):** ${(financials?.cases?.[1]?.irr_pct ?? 14.5).toFixed(1)}%
+${financialSection(financial)}
 
 ---
 
